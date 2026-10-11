@@ -11,7 +11,7 @@
     "preview": "electron-vite preview",
     "e2e": "electron-vite build && playwright test",
     "e2e:real": "electron-vite build && playwright test -c playwright.real.config.ts",
-    "prepack": "node ../../scripts/fetch-tectonic.mjs && pnpm --filter @lucid/mcp bundle && electron-vite build",
+    "prepack": "node ../../scripts/fetch-tectonic.mjs && node node_modules/electron/install.js && pnpm --filter @lucid/mcp bundle && electron-vite build",
     "dist": "pnpm prepack && electron-builder --mac --arm64 --publish never",
     "e2e:packaged": "playwright test -c playwright.packaged.config.ts",
     "dist:dir": "pnpm prepack && electron-builder --mac --arm64 --dir"
