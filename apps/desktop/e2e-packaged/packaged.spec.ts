@@ -1,39 +1,36 @@
 import { execFileSync, spawn } from "node:child_process";
-import { existsSync, mkdtempSync, realpathSync, statSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { registry } from "@lucid/kit";
 import { _electron as electron, expect, test } from "@playwright/test";
 import { autoSaveDialog, downloadPdf, maximizeWindow } from "../e2e/helpers";
+import { APP, BINARY, EXTRA_ARGS, RESOURCES, TECTONIC, bareEnv } from "./target";
 
 /**
  * The packaged app, as a person who installed it would run it: no Homebrew, nothing on the PATH, nothing but the app. A new
  * folder is the library; LM Studio is not needed for any of this.
  */
-// LUCID_APP points the tests at another copy (for example the one taken out of the .dmg).
-const APP = realpathSync(
-  process.env["LUCID_APP"] ?? join(__dirname, "../release/mac-arm64/Lucid.app"),
-);
-const BINARY = join(APP, "Contents/MacOS/Lucid");
-const RESOURCES = join(APP, "Contents/Resources");
-
-const bare = (home: string) => ({
-  ...process.env,
-  LUCID_HOME: home,
-  PATH: "/usr/bin:/bin",
-});
+// Where the app is (and the other copy LUCID_APP can point to) is in target.ts. The tests run on macOS, Windows and Linux.
+const VERSION = (
+  JSON.parse(readFileSync(join(__dirname, "../package.json"), "utf8")) as { version: string }
+).version;
+const bare = bareEnv;
 
 async function launch(home = mkdtempSync(join(tmpdir(), "lucid-home-"))) {
-  const app = await electron.launch({ executablePath: BINARY, env: bare(home) });
+  const app = await electron.launch({
+    executablePath: BINARY,
+    args: EXTRA_ARGS,
+    env: bare(home),
+  });
   const page = await app.firstWindow();
   await maximizeWindow(app, page);
   return { app, page, home };
 }
 
-test("the app is there, is signed, and carries what it needs", () => {
+test("the app is there, carries what it needs, and is signed on a Mac", () => {
   expect(existsSync(BINARY), "run `pnpm dist:dir` first").toBe(true);
   for (const file of [
-    "bin/tectonic",
     "guide.html",
     "lucid-mcp.mjs",
     "LICENSE",
@@ -41,15 +38,17 @@ test("the app is there, is signed, and carries what it needs", () => {
     "LICENSES.chromium.html",
   ])
     expect(existsSync(join(RESOURCES, file)), file).toBe(true);
-  expect(statSync(join(RESOURCES, "bin/tectonic")).mode & 0o111).not.toBe(0);
+  expect(existsSync(TECTONIC), TECTONIC).toBe(true);
+  if (process.platform !== "win32") expect(statSync(TECTONIC).mode & 0o111).not.toBe(0);
   // Apple Silicon only runs signed code: ad hoc at least, and the signature must be intact.
-  execFileSync("codesign", ["--verify", "--deep", "--strict", APP]);
+  if (process.platform === "darwin")
+    execFileSync("codesign", ["--verify", "--deep", "--strict", APP]);
   // Everything is bundled into one small archive: no node_modules travel with it (they would make it ten times bigger).
   expect(statSync(join(RESOURCES, "app.asar")).size).toBeLessThan(25_000_000);
   expect(existsSync(join(RESOURCES, "app"))).toBe(false);
 });
 
-test("it opens as Lucid 0.1.0, and a PDF with a diagram is made with nothing installed", async () => {
+test("it opens as Lucid with its own version, and a PDF with a diagram is made with nothing installed", async () => {
   const { app, page } = await launch();
   try {
     const identity = await app.evaluate(({ app: a }) => [
@@ -57,7 +56,7 @@ test("it opens as Lucid 0.1.0, and a PDF with a diagram is made with nothing ins
       a.getVersion(),
       a.getName(),
     ]);
-    expect(identity).toEqual([true, "0.1.0", "Lucid"]);
+    expect(identity).toEqual([true, VERSION, "Lucid"]);
 
     const diagram = registry.get("diagram").fixtures[0];
     if (!diagram) throw new Error("no diagram fixture");
@@ -123,7 +122,7 @@ test("opening Lucid a second time brings the first to the front instead of start
     const started = Date.now();
     // The second one finds the first and ends by itself.
     await new Promise<void>((resolve, reject) => {
-      const second = spawn(BINARY, [], { env: bare(home), stdio: "ignore" });
+      const second = spawn(BINARY, EXTRA_ARGS, { env: bare(home), stdio: "ignore" });
       const timer = setTimeout(() => {
         second.kill("SIGKILL");
         reject(new Error("the second Lucid did not end by itself"));
