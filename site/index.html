@@ -757,23 +757,26 @@
                 <div class="details-body">
                   <p><b>Debian, Ubuntu and relatives</b>, from the .deb:</p>
                   <div class="code">
+                    <pre><code>sudo apt install ./Lucid-*-linux-amd64.deb</code></pre>
                     <button
                       type="button"
                       data-copy="sudo apt install ./Lucid-*-linux-amd64.deb"
                       data-copy-deb
                     >
-                      Copy</button
-                    >sudo apt install ./Lucid-*-linux-amd64.deb
+                      Copy
+                    </button>
                   </div>
                   <p><b>Any distribution</b>, from the .AppImage:</p>
                   <div class="code">
+                    <pre><code>chmod +x Lucid-*-linux-x64.AppImage
+./Lucid-*-linux-x64.AppImage</code></pre>
                     <button
                       type="button"
                       data-copy="chmod +x Lucid-*-linux-x64.AppImage &amp;&amp; ./Lucid-*-linux-x64.AppImage"
                       data-copy-appimage
                     >
-                      Copy</button
-                    >chmod +x Lucid-*-linux-x64.AppImage ./Lucid-*-linux-x64.AppImage
+                      Copy
+                    </button>
                   </div>
                   <p>
                     On Ubuntu 24.04 and newer an AppImage can stop with a sandbox message: use the
@@ -798,12 +801,13 @@
                     On Windows, in PowerShell, then compare the result with the line for your file:
                   </p>
                   <div class="code">
+                    <pre><code>Get-FileHash .\Lucid-*-win-x64.exe -Algorithm SHA256</code></pre>
                     <button
                       type="button"
                       data-copy="Get-FileHash .\Lucid-*-win-x64.exe -Algorithm SHA256"
                     >
-                      Copy</button
-                    >Get-FileHash .\Lucid-*-win-x64.exe -Algorithm SHA256
+                      Copy
+                    </button>
                   </div>
                 </div>
               </details>
@@ -867,28 +871,26 @@ pnpm dev</code></pre>
               </div>
               <p class="code-label">Windows (PowerShell)</p>
               <div class="code">
+                <pre><code>claude mcp add lucid -e ELECTRON_RUN_AS_NODE=1 -- `
+  "$env:LOCALAPPDATA\Programs\Lucid\Lucid.exe" `
+  "$env:LOCALAPPDATA\Programs\Lucid\resources\lucid-mcp.mjs"</code></pre>
                 <button
                   type="button"
                   data-copy='claude mcp add lucid -e ELECTRON_RUN_AS_NODE=1 -- "$env:LOCALAPPDATA\Programs\Lucid\Lucid.exe" "$env:LOCALAPPDATA\Programs\Lucid\resources\lucid-mcp.mjs"'
                 >
-                  Copy</button
-                ><span class="code-wrap"
-                  >claude mcp add lucid -e ELECTRON_RUN_AS_NODE=1 -- `
-                  "$env:LOCALAPPDATA\Programs\Lucid\Lucid.exe" `
-                  "$env:LOCALAPPDATA\Programs\Lucid\resources\lucid-mcp.mjs"</span
-                >
+                  Copy
+                </button>
               </div>
               <p class="code-label">Linux (.deb)</p>
               <div class="code">
+                <pre><code>claude mcp add lucid -e ELECTRON_RUN_AS_NODE=1 -- \
+  /opt/Lucid/lucid /opt/Lucid/resources/lucid-mcp.mjs</code></pre>
                 <button
                   type="button"
                   data-copy="claude mcp add lucid -e ELECTRON_RUN_AS_NODE=1 -- /opt/Lucid/lucid /opt/Lucid/resources/lucid-mcp.mjs"
                 >
-                  Copy</button
-                ><span class="code-wrap"
-                  >claude mcp add lucid -e ELECTRON_RUN_AS_NODE=1 -- \ /opt/Lucid/lucid
-                  /opt/Lucid/resources/lucid-mcp.mjs</span
-                >
+                  Copy
+                </button>
               </div>
             </div>
           </div>

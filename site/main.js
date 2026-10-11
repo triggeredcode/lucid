@@ -139,13 +139,14 @@ function fill(release) {
   for (const button of document.querySelectorAll("[data-copy-deb]")) {
     if (deb) {
       button.setAttribute("data-copy", `sudo apt install ./${deb.name}`);
-      button.parentElement.lastChild.textContent = `sudo apt install ./${deb.name}`;
+      button.parentElement.querySelector("code").textContent = `sudo apt install ./${deb.name}`;
     }
   }
   for (const button of document.querySelectorAll("[data-copy-appimage]")) {
     if (appimage) {
       button.setAttribute("data-copy", `chmod +x ${appimage.name} && ./${appimage.name}`);
-      button.parentElement.lastChild.textContent = `chmod +x ${appimage.name}\n./${appimage.name}`;
+      button.parentElement.querySelector("code").textContent =
+        `chmod +x ${appimage.name}\n./${appimage.name}`;
     }
   }
   for (const el of document.querySelectorAll("[data-version]"))
