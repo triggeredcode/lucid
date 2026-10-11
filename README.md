@@ -18,6 +18,13 @@
 </p>
 
 <p align="center">
+  <a href="https://triggeredcode.github.io/lucid/"><b>Website</b></a> ·
+  <a href="https://github.com/triggeredcode/lucid/releases/latest"><b>Download</b></a> ·
+  <a href="docs/guide.html">User guide</a> ·
+  <a href="CHANGELOG.md">Changelog</a>
+</p>
+
+<p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/images/lucid-dark.png" />
     <img alt="Lucid: a page of notes with a diagram, the list of changes on the right and the input box at the bottom" src="docs/images/lucid-light.png" width="900" />
