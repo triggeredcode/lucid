@@ -1,6 +1,7 @@
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { build } from "esbuild";
 
@@ -8,7 +9,7 @@ import { build } from "esbuild";
 const dir = mkdtempSync(join(tmpdir(), "lucid-eval-"));
 const outfile = join(dir, "eval.mjs");
 await build({
-  entryPoints: [new URL("../src/main.ts", import.meta.url).pathname],
+  entryPoints: [fileURLToPath(new URL("../src/main.ts", import.meta.url))],
   bundle: true,
   platform: "node",
   format: "esm",

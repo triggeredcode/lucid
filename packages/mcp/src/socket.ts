@@ -1,7 +1,7 @@
 import { createServer, connect, type Server } from "node:net";
 import { createHash } from "node:crypto";
 import { chmod, mkdir, rm } from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { dirname, join, posix } from "node:path";
 import { homedir } from "node:os";
 import { LucidDocSchema, type BlockPatch } from "@lucid/core";
 import { z } from "zod";
@@ -26,7 +26,7 @@ export const socketPathFor = (
 ): string =>
   platform === "win32"
     ? `\\\\.\\pipe\\lucid-${createHash("sha256").update(home.toLowerCase()).digest("hex").slice(0, 16)}`
-    : join(home, ".lucid", "lucid.sock");
+    : posix.join(home, ".lucid", "lucid.sock");
 
 /** A Windows named pipe has no file to create, remove or protect. */
 export const isPipe = (path: string): boolean => path.startsWith("\\\\.\\pipe\\");
