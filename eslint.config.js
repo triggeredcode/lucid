@@ -41,6 +41,7 @@ export default tseslint.config(
       "**/coverage/**",
       "**/release/**",
       "_site/**",
+      "site/**/*.d.ts",
     ],
   },
   js.configs.recommended,
@@ -62,6 +63,7 @@ export default tseslint.config(
   {
     files: ["site/**/*.js"],
     languageOptions: {
+      sourceType: "module",
       globals: {
         window: "readonly",
         document: "readonly",
@@ -70,6 +72,8 @@ export default tseslint.config(
         navigator: "readonly",
         fetch: "readonly",
         setTimeout: "readonly",
+        Number: "readonly",
+        Object: "readonly",
         IntersectionObserver: "readonly",
         Date: "readonly",
         JSON: "readonly",

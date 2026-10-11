@@ -6,7 +6,7 @@
     <title>Lucid: a structured document, built while you think</title>
     <meta
       name="description"
-      content="Say or type your thoughts and Lucid arranges them as headings, lists, tables and diagrams, then typesets a PDF. A local-first macOS app: the language model runs on your own Mac."
+      content="Say or type your thoughts and Lucid arranges them as headings, lists, tables and diagrams, then typesets a PDF. A local-first app for macOS, Windows and Linux: the language model runs on your own computer."
     />
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
@@ -18,7 +18,7 @@
     <meta property="og:title" content="Lucid: a structured document, built while you think" />
     <meta
       property="og:description"
-      content="Headings, lists, tables and diagrams from speech or typing, by a model on your own Mac. Free and open source."
+      content="Headings, lists, tables and diagrams from speech or typing, by a model on your own computer. For macOS, Windows and Linux. Free and open source."
     />
     <meta property="og:url" content="https://triggeredcode.github.io/lucid/" />
     <meta property="og:image" content="https://triggeredcode.github.io/lucid/og.png" />
@@ -74,22 +74,18 @@
       <!-- ============ hero ============ -->
       <div class="hero" id="top">
         <div class="wrap">
-          <p class="eyebrow"><i></i> Free and open source · local-first · macOS</p>
+          <p class="eyebrow"><i></i> Free and open source · local-first · macOS, Windows, Linux</p>
           <h1>A structured document, built while you think.</h1>
           <p class="lead">
             Say or type your thoughts. Lucid arranges them as headings, lists, tables and diagrams,
-            and typesets them. The language model runs on your own Mac, so nothing leaves it.
+            and typesets them. The language model runs on your own computer, so nothing leaves it.
           </p>
           <div class="cta">
-            <a
-              class="btn primary"
-              href="https://github.com/triggeredcode/lucid/releases/latest"
-              data-dl="dmg"
-            >
+            <a class="btn primary" href="#download" data-cta>
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
               </svg>
-              Download for macOS
+              <span data-cta-text>Download Lucid</span>
             </a>
             <a class="btn" href="https://github.com/triggeredcode/lucid">
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -98,10 +94,7 @@
               View the source
             </a>
           </div>
-          <p class="cta-note">
-            <span data-version>Apple Silicon</span> · macOS 13 or newer ·
-            <span data-size="dmg">free, MIT licence</span>
-          </p>
+          <p class="cta-note" data-cta-note>macOS · Windows · Linux · free, MIT licence</p>
 
           <figure class="window reveal" style="margin-bottom: 0">
             <div class="window-bar" aria-hidden="true"><i></i><i></i><i></i><span>Lucid</span></div>
@@ -322,8 +315,8 @@
             <li class="reveal">
               <h3>Say or type</h3>
               <p>
-                One input box. Dictate with Wispr Flow (optional) or just type. Your words are never
-                lost: if the model cannot use them, they are kept as written.
+                One input box. Dictate with Wispr Flow on macOS or Windows (optional), or just type.
+                Your words are never lost: if the model cannot use them, they are kept as written.
               </p>
             </li>
             <li class="reveal" style="--d: 0.08s">
@@ -554,35 +547,141 @@
         <div class="wrap">
           <div class="head">
             <p class="kicker">Download</p>
-            <h2>Install in a minute.</h2>
+            <h2>Install in a minute, on any of the three.</h2>
+          </div>
+          <div class="tabs" role="tablist" aria-label="Choose your system">
+            <button
+              type="button"
+              role="tab"
+              id="tab-mac"
+              aria-controls="panel-mac"
+              data-system="mac"
+            >
+              macOS <span class="here" hidden>your system</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              id="tab-windows"
+              aria-controls="panel-windows"
+              data-system="windows"
+            >
+              Windows <span class="here" hidden>your system</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              id="tab-linux"
+              aria-controls="panel-linux"
+              data-system="linux"
+            >
+              Linux <span class="here" hidden>your system</span>
+            </button>
           </div>
           <div class="download">
             <div class="card dl-main reveal">
-              <div class="dl-title">
-                <h3>Lucid for macOS</h3>
-                <span class="ver" data-version>latest</span>
+              <div
+                class="panel"
+                id="panel-mac"
+                role="tabpanel"
+                aria-labelledby="tab-mac"
+                data-system="mac"
+              >
+                <div class="dl-title">
+                  <h3>Lucid for macOS</h3>
+                  <span class="ver" data-version>latest</span>
+                </div>
+                <p class="dl-meta">
+                  Apple Silicon · macOS 13 or newer · <span data-date>free and open source</span>
+                </p>
+                <div class="dl-buttons">
+                  <a
+                    class="btn primary"
+                    href="https://github.com/triggeredcode/lucid/releases/latest"
+                    data-dl="mac.primary"
+                    ><svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path
+                        d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"
+                      /></svg
+                    >Download .dmg <span class="size"></span
+                  ></a>
+                  <a
+                    class="btn"
+                    href="https://github.com/triggeredcode/lucid/releases/latest"
+                    data-dl="mac.secondary"
+                    >.zip <span class="size"></span
+                  ></a>
+                </div>
+                <p class="dl-note" hidden></p>
               </div>
-              <p class="dl-meta">
-                Apple Silicon · macOS 13 or newer · <span data-date>free and open source</span>
-              </p>
-              <div class="dl-buttons">
-                <a
-                  class="btn primary"
-                  href="https://github.com/triggeredcode/lucid/releases/latest"
-                  data-dl="dmg"
-                >
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
-                  </svg>
-                  Download .dmg <span class="size" data-size="dmg"></span>
-                </a>
-                <a
-                  class="btn"
-                  href="https://github.com/triggeredcode/lucid/releases/latest"
-                  data-dl="zip"
-                >
-                  .zip <span class="size" data-size="zip"></span>
-                </a>
+              <div
+                class="panel"
+                id="panel-windows"
+                role="tabpanel"
+                aria-labelledby="tab-windows"
+                data-system="windows"
+              >
+                <div class="dl-title">
+                  <h3>Lucid for Windows</h3>
+                  <span class="ver" data-version>latest</span>
+                </div>
+                <p class="dl-meta">
+                  64-bit · Windows 10 or newer · <span data-date>free and open source</span>
+                </p>
+                <div class="dl-buttons">
+                  <a
+                    class="btn primary"
+                    href="https://github.com/triggeredcode/lucid/releases/latest"
+                    data-dl="windows.primary"
+                    ><svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path
+                        d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"
+                      /></svg
+                    >Download installer <span class="size"></span
+                  ></a>
+                  <a
+                    class="btn"
+                    href="https://github.com/triggeredcode/lucid/releases/latest"
+                    data-dl="windows.secondary"
+                    >Portable .zip <span class="size"></span
+                  ></a>
+                </div>
+                <p class="dl-note" hidden></p>
+              </div>
+              <div
+                class="panel"
+                id="panel-linux"
+                role="tabpanel"
+                aria-labelledby="tab-linux"
+                data-system="linux"
+              >
+                <div class="dl-title">
+                  <h3>Lucid for Linux</h3>
+                  <span class="ver" data-version>latest</span>
+                </div>
+                <p class="dl-meta">
+                  64-bit (x86-64) · Debian, Ubuntu and other distributions ·
+                  <span data-date>free and open source</span>
+                </p>
+                <div class="dl-buttons">
+                  <a
+                    class="btn primary"
+                    href="https://github.com/triggeredcode/lucid/releases/latest"
+                    data-dl="linux.primary"
+                    ><svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path
+                        d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"
+                      /></svg
+                    >Download .deb <span class="size"></span
+                  ></a>
+                  <a
+                    class="btn"
+                    href="https://github.com/triggeredcode/lucid/releases/latest"
+                    data-dl="linux.secondary"
+                    >.AppImage <span class="size"></span
+                  ></a>
+                </div>
+                <p class="dl-note" hidden></p>
               </div>
               <p class="dl-more">
                 <a href="https://github.com/triggeredcode/lucid/releases/latest" data-dl="sums"
@@ -599,8 +698,8 @@
                   app.
                 </li>
                 <li>
-                  <a href="https://lmstudio.ai">LM Studio</a> with the model
-                  <code>qwen/qwen3.8-27b</code> (a lot of memory; developed on 48 GB).
+                  <a href="https://lmstudio.ai">LM Studio</a> (for macOS, Windows and Linux) with
+                  the model <code>qwen/qwen3.8-27b</code>: a lot of memory; developed on 48 GB.
                 </li>
                 <li>
                   The first PDF needs the internet once, to fetch typesetting files (about five
@@ -610,8 +709,8 @@
             </div>
 
             <div class="dl-side">
-              <details class="reveal" open>
-                <summary>First time you open it</summary>
+              <details class="reveal" data-system="mac" open>
+                <summary>First time you open it (macOS)</summary>
                 <div class="details-body">
                   <p>Lucid is free and not notarized by Apple, so macOS asks once:</p>
                   <ol>
@@ -635,22 +734,86 @@
                   </div>
                 </div>
               </details>
+              <details class="reveal" data-system="windows" open>
+                <summary>First time you open it (Windows)</summary>
+                <div class="details-body">
+                  <p>
+                    Run the installer. It installs Lucid for you (no administrator needed) and
+                    starts it. Lucid is free and not signed, so Windows SmartScreen may say “Windows
+                    protected your PC”:
+                  </p>
+                  <ol>
+                    <li>Click <b>More info</b>.</li>
+                    <li>Click <b>Run anyway</b>.</li>
+                  </ol>
+                  <p>
+                    To remove it later: Settings → Apps → Lucid. The portable .zip needs no install:
+                    unpack it and run <code>Lucid.exe</code>.
+                  </p>
+                </div>
+              </details>
+              <details class="reveal" data-system="linux" open>
+                <summary>First time you open it (Linux)</summary>
+                <div class="details-body">
+                  <p><b>Debian, Ubuntu and relatives</b>, from the .deb:</p>
+                  <div class="code">
+                    <button
+                      type="button"
+                      data-copy="sudo apt install ./Lucid-*-linux-amd64.deb"
+                      data-copy-deb
+                    >
+                      Copy</button
+                    >sudo apt install ./Lucid-*-linux-amd64.deb
+                  </div>
+                  <p><b>Any distribution</b>, from the .AppImage:</p>
+                  <div class="code">
+                    <button
+                      type="button"
+                      data-copy="chmod +x Lucid-*-linux-x64.AppImage &amp;&amp; ./Lucid-*-linux-x64.AppImage"
+                      data-copy-appimage
+                    >
+                      Copy</button
+                    >chmod +x Lucid-*-linux-x64.AppImage ./Lucid-*-linux-x64.AppImage
+                  </div>
+                  <p>
+                    On Ubuntu 24.04 and newer an AppImage can stop with a sandbox message: use the
+                    .deb, or start the AppImage with <code>--no-sandbox</code>.
+                  </p>
+                </div>
+              </details>
               <details class="reveal" style="--d: 0.05s">
                 <summary>Check the download</summary>
                 <div class="details-body">
-                  <p>Each release lists SHA-256 checksums. In the folder with both files:</p>
+                  <p>
+                    Each release lists SHA-256 checksums in <code>SHA256SUMS</code>. On macOS and
+                    Linux, in the folder with both files:
+                  </p>
                   <div class="code">
                     <pre><code>shasum -a 256 --ignore-missing -c SHA256SUMS</code></pre>
                     <button type="button" data-copy="shasum -a 256 --ignore-missing -c SHA256SUMS">
                       Copy
                     </button>
                   </div>
+                  <p>
+                    On Windows, in PowerShell, then compare the result with the line for your file:
+                  </p>
+                  <div class="code">
+                    <button
+                      type="button"
+                      data-copy="Get-FileHash .\Lucid-*-win-x64.exe -Algorithm SHA256"
+                    >
+                      Copy</button
+                    >Get-FileHash .\Lucid-*-win-x64.exe -Algorithm SHA256
+                  </div>
                 </div>
               </details>
               <details class="reveal" style="--d: 0.1s">
                 <summary>Build it yourself</summary>
                 <div class="details-body">
-                  <p>Needs Node 22.12 or newer and pnpm 9, on Apple Silicon.</p>
+                  <p>
+                    Needs Node 22.12 or newer and pnpm 9. Works on macOS (Apple Silicon), Windows
+                    and Linux (x64).
+                  </p>
                   <div class="code">
                     <pre><code>git clone https://github.com/triggeredcode/lucid.git
 cd lucid
@@ -690,6 +853,7 @@ pnpm dev</code></pre>
               </p>
             </div>
             <div class="reveal" style="--d: 0.1s">
+              <p class="code-label">macOS</p>
               <div class="code">
                 <pre><code>claude mcp add lucid -e ELECTRON_RUN_AS_NODE=1 -- \
   /Applications/Lucid.app/Contents/MacOS/Lucid \
@@ -700,6 +864,31 @@ pnpm dev</code></pre>
                 >
                   Copy
                 </button>
+              </div>
+              <p class="code-label">Windows (PowerShell)</p>
+              <div class="code">
+                <button
+                  type="button"
+                  data-copy='claude mcp add lucid -e ELECTRON_RUN_AS_NODE=1 -- "$env:LOCALAPPDATA\Programs\Lucid\Lucid.exe" "$env:LOCALAPPDATA\Programs\Lucid\resources\lucid-mcp.mjs"'
+                >
+                  Copy</button
+                ><span class="code-wrap"
+                  >claude mcp add lucid -e ELECTRON_RUN_AS_NODE=1 -- `
+                  "$env:LOCALAPPDATA\Programs\Lucid\Lucid.exe" `
+                  "$env:LOCALAPPDATA\Programs\Lucid\resources\lucid-mcp.mjs"</span
+                >
+              </div>
+              <p class="code-label">Linux (.deb)</p>
+              <div class="code">
+                <button
+                  type="button"
+                  data-copy="claude mcp add lucid -e ELECTRON_RUN_AS_NODE=1 -- /opt/Lucid/lucid /opt/Lucid/resources/lucid-mcp.mjs"
+                >
+                  Copy</button
+                ><span class="code-wrap"
+                  >claude mcp add lucid -e ELECTRON_RUN_AS_NODE=1 -- \ /opt/Lucid/lucid
+                  /opt/Lucid/resources/lucid-mcp.mjs</span
+                >
               </div>
             </div>
           </div>
@@ -784,11 +973,18 @@ pnpm dev</code></pre>
               </div>
             </details>
             <details>
-              <summary>Windows or Linux? Intel Macs?</summary>
+              <summary>Which systems does it run on?</summary>
               <div class="details-body">
                 <p>
-                  Not yet: the app is built and tested for macOS on Apple Silicon. The code is open
-                  if you want to help.
+                  macOS 13 or newer on Apple Silicon, Windows 10 or newer (64-bit) and Linux
+                  (64-bit; a .deb for Debian and Ubuntu, an AppImage for other distributions). Not
+                  yet: Intel Macs, and Windows or Linux on ARM.
+                </p>
+                <p>
+                  Every build is tested on GitHub’s own macOS, Windows and Ubuntu machines before a
+                  release (it starts, makes a PDF with a diagram, and connects an AI agent), but the
+                  Mac version has had the most everyday use. If something is off on Windows or
+                  Linux, please report it.
                 </p>
               </div>
             </details>
@@ -824,6 +1020,6 @@ pnpm dev</code></pre>
       </div>
     </footer>
 
-    <script src="main.js" defer></script>
+    <script type="module" src="main.js"></script>
   </body>
 </html>
