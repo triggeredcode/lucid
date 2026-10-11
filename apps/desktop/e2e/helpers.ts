@@ -27,9 +27,16 @@ export async function downloadPdf(
   } catch (error) {
     // Say what the window said instead (the engine's own message, if it failed), so a failure on another machine can be read.
     const said = await page.locator(".export-note").allTextContents();
-    throw new Error(`The PDF was not saved. The window says: ${JSON.stringify(said)}`, {
-      cause: error,
-    });
+    const buttons = await page.getByRole("button").allTextContents();
+    await page
+      .screenshot({ path: `test-results/pdf-not-saved-${String(Date.now())}.png` })
+      .catch(() => undefined);
+    throw new Error(
+      `The PDF was not saved. The window says: ${JSON.stringify(said)}; its buttons: ${JSON.stringify(buttons)}`,
+      {
+        cause: error,
+      },
+    );
   }
   expect(readFileSync(path).subarray(0, 5).toString()).toBe("%PDF-");
   expect(statSync(path).size).toBeGreaterThan(3_000);

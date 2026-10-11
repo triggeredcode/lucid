@@ -17,16 +17,34 @@ const VERSION = (
 ).version;
 const bare = bareEnv;
 
+/** What the app and its window printed, kept so that a failure on a machine nobody can look at can be read afterwards. */
+const output: string[] = [];
+
 async function launch(home = mkdtempSync(join(tmpdir(), "lucid-home-"))) {
   const app = await electron.launch({
     executablePath: BINARY,
     args: EXTRA_ARGS,
-    env: bare(home),
+    env: { ...bare(home), ELECTRON_ENABLE_LOGGING: "1" },
   });
+  const child = app.process();
+  child.stdout?.on("data", (d: Buffer) => output.push(`[app out] ${d.toString().trimEnd()}`));
+  child.stderr?.on("data", (d: Buffer) => output.push(`[app err] ${d.toString().trimEnd()}`));
   const page = await app.firstWindow();
+  page.on("console", (m) => output.push(`[window ${m.type()}] ${m.text()}`));
+  page.on("pageerror", (e) => output.push(`[window error] ${e.message}`));
   await maximizeWindow(app, page);
   return { app, page, home };
 }
+
+test.beforeEach(() => {
+  output.length = 0;
+});
+test.afterEach(async ({}, testInfo) => {
+  if (testInfo.status === testInfo.expectedStatus) return;
+  console.log(
+    `---- what the app and its window printed (${testInfo.title}) ----\n${output.slice(-200).join("\n")}`,
+  );
+});
 
 test("the app is there, carries what it needs, and is signed on a Mac", () => {
   expect(existsSync(BINARY), "run `pnpm dist:dir` first").toBe(true);
