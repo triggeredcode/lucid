@@ -9,3 +9,4 @@ pnpm-lock.yaml
 **/golden/**
 docs/guide.html
 **/release/**
+_site

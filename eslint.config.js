@@ -34,7 +34,14 @@ const dependencyRules = ALL.map((pkg) => {
 
 export default tseslint.config(
   {
-    ignores: ["**/dist/**", "**/out/**", "**/node_modules/**", "**/coverage/**", "**/release/**"],
+    ignores: [
+      "**/dist/**",
+      "**/out/**",
+      "**/node_modules/**",
+      "**/coverage/**",
+      "**/release/**",
+      "_site/**",
+    ],
   },
   js.configs.recommended,
   ...tseslint.configs.strictTypeChecked.map((c) => ({ ...c, files: ["**/*.{ts,tsx}"] })),
@@ -48,6 +55,29 @@ export default tseslint.config(
         console: "readonly",
         fetch: "readonly",
         Buffer: "readonly",
+      },
+    },
+  },
+  // The GitHub Pages site's script runs in the browser.
+  {
+    files: ["site/**/*.js"],
+    languageOptions: {
+      globals: {
+        window: "readonly",
+        document: "readonly",
+        localStorage: "readonly",
+        sessionStorage: "readonly",
+        navigator: "readonly",
+        fetch: "readonly",
+        setTimeout: "readonly",
+        IntersectionObserver: "readonly",
+        Date: "readonly",
+        JSON: "readonly",
+        Promise: "readonly",
+        Error: "readonly",
+        String: "readonly",
+        Math: "readonly",
+        isNaN: "readonly",
       },
     },
   },
