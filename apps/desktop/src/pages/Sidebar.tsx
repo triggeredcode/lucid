@@ -5,6 +5,7 @@ import { setTheme, useResolvedTheme } from "../theme/appearance";
 import { BrandMark } from "../ui/BrandMark";
 import { FileGlyph } from "../ui/FileGlyph";
 import { Icon } from "../ui/Icon";
+import { keys } from "../platform";
 
 interface Props {
   pages: PageSummary[];
@@ -80,7 +81,7 @@ export function Sidebar({
       <button
         className="new-from"
         type="button"
-        title="Bring in a note that was exported (⌘O)"
+        title={keys("Bring in a note that was exported (⌘O)")}
         onClick={onImport}
       >
         <Icon name="download" /> Import a note…
@@ -157,7 +158,7 @@ export function Sidebar({
           type="button"
           className="sidebar-settings"
           onClick={onSettings}
-          title="Settings (⌘,)"
+          title={keys("Settings (⌘,)")}
         >
           <Icon name="settings" /> Settings
         </button>

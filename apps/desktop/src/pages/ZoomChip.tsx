@@ -1,3 +1,4 @@
+import { keys } from "../platform";
 import { usePageZoom, zoomPage } from "../theme/pageZoom";
 
 /** Shown only while the page is not at 100%: the size, and a click puts it back. */
@@ -8,7 +9,7 @@ export function ZoomChip() {
     <button
       type="button"
       className="ghost small zoom-chip"
-      title="Page zoom: click for 100% (⌘0). ⌘+ and ⌘− zoom, or pinch."
+      title={keys("Page zoom: click for 100% (⌘0). ⌘+ and ⌘− zoom, or pinch.")}
       onClick={() => {
         zoomPage("reset");
       }}
