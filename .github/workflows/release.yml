@@ -34,7 +34,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          notes="$(awk -v v="${GITHUB_REF_NAME#v}" '$0 ~ "^## \\["v"\\]" {on=1; next} /^## \[/ {on=0} on' CHANGELOG.md)"
+          notes="$(cat .github/release-install.md; awk -v v="${GITHUB_REF_NAME#v}" '$0 ~ "^## \\["v"\\]" {on=1; next} /^## \[/ {on=0} on' CHANGELOG.md)"
           gh release create "$GITHUB_REF_NAME" \
             apps/desktop/release/*.dmg apps/desktop/release/*.zip apps/desktop/release/SHA256SUMS \
             --title "Lucid ${GITHUB_REF_NAME#v}" --notes "$notes"

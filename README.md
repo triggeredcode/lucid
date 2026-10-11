@@ -84,7 +84,7 @@ Lucid is a macOS app for **Apple Silicon**, **macOS 13 or newer**.
 3. Install [LM Studio](https://lmstudio.ai), download the model **`qwen/qwen3.8-27b`**, and start its local server
    (Developer tab). Lucid's pill at the top says what is missing and can load the model for you.
 
-Each release lists SHA-256 checksums (`SHA256SUMS`), so you can check the download with `shasum -a 256 -c SHA256SUMS`. The
+Each release lists SHA-256 checksums (`SHA256SUMS`), so you can check the download with `shasum -a 256 --ignore-missing -c SHA256SUMS`. The
 source is here; you can [build the app yourself](#build-from-source).
 
 **Good to know**
