@@ -186,7 +186,7 @@ export function ExportButton({
           setNoteOpen(true);
         }}
       >
-        <Icon name="upload" /> Export note
+        <Icon name="upload" /> <span className="btn-text">Export note</span>
       </button>
       <button
         className="ghost small"
@@ -195,7 +195,7 @@ export function ExportButton({
         onClick={() => void runMarkdown()}
         disabled={busy}
       >
-        <Icon name="markdown" /> Markdown
+        <Icon name="markdown" /> <span className="btn-text">Markdown</span>
       </button>
       <button className="primary" type="button" onClick={() => void run()} disabled={busy}>
         <Icon name="download" /> {busy ? "Making PDF…" : "Download PDF"}
