@@ -402,28 +402,31 @@ export function Workspace({ file, onSaved, sidebarOpen, onToggleSidebar }: Props
               "Saved"
             )}
           </div>
-          <button
-            type="button"
-            className="ghost small"
-            aria-pressed={sideOpen}
-            onClick={() => {
-              toggleSide(!sideOpen);
-            }}
-          >
-            <Icon name="history" /> History
-            {transcripts.length > 0 ? ` (${String(Math.min(transcripts.length, 99))})` : ""}
-          </button>
-          <ExportButton
-            pageId={file.id}
-            title={title}
-            doc={doc}
-            format={format}
-            info={info}
-            getNote={snapshot}
-            said={transcripts.length}
-            changes={changeLog.length}
-            register={registerExport}
-          />
+          <div className="topbar-actions">
+            <button
+              type="button"
+              className="ghost small"
+              aria-pressed={sideOpen}
+              title="Show or hide what you said and the changes to the page"
+              onClick={() => {
+                toggleSide(!sideOpen);
+              }}
+            >
+              <Icon name="history" /> <span className="btn-text">History</span>
+              {transcripts.length > 0 ? ` (${String(Math.min(transcripts.length, 99))})` : ""}
+            </button>
+            <ExportButton
+              pageId={file.id}
+              title={title}
+              doc={doc}
+              format={format}
+              info={info}
+              getNote={snapshot}
+              said={transcripts.length}
+              changes={changeLog.length}
+              register={registerExport}
+            />
+          </div>
         </header>
         <div className="editor-scroll" hidden={Boolean(builder.state)} ref={pageScroll}>
           <div className="page-column zoomable">
