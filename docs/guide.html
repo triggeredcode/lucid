@@ -164,6 +164,7 @@ footer { color: var(--ink-3); font-size: 12.5px; border-top: 1px solid var(--lin
     <li><div><b>Watch the page.</b> Your words become notes. To change something, say what to change (Command mode, below). To undo anything, say <code>undo</code>.</div></li>
     <li><div><b>Download PDF</b> (top right) when it looks right.</div></li>
   </ol>
+  <p class="sub" id="keys-note" hidden>Lucid runs on macOS, Windows and Linux. Where this guide shows the Mac keys ⌘ and ⌥, press <b>Ctrl</b> and <b>Alt</b> on Windows and Linux (this page shows them for you); everything else is the same.</p>
 </section>
 
 <section id="window">
@@ -178,7 +179,7 @@ footer { color: var(--ink-3); font-size: 12.5px; border-top: 1px solid var(--lin
     <figcaption>The main window with a page open. Left: your pages. Middle: the page and, under it, the input box. Right: the History panel.</figcaption>
   </figure>
   <ul class="legend">
-    <li><span class="n">1</span><div><b>The page list (left)</b><span><b>New page</b> makes a blank page. <b>New from a format…</b> starts a page with sections for a kind of note (concept, system design, comparison, inference, benchmark). <b>Import a note…</b> brings in a note that was exported. Each page shows its name, what kind of note it is and when it last changed; the open one is bold. Click a page to open it. The ✕ at the end of a row asks <i>Delete?</i> once; the page then goes to the Mac's Trash, so it can still be taken back. The arrows at the top hide the column.</span></div></li>
+    <li><span class="n">1</span><div><b>The page list (left)</b><span><b>New page</b> makes a blank page. <b>New from a format…</b> starts a page with sections for a kind of note (concept, system design, comparison, inference, benchmark). <b>Import a note…</b> brings in a note that was exported. Each page shows its name, what kind of note it is and when it last changed; the open one is bold. Click a page to open it. The ✕ at the end of a row asks <i>Delete?</i> once; the page then goes to the Trash (the Recycle Bin on Windows), so it can still be taken back. The arrows at the top hide the column.</span></div></li>
     <li><span class="n">2</span><div><b>Settings and theme (bottom left)</b><span><b>Settings</b> (or <kbd>⌘</kbd><kbd>,</kbd>): the look, the model, your name for the PDFs, and words speech recognition gets wrong. The moon/sun button switches light and dark.</span></div></li>
     <li><span class="n">3</span><div><b>The format chip (top bar, left)</b><span>Shows the kind of note this page is. Click it to change the kind, fill the fields printed under the title in the PDF (source, book, chapter…), or add the sections the page is missing.</span></div></li>
     <li><span class="n">4</span><div><b>Model status and saving (top bar)</b><span>The dot and name say whether the model is ready. If LM Studio is not running it says so, with <i>Check again</i>; if no model is loaded it offers to load yours. <i>Saved</i> / <i>Saving…</i> shows that your page is written to disk. If saving fails it says <i>Couldn’t save</i> with <i>Try again</i>, keeps trying by itself, and asks before the window closes.</span></div></li>
@@ -483,7 +484,7 @@ footer { color: var(--ink-3); font-size: 12.5px; border-top: 1px solid var(--lin
 <section id="where">
   <h2>Where things live</h2>
   <ul>
-    <li><b>Your pages</b>: one file per page in <code>~/Lucid</code> (a JSON file you can back up or copy). Set <code>LUCID_HOME</code> to use another folder.</li>
+    <li><b>Your pages</b>: one file per page in <code>~/Lucid</code>, the Lucid folder in your home folder (on Windows, <code>C:\Users\you\Lucid</code>); a JSON file you can back up or copy. Set <code>LUCID_HOME</code> to use another folder.</li>
     <li><b>Settings, build files, backups</b>: <code>~/Lucid/.lucid/</code>. Old versions of a page are kept there before it is overwritten.</li>
     <li><b>PDFs an agent makes</b>: <code>~/Lucid/exports/</code>. The PDFs you download go where you choose.</li>
     <li><b>Look and type</b> (theme, Mono/Sans/Serif): remembered by the app itself.</li>
@@ -528,6 +529,25 @@ footer { color: var(--ink-3); font-size: 12.5px; border-top: 1px solid var(--lin
     if (sans) { delete root.dataset.font; set("lucid.guide.font", "mono"); }
     else { root.dataset.font = "sans"; set("lucid.guide.font", "sans"); }
   });
+})();
+</script>
+<script>
+// On Windows and Linux the shortcuts are Ctrl, Shift and Alt: show those instead of the Mac's symbols.
+(function () {
+  if (/mac/i.test(navigator.platform || navigator.userAgent)) return;
+  document.querySelectorAll("kbd").forEach(function (k) {
+    k.textContent = k.textContent.replace("⌘", "Ctrl").replace("⇧", "Shift").replace("⌥", "Alt");
+  });
+  // In running text a key is written with its modifier: ⌘1 becomes Ctrl+1.
+  var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  var nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  nodes.forEach(function (n) {
+    if (n.parentElement && /^(KBD|SCRIPT|STYLE)$/.test(n.parentElement.tagName)) return;
+    if (/[⌘⇧⌥]/.test(n.nodeValue)) n.nodeValue = n.nodeValue.replace(/⇧⌘/g, "Ctrl+Shift+").replace(/⌘/g, "Ctrl+").replace(/⌥/g, "Alt");
+  });
+  var note = document.getElementById("keys-note");
+  if (note) note.hidden = false;
 })();
 </script>
 </body>

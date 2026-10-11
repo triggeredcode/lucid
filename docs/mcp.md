@@ -9,8 +9,8 @@ pages, and whatever an agent does is done in the editor you are looking at.
 * Struck-through ideas are kept on purpose; ops that delete or mostly rewrite content are refused unless the agent says
   `allow_destructive` (and tells you).
 * An agent can only edit a page it has just read: edits carry the page's `revision`, and are refused if the page changed.
-* The agent talks to the app over a local socket in your library folder (`~/Lucid/.lucid/lucid.sock`, readable only by you).
-  Nothing leaves your computer.
+* The agent talks to the app over a local connection: a socket in your library folder (`~/Lucid/.lucid/lucid.sock`, readable
+  only by you) on macOS and Linux, a named pipe on Windows. Nothing leaves your computer.
 
 ## Tools
 
@@ -31,20 +31,38 @@ Agents never write LaTeX or Mermaid: Lucid draws diagrams and PDFs itself.
 ## Connect Claude Code
 
 The installed app carries the server. It is started with the app's own program, run as plain Node (`ELECTRON_RUN_AS_NODE`),
-so nothing else has to be installed:
+so nothing else has to be installed. The command depends on where the app is:
+
+**macOS**
 
 ```bash
 claude mcp add lucid -e ELECTRON_RUN_AS_NODE=1 -- /Applications/Lucid.app/Contents/MacOS/Lucid /Applications/Lucid.app/Contents/Resources/lucid-mcp.mjs
 ```
 
+**Windows** (PowerShell; the installer puts Lucid in `%LOCALAPPDATA%\Programs\Lucid`)
+
+```powershell
+claude mcp add lucid -e ELECTRON_RUN_AS_NODE=1 -- "$env:LOCALAPPDATA\Programs\Lucid\Lucid.exe" "$env:LOCALAPPDATA\Programs\Lucid\resources\lucid-mcp.mjs"
+```
+
+**Linux** (installed from the `.deb`, which puts Lucid in `/opt/Lucid`)
+
+```bash
+claude mcp add lucid -e ELECTRON_RUN_AS_NODE=1 -- /opt/Lucid/lucid /opt/Lucid/resources/lucid-mcp.mjs
+```
+
+An AppImage mounts itself at a different place each time it runs, so it has no fixed path for this: use the `.deb`, or unpack
+the AppImage once (`./Lucid-<version>-linux-x64.AppImage --appimage-extract`) and use the `lucid` and `resources/lucid-mcp.mjs`
+inside the `squashfs-root` folder.
+
 Then ask Claude Code, for example: *"Read my open Lucid page and add a Pitfalls section."*
 
 If your library is not `~/Lucid`, give the server the same `LUCID_HOME` as the app: add `-e LUCID_HOME=/path/to/library`.
-If Lucid is not in `/Applications`, use its real path in both places.
+If Lucid is installed somewhere else, use its real path in both places.
 
 ## Connect LM Studio
 
-In LM Studio open **Program → Install → Edit mcp.json** and add:
+In LM Studio open **Program → Install → Edit mcp.json** and add the same program and file as above. On a Mac:
 
 ```json
 {
@@ -57,6 +75,10 @@ In LM Studio open **Program → Install → Edit mcp.json** and add:
   }
 }
 ```
+
+On Windows use `"command": "C:\\Users\\<you>\\AppData\\Local\\Programs\\Lucid\\Lucid.exe"` with the matching
+`resources\\lucid-mcp.mjs` in `args` (JSON needs the backslashes doubled); on Linux `/opt/Lucid/lucid` and
+`/opt/Lucid/resources/lucid-mcp.mjs`.
 
 A tool-capable model can then use Lucid in the chat. (Lucid's own voice features use LM Studio through its normal API; this
 is separate.)
@@ -74,7 +96,7 @@ In LM Studio's `mcp.json` use `"command": "node"` and that file as the argument.
 
 ## If something goes wrong
 
-* *"Lucid is not running."* Open the Lucid app (the socket exists only while it runs).
+* *"Lucid is not running."* Open the Lucid app (the connection exists only while it runs).
 * *"The page changed since you read it."* Call `get_outline` again, then retry.
 * *"These ops throw something away."* The agent asked to delete or mostly rewrite content; tell it, or have it pass
   `allow_destructive` if that is what you want.
