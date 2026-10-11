@@ -92,10 +92,10 @@ describe("site/index.html", () => {
     expect(boxes.length).toBeGreaterThanOrEqual(4);
     for (const box of boxes) {
       expect(box, box.slice(0, 60)).toMatch(
-        /^\s*<pre><code>[^\s<][\s\S]*?[^\s]<\/code><\/pre>\s*<button\b[^>]*\bdata-copy="[^"]+"[^>]*>\s*Copy\s*<\/button>\s*$/,
+        /^\s*<pre><code>[^\s<][\s\S]*?[^\s]<\/code><\/pre>\s*<button\b[^>]*\bdata-copy=(?:"[^"]+"|'[^']+')[^>]*>\s*Copy\s*<\/button>\s*$/,
       );
     }
-    expect(html.match(/\bdata-copy="/g)?.length).toBe(boxes.length);
+    expect(html.match(/\bdata-copy=/g)?.length).toBe(boxes.length);
     const rule = (selector: string): string => {
       const start = css.search(
         new RegExp(`(^|\\n)${selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} \\{`),
