@@ -52,7 +52,7 @@ claude mcp add lucid -e ELECTRON_RUN_AS_NODE=1 -- /opt/Lucid/lucid /opt/Lucid/re
 ```
 
 An AppImage mounts itself at a different place each time it runs, so it has no fixed path for this: use the `.deb`, or unpack
-the AppImage once (`./Lucid-<version>-linux-x64.AppImage --appimage-extract`) and use the `lucid` and `resources/lucid-mcp.mjs`
+the AppImage once (`./Lucid-<version>-linux-x86_64.AppImage --appimage-extract`) and use the `lucid` and `resources/lucid-mcp.mjs`
 inside the `squashfs-root` folder.
 
 Then ask Claude Code, for example: *"Read my open Lucid page and add a Pitfalls section."*

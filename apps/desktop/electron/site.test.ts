@@ -250,7 +250,7 @@ describe("pickAssets", () => {
         asset("Lucid-0.2.0-win-x64.exe", 90_000_000),
         asset("Lucid-0.2.0-win-x64.zip"),
         asset("Lucid-0.2.0-linux-amd64.deb"),
-        asset("Lucid-0.2.0-linux-x64.AppImage"),
+        asset("Lucid-0.2.0-linux-x86_64.AppImage"),
         asset("SHA256SUMS", 600),
       ],
     });
@@ -259,7 +259,7 @@ describe("pickAssets", () => {
     expect(picked.windows.primary?.name).toBe("Lucid-0.2.0-win-x64.exe");
     expect(picked.windows.secondary?.name).toBe("Lucid-0.2.0-win-x64.zip");
     expect(picked.linux.primary?.name).toBe("Lucid-0.2.0-linux-amd64.deb");
-    expect(picked.linux.secondary?.name).toBe("Lucid-0.2.0-linux-x64.AppImage");
+    expect(picked.linux.secondary?.name).toBe("Lucid-0.2.0-linux-x86_64.AppImage");
     expect(picked.sums?.name).toBe("SHA256SUMS");
     expect(picked.mac.primary?.url).toContain("/releases/download/v0.2.0/");
   });

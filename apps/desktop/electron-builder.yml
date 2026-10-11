@@ -1,7 +1,7 @@
 # Packaging: `pnpm dist` builds the installers for the system it runs on, into release/:
 #   macOS (Apple Silicon)  Lucid-<version>-mac-arm64.dmg and .zip
 #   Windows (x64)          Lucid-<version>-win-x64.exe (installer) and .zip
-#   Linux (x64)            Lucid-<version>-linux-x64.AppImage and Lucid-<version>-linux-amd64.deb
+#   Linux (x64)            Lucid-<version>-linux-x86_64.AppImage and Lucid-<version>-linux-amd64.deb
 appId: io.github.triggeredcode.lucid
 productName: Lucid
 copyright: Copyright © 2026 Omkar Tripathi
