@@ -18,7 +18,15 @@ export async function autoSaveDialog(app: ElectronApplication): Promise<string> 
 /** Clicks Download PDF, waits for the file, and returns its text (when pdftotext is installed). */
 export async function downloadPdf(page: Page, path: string): Promise<string | undefined> {
   await page.getByRole("button", { name: "Download PDF" }).click();
-  await expect(page.getByText(/^Saved page\.pdf/)).toBeVisible({ timeout: 90_000 });
+  try {
+    await expect(page.getByText(/^Saved page\.pdf/)).toBeVisible({ timeout: 90_000 });
+  } catch (error) {
+    // Say what the window said instead (the engine's own message, if it failed), so a failure on another machine can be read.
+    const said = await page.locator(".export-note").allTextContents();
+    throw new Error(`The PDF was not saved. The window says: ${JSON.stringify(said)}`, {
+      cause: error,
+    });
+  }
   expect(readFileSync(path).subarray(0, 5).toString()).toBe("%PDF-");
   expect(statSync(path).size).toBeGreaterThan(3_000);
   return existsSync(PDFTOTEXT)
