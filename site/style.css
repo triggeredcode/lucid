@@ -956,23 +956,34 @@ details[open] summary::after {
   padding-left: var(--s5);
 }
 .code {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s3);
   max-width: 100%;
-  position: relative;
-  padding: var(--s3) var(--s4);
-  padding-right: 72px;
+  padding: var(--s3) var(--s3) var(--s3) var(--s4);
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--r1);
   color: var(--ink);
+}
+/* The command and its Copy button sit side by side: the button never lies over the text. Long commands wrap at word breaks, and
+   a line that cannot (a long path) scrolls inside the box. */
+.code pre {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  overflow-x: auto;
+  font-family: var(--mono);
   font-size: 13px;
   line-height: 1.55;
-  overflow-x: auto;
-  white-space: pre;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.code code {
+  font: inherit;
 }
 .code button {
-  position: absolute;
-  top: var(--s2);
-  right: var(--s2);
+  flex: none;
   padding: 2px var(--s3);
   border: 1px solid var(--line-strong);
   border-radius: 6px;
@@ -984,10 +995,7 @@ details[open] summary::after {
 }
 .code button:hover {
   color: var(--ink);
-}
-.code-wrap {
-  display: block;
-  white-space: normal;
+  border-color: var(--ink);
 }
 @media (max-width: 900px) {
   .download {
