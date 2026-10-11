@@ -14,7 +14,7 @@ import { serveBackend, socketPathFor } from "@lucid/mcp/socket";
 import { AppBackend } from "../appBackend";
 import { RendererBridge } from "../agentBridge";
 import { lmLoad, lmStatus, type LmDeps } from "../lmstudio";
-import { LMSTUDIO_DOWNLOAD, findLmStudio } from "../studio";
+import { LMSTUDIO_DOWNLOAD, defaultLmsPath, findLmStudio } from "../studio";
 import { checkLlmUrl, registerLlmIpc } from "./llm";
 import { IPC, type NoteImportResult, type PublicSettings, type SettingsSaveResult } from "./types";
 
@@ -87,9 +87,7 @@ export function registerIpc(): void {
       baseUrl,
       model: s.llm.model,
       contextLength: s.llm.contextLength,
-      lms:
-        process.env["LUCID_LMS_BIN"] ??
-        (s.llm.lmsPath || join(homedir(), ".lmstudio", "bin", "lms")),
+      lms: process.env["LUCID_LMS_BIN"] ?? (s.llm.lmsPath || defaultLmsPath()),
       studioInstalled: () => findLmStudio() !== undefined,
     };
   };
