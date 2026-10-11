@@ -39,7 +39,7 @@ async function launch(home = mkdtempSync(join(tmpdir(), "lucid-home-"))) {
 test.beforeEach(() => {
   output.length = 0;
 });
-test.afterEach(async ({}, testInfo) => {
+test.afterEach((_fixtures, testInfo) => {
   if (testInfo.status === testInfo.expectedStatus) return;
   console.log(
     `---- what the app and its window printed (${testInfo.title}) ----\n${output.slice(-200).join("\n")}`,
