@@ -1,40 +1,137 @@
 name: Release
 
-# Pushing a tag like v0.1.0 builds the macOS app from that tag, tests it, and attaches it to a GitHub release.
+# Pushing a tag like v0.2.0 builds Lucid for macOS, Windows and Linux from that tag, tests each build the way a person would run
+# it (the unpacked app, and the installer or package that was made), and attaches everything to one GitHub release with checksums.
 on:
   push:
     tags: ["v*"]
+  # A pull request that changes how the app is packaged builds and tests it on every system (nothing is published).
+  pull_request:
+    paths:
+      - "apps/desktop/electron-builder.yml"
+      - "apps/desktop/package.json"
+      - "apps/desktop/scripts/**"
+      - "apps/desktop/e2e-packaged/**"
+      - "scripts/fetch-tectonic.mjs"
+      - ".github/workflows/release.yml"
+  # Run by hand from a branch to try the same without a pull request.
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  release:
-    name: Build and publish
-    runs-on: macos-14
+  build:
+    name: Build and test (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-14, name: macOS }
+          - { os: windows-latest, name: Windows }
+          - { os: ubuntu-latest, name: Linux }
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - name: Check
-        run: pnpm run ci
+      - name: Unit tests
+        run: pnpm test
       - name: Build the app
         run: pnpm dist
-      - name: Test the built app
+
+      # ---- the built app, as it comes out of the build
+      - name: Test the built app (macOS, Windows)
+        if: runner.os != 'Linux'
         run: pnpm e2e:packaged
+      - name: Test the built app (Linux)
+        if: runner.os == 'Linux'
+        # No desktop session on the runner: a virtual screen, and Chromium without its sandbox (which needs a configured system).
+        run: xvfb-run -a pnpm e2e:packaged
+        env:
+          LUCID_E2E_ARGS: "--no-sandbox --disable-gpu"
+
+      # ---- what a person installs
+      - name: Test the Windows installer
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $setup = Get-ChildItem apps/desktop/release/*.exe | Select-Object -First 1
+          $run = Start-Process -FilePath $setup.FullName -ArgumentList "/S" -Wait -PassThru
+          "The installer ended with exit code $($run.ExitCode)"
+          # The installer may leave work to a process it started: wait until the program is there, then find it wherever it went.
+          $exe = $null
+          for ($i = 0; $i -lt 60 -and -not $exe; $i++) {
+            $exe = Get-ChildItem -Path $env:LOCALAPPDATA, $env:ProgramFiles -Filter Lucid.exe -Recurse -ErrorAction SilentlyContinue |
+              Where-Object { $_.FullName -notmatch 'node_modules|\\resources\\' } | Select-Object -First 1
+            if (-not $exe) { Start-Sleep -Seconds 2 }
+          }
+          if (-not $exe) {
+            Get-ChildItem "$env:LOCALAPPDATA\Programs" -ErrorAction SilentlyContinue | Out-String
+            throw "The installer did not install Lucid anywhere"
+          }
+          "Installed in $($exe.DirectoryName)"
+          $env:LUCID_APP = $exe.DirectoryName
+          pnpm e2e:packaged
+      - name: Test the Linux package
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get install -y ./apps/desktop/release/*.deb
+          test -x /opt/Lucid/lucid
+          LUCID_APP=/opt/Lucid xvfb-run -a pnpm e2e:packaged
+        env:
+          LUCID_E2E_ARGS: "--no-sandbox --disable-gpu"
+      - name: Test the Mac disk image
+        if: runner.os == 'macOS'
+        run: |
+          hdiutil attach -nobrowse -readonly -mountpoint /tmp/lucid-dmg apps/desktop/release/*.dmg
+          cp -R /tmp/lucid-dmg/Lucid.app /tmp/Lucid.app
+          hdiutil detach /tmp/lucid-dmg
+          LUCID_APP=/tmp/Lucid.app pnpm e2e:packaged
+
+      - name: Keep the test results when a test failed
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-${{ matrix.name }}
+          if-no-files-found: ignore
+          path: apps/desktop/test-results
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: lucid-${{ matrix.name }}
+          if-no-files-found: error
+          path: |
+            apps/desktop/release/*.dmg
+            apps/desktop/release/*.zip
+            apps/desktop/release/*.exe
+            apps/desktop/release/*.AppImage
+            apps/desktop/release/*.deb
+
+  publish:
+    name: Publish the release
+    needs: build
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          path: assets
+          merge-multiple: true
       - name: Checksums
-        working-directory: apps/desktop/release
-        run: shasum -a 256 *.dmg *.zip > SHA256SUMS
+        working-directory: assets
+        run: sha256sum -- * > SHA256SUMS && cat SHA256SUMS
       - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          notes="$(awk -v v="${GITHUB_REF_NAME#v}" '$0 ~ "^## \\["v"\\]" {on=1; next} /^## \[/ {on=0} on' CHANGELOG.md)"
-          gh release create "$GITHUB_REF_NAME" \
-            apps/desktop/release/*.dmg apps/desktop/release/*.zip apps/desktop/release/SHA256SUMS \
+          # Release notes keep every line break, so lines wrapped in the changelog are joined first.
+          notes="$(cat .github/release-install.md; awk -v v="${GITHUB_REF_NAME#v}" '$0 ~ "^## \\["v"\\]" {on=1; next} /^## \[/ {on=0} on' CHANGELOG.md | awk '/^  / {sub(/^ +/, " "); buf = buf $0; next} {if (NR > 1) print buf; buf = $0} END {print buf}')"
+          gh release create "$GITHUB_REF_NAME" assets/* \
             --title "Lucid ${GITHUB_REF_NAME#v}" --notes "$notes"

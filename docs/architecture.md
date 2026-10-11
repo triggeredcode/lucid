@@ -66,11 +66,21 @@ converted figures are cached by content, and a newer request for the same page c
 edit is applied in the editor and listed in the history as the agent's, as one undo step. Edits carry the page's `revision`
 and are refused if the page changed since the agent read it.
 
+## Systems and packaging
+
+Lucid is one Electron app for macOS, Windows and Linux. The few things that differ are small and take the system as an argument so
+they can be tested everywhere: where Tectonic and LM Studio are found (`electron/tools.ts`, `electron/studio.ts`), the agent
+connection (a socket file on macOS and Linux, a named pipe on Windows: `packages/mcp/src/socket.ts`) and the menu (About is in the
+Lucid menu on a Mac and in Help elsewhere). `pnpm dist` builds the packages of the system it runs on (`electron-builder.yml`); the
+PDF engine for that system is fetched with a pinned checksum by `scripts/fetch-tectonic.mjs` and put in the app's resources, and the
+`afterPack` hook refuses an app that lacks a file it must carry. The release workflow builds on a runner of each system and tests
+the unpacked app and then what a person installs, before one job publishes everything with `SHA256SUMS`.
+
 ## Tests
 
 | Level | Command | Notes |
 |---|---|---|
 | Unit | `pnpm test` | all packages; includes property tests and golden files |
 | End to end | `pnpm e2e` | Electron with the scripted LM Studio, in a maximized window |
-| Packaged app | `pnpm dist:dir && pnpm e2e:packaged` | the built app with nothing else on the `PATH` |
+| Packaged app | `pnpm dist:dir && pnpm e2e:packaged` | the built app with nothing else on the `PATH`; on macOS, Windows and Linux |
 | Real model | `pnpm eval`, `pnpm e2e:real` | needs LM Studio and `qwen/qwen3.8-27b` |

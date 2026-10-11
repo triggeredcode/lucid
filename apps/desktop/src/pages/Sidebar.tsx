@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
+import { getFormat } from "@lucid/kit";
 import type { PageProblem, PageSummary } from "../../electron/ipc/types";
 import { setTheme, useResolvedTheme } from "../theme/appearance";
 import { BrandMark } from "../ui/BrandMark";
+import { FileGlyph } from "../ui/FileGlyph";
 import { Icon } from "../ui/Icon";
+import { keys } from "../platform";
 
 interface Props {
   pages: PageSummary[];
@@ -20,11 +23,12 @@ interface Props {
 }
 
 const MINUTE = 60_000;
+/** How long ago, short enough to sit beside the kind of note: now, 5 min, 2 h, Oct 11. */
 function ago(iso: string, now = Date.now()): string {
   const diff = now - Date.parse(iso);
-  if (!Number.isFinite(diff) || diff < MINUTE) return "just now";
-  if (diff < 60 * MINUTE) return `${String(Math.floor(diff / MINUTE))} min ago`;
-  if (diff < 24 * 60 * MINUTE) return `${String(Math.floor(diff / (60 * MINUTE)))} h ago`;
+  if (!Number.isFinite(diff) || diff < MINUTE) return "now";
+  if (diff < 60 * MINUTE) return `${String(Math.floor(diff / MINUTE))} min`;
+  if (diff < 24 * 60 * MINUTE) return `${String(Math.floor(diff / (60 * MINUTE)))} h`;
   return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
@@ -77,12 +81,14 @@ export function Sidebar({
       <button
         className="new-from"
         type="button"
-        title="Bring in a note that was exported (⌘O)"
+        title={keys("Bring in a note that was exported (⌘O)")}
         onClick={onImport}
       >
         <Icon name="download" /> Import a note…
       </button>
-      <h2 className="side-label">Pages</h2>
+      <h2 className="side-label">
+        Pages <span className="side-count">{pages.length}</span>
+      </h2>
       <nav className="page-list" aria-label="Pages">
         {pages.length === 0 && <p className="page-list-empty">No pages yet.</p>}
         {pages.map((p) => (
@@ -95,9 +101,14 @@ export function Sidebar({
                 onOpen(p.id);
               }}
             >
-              <Icon name="page" />
-              <span className="page-title">{p.title}</span>
-              <span className="page-when">{ago(p.updatedAt)}</span>
+              <FileGlyph />
+              <span className="page-text">
+                <span className="page-title">{p.title}</span>
+                <span className="page-sub">
+                  <span className="page-kind">{getFormat(p.format)?.name ?? "Blank page"}</span>
+                  <span className="page-when">{ago(p.updatedAt)}</span>
+                </span>
+              </span>
             </button>
             {confirming === p.id ? (
               <button
@@ -147,7 +158,7 @@ export function Sidebar({
           type="button"
           className="sidebar-settings"
           onClick={onSettings}
-          title="Settings (⌘,)"
+          title={keys("Settings (⌘,)")}
         >
           <Icon name="settings" /> Settings
         </button>

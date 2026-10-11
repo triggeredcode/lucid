@@ -43,3 +43,6 @@ apps/desktop/resources/bin/
 
 # packaged app
 apps/desktop/release/
+
+# GitHub Pages site (scripts/build-site.mjs)
+_site/

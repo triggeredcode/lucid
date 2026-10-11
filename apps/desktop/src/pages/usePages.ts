@@ -25,6 +25,7 @@ const summaryOf = (f: LucidFile, fileName: string): PageSummary => ({
   title: f.title,
   updatedAt: f.updatedAt,
   fileName,
+  ...(f.meta.format ? { format: f.meta.format } : {}),
 });
 
 /** The page list and the open page. Opening, creating and deleting go through the library in the main process. */

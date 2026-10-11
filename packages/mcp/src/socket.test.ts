@@ -7,7 +7,7 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { afterEach, describe, expect, it } from "vitest";
 import { MemoryBackend } from "./backend";
 import { createLucidMcpServer } from "./server";
-import { SocketBackend, serveBackend, socketPathFor } from "./socket";
+import { SocketBackend, isPipe, serveBackend, socketPathFor } from "./socket";
 
 const stops: (() => Promise<void>)[] = [];
 afterEach(async () => {
@@ -23,10 +23,26 @@ async function serve() {
 }
 
 describe("the local socket", () => {
-  it("lives in the library folder and only its owner can use it", async () => {
-    const { path } = await serve();
-    expect(path.endsWith("/.lucid/lucid.sock")).toBe(true);
-    expect((await stat(path)).mode & 0o077).toBe(0);
+  // A socket file is a Unix thing: on Windows the connection is a named pipe, with no file to look at.
+  it.skipIf(process.platform === "win32")(
+    "lives in the library folder and only its owner can use it",
+    async () => {
+      const { path } = await serve();
+      expect(path.endsWith("/.lucid/lucid.sock")).toBe(true);
+      expect((await stat(path)).mode & 0o077).toBe(0);
+    },
+  );
+
+  it("is a socket file in the library folder on a Mac or Linux, and a named pipe of its own on Windows", () => {
+    expect(socketPathFor("/home/a/Lucid", "linux")).toBe("/home/a/Lucid/.lucid/lucid.sock");
+    expect(socketPathFor("/Users/a/Lucid", "darwin")).toBe("/Users/a/Lucid/.lucid/lucid.sock");
+    const a = socketPathFor("C:\\Users\\a\\Lucid", "win32");
+    const b = socketPathFor("C:\\Users\\b\\Lucid", "win32");
+    expect(a).toMatch(/^\\\\\.\\pipe\\lucid-[0-9a-f]{16}$/);
+    expect(isPipe(a)).toBe(true);
+    expect(a).not.toBe(b); // two libraries never share a pipe
+    expect(a).toBe(socketPathFor("c:\\users\\a\\lucid", "win32")); // Windows paths ignore case
+    expect(isPipe("/home/a/Lucid/.lucid/lucid.sock")).toBe(false);
   });
 
   it("carries pages and changes between a client and the backend", async () => {

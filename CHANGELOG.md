@@ -3,6 +3,33 @@
 All notable changes to Lucid are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and Lucid uses [semantic versioning](https://semver.org).
 
+## [0.2.0] - 2026-10-12
+
+Lucid now runs on Windows and Linux as well as the Mac, has clearer panels and a new look for the list of pages, and has a website.
+
+### Added
+
+- **Windows and Linux.** Windows 10 or newer (64-bit): an installer that needs no administrator, and a portable `.zip`. Linux (64-bit): a `.deb` for Debian and Ubuntu and an AppImage for other distributions. The PDF engine comes with each, so nothing else has to be installed. Shortcut hints say Ctrl, Shift and Alt on these systems; the connection for AI agents is a named pipe on Windows. Every build is tested on GitHub's own macOS, Windows and Ubuntu machines before it is released.
+- **A website** at https://triggeredcode.github.io/lucid/ with the downloads for each system (it picks out yours), the idea in pictures, the note formats and the first-time steps for each system.
+
+### Changed
+
+- The pages list and the History panel stand clearly apart from the page in both themes, and small text is darker (the contrast is checked against WCAG ratios by a test).
+- Pages in the list are small file icons with the name, the kind of note and when it last changed; the open page is bold. History entries are cards.
+- The top bar is taller, and stays on one line at the default window size (the buttons show only their pictures when the window is narrow).
+- The Mac files are named `Lucid-<version>-mac-arm64.dmg` and `.zip`, like the files for the other systems.
+
+### Fixed
+
+- AltGr (the right Alt key on many European keyboards) no longer starts Command mode when you type `@`, `{` or `€`.
+
+### Known limits
+
+- The apps are not signed: macOS asks once (Open Anyway), and Windows SmartScreen may ask (More info, Run anyway). On Ubuntu 24.04 and newer an AppImage may need `--no-sandbox`; the `.deb` does not.
+- No Intel Mac build, and no Windows or Linux build for ARM yet.
+- The Mac version has had the most everyday use. Please report what is off on Windows or Linux.
+- The first PDF on a computer downloads Tectonic's typesetting files (about five minutes, once). Only `qwen/qwen3.8-27b` has been evaluated.
+
 ## [0.1.0] - 2026-10-12
 
 The first public release.
@@ -33,4 +60,5 @@ The first public release.
 - The first PDF on a computer downloads Tectonic's typesetting files (about five minutes, once).
 - Only `qwen/qwen3.8-27b` has been evaluated. A request takes 10 to 25 seconds on a laptop.
 
+[0.2.0]: https://github.com/triggeredcode/lucid/releases/tag/v0.2.0
 [0.1.0]: https://github.com/triggeredcode/lucid/releases/tag/v0.1.0

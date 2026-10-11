@@ -1,9 +1,13 @@
+import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 import { build } from "esbuild";
 
 /** One self-contained file an MCP client can run: `node packages/mcp/dist/lucid-mcp.mjs` (needs only Node 22). */
-export async function bundle(outfile = new URL("../dist/lucid-mcp.mjs", import.meta.url).pathname) {
+export async function bundle(
+  outfile = fileURLToPath(new URL("../dist/lucid-mcp.mjs", import.meta.url)),
+) {
   await build({
-    entryPoints: [new URL("../src/bin.ts", import.meta.url).pathname],
+    entryPoints: [fileURLToPath(new URL("../src/bin.ts", import.meta.url))],
     bundle: true,
     platform: "node",
     format: "esm",
@@ -18,6 +22,6 @@ export async function bundle(outfile = new URL("../dist/lucid-mcp.mjs", import.m
   return outfile;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
   console.log(`wrote ${await bundle()}`);
 }

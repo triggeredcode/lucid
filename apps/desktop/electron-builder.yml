@@ -1,4 +1,7 @@
-# Packaging for macOS on Apple Silicon: `pnpm dist` makes release/Lucid-<version>-arm64.dmg and .zip.
+# Packaging: `pnpm dist` builds the installers for the system it runs on, into release/:
+#   macOS (Apple Silicon)  Lucid-<version>-mac-arm64.dmg and .zip
+#   Windows (x64)          Lucid-<version>-win-x64.exe (installer) and .zip
+#   Linux (x64)            Lucid-<version>-linux-x64.AppImage and Lucid-<version>-linux-amd64.deb
 appId: io.github.triggeredcode.lucid
 productName: Lucid
 copyright: Copyright © 2026 Omkar Tripathi
@@ -14,9 +17,6 @@ files:
   - package.json
   - "!node_modules"
 extraResources:
-  # The PDF engine, so nothing has to be installed for PDFs (fetched by scripts/fetch-tectonic.mjs).
-  - from: resources/bin/tectonic
-    to: bin/tectonic
   # For agents: `lucid-mcp.mjs` connects Claude Code or LM Studio to the open app (docs/mcp.md).
   - from: ../../packages/mcp/dist/lucid-mcp.mjs
     to: lucid-mcp.mjs
@@ -30,6 +30,9 @@ extraResources:
   # Chromium's licence notices (part of Electron, the app's runtime).
   - from: node_modules/electron/dist/LICENSES.chromium.html
     to: LICENSES.chromium.html
+afterPack: scripts/afterPack.cjs
+artifactName: Lucid-${version}-${os}-${arch}.${ext}
+
 mac:
   category: public.app-category.productivity
   icon: resources/icon.png
@@ -46,11 +49,50 @@ mac:
   identity: null
   hardenedRuntime: false
   gatekeeperAssess: false
-afterPack: scripts/afterPack.cjs
+  extraResources:
+    # The PDF engine, so nothing has to be installed for PDFs (fetched by scripts/fetch-tectonic.mjs).
+    - from: resources/bin/tectonic
+      to: bin/tectonic
 dmg:
   title: Lucid ${version}
   iconSize: 96
   window:
     width: 540
     height: 380
-artifactName: Lucid-${version}-${arch}.${ext}
+
+win:
+  icon: resources/icon.png
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: zip
+      arch: [x64]
+  # Not signed (there is no certificate yet): Windows SmartScreen asks once.
+  signAndEditExecutable: false
+  extraResources:
+    - from: resources/bin/tectonic.exe
+      to: bin/tectonic.exe
+nsis:
+  # Installs for the person who runs it (no administrator needed), in one step, and starts Lucid.
+  oneClick: true
+  perMachine: false
+  deleteAppDataOnUninstall: false
+  shortcutName: Lucid
+
+linux:
+  icon: resources/icon.png
+  category: Office
+  executableName: lucid
+  synopsis: Structured notes, built while you think
+  description: >-
+    Lucid turns what you say or type into a structured document of headings, lists, tables and diagrams, with a
+    language model that runs on your own computer, and typesets it as a PDF.
+  maintainer: Omkar Tripathi <38633467+triggeredcode@users.noreply.github.com>
+  target:
+    - target: AppImage
+      arch: [x64]
+    - target: deb
+      arch: [x64]
+  extraResources:
+    - from: resources/bin/tectonic
+      to: bin/tectonic

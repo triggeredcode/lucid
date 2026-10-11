@@ -74,6 +74,15 @@ describe("Library: create, list, load", () => {
     expect((await l.load(page.id)).id).toBe(page.id);
   });
 
+  it("lists the note format of each page, so the list can show what kind of note it is", async () => {
+    const l = lib();
+    await l.create("SQL vs NoSQL", { format: "comparison" });
+    await l.create("Plain");
+    const byTitle = Object.fromEntries((await l.list()).pages.map((p) => [p.title, p]));
+    expect(byTitle["SQL vs NoSQL"]?.format).toBe("comparison");
+    expect(byTitle["Plain"]).not.toHaveProperty("format");
+  });
+
   it("lists the most recently changed page first", async () => {
     const l = lib();
     const a = await l.create("A");

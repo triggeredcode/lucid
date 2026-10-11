@@ -1,7 +1,7 @@
 import { spawn, type ChildProcess } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { LUCID_STY, registry, renderDocument, type Format } from "@lucid/kit";
 import type { LucidDoc } from "@lucid/core";
 import type { PdfProgress } from "./ipc/types";
@@ -83,13 +83,21 @@ export function svgWidthsInPoints(
 }
 
 /** The first LaTeX error in words a person can act on, without file paths or engine jargon. */
-export function explainLatexError(log: string): string {
+export function explainLatexError(
+  log: string,
+  platform: NodeJS.Platform = process.platform,
+): string {
   // A tool that is not installed, before anything about LaTeX.
   const missing = /could not start (\S+): spawn \S+ ENOENT/.exec(log);
   if (missing?.[1]) {
-    const name = missing[1].split("/").pop() ?? missing[1];
+    const name = basename(missing[1]);
+    // Homebrew is a Mac thing: elsewhere the way to get Tectonic is its own page.
+    const install =
+      platform === "darwin"
+        ? "brew install tectonic"
+        : "see https://tectonic-typesetting.github.io";
     return name.includes("tectonic")
-      ? `Tectonic, the PDF engine, was not found (${missing[1]}). Reinstall Lucid, or install it with: brew install tectonic. The Markdown export still works.`
+      ? `Tectonic, the PDF engine, was not found (${missing[1]}). Reinstall Lucid, or install it yourself (${install}). The Markdown export still works.`
       : `${missing[1]} was not found.`;
   }
   // The first PDF needs the internet once: the typesetting files are downloaded, then kept.

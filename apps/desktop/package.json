@@ -1,7 +1,7 @@
 {
   "name": "@lucid/desktop",
   "productName": "Lucid",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Lucid: structured notes (headings, lists, tables, diagrams) built while you think, with a local model",
   "main": "./out/main/index.js",
@@ -12,9 +12,9 @@
     "e2e": "electron-vite build && playwright test",
     "e2e:real": "electron-vite build && playwright test -c playwright.real.config.ts",
     "prepack": "node ../../scripts/fetch-tectonic.mjs && node node_modules/electron/install.js && pnpm --filter @lucid/mcp bundle && electron-vite build",
-    "dist": "pnpm prepack && electron-builder --mac --arm64 --publish never",
+    "dist": "pnpm prepack && electron-builder --publish never",
     "e2e:packaged": "playwright test -c playwright.packaged.config.ts",
-    "dist:dir": "pnpm prepack && electron-builder --mac --arm64 --dir"
+    "dist:dir": "pnpm prepack && electron-builder --dir"
   },
   "license": "MIT",
   "author": {

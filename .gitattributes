@@ -1,0 +1,10 @@
+# One line ending everywhere: checks (formatting, tests that read files) must not depend on the system's Git settings.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ico binary
+*.icns binary
+*.woff binary
+*.woff2 binary
+*.dmg binary
+*.zip binary

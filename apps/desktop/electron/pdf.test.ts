@@ -107,6 +107,25 @@ describe("explainLatexError", () => {
   });
 });
 
+describe("explaining a missing PDF engine", () => {
+  const log =
+    "could not start /opt/Lucid/resources/bin/tectonic: spawn /opt/Lucid/resources/bin/tectonic ENOENT";
+  it("suggests Homebrew on a Mac only", () => {
+    expect(explainLatexError(log, "darwin")).toContain("brew install tectonic");
+    for (const platform of ["linux", "win32"] as const) {
+      const said = explainLatexError(log, platform);
+      expect(said).not.toContain("brew");
+      expect(said).toContain("tectonic-typesetting.github.io");
+    }
+  });
+
+  it("names the engine whichever way the path is written", () => {
+    const windows =
+      "could not start C:\\Lucid\\resources\\bin\\tectonic.exe: spawn C:\\Lucid\\resources\\bin\\tectonic.exe ENOENT";
+    expect(explainLatexError(windows, "win32")).toMatch(/^Tectonic, the PDF engine, was not found/);
+  });
+});
+
 describe("explaining what went wrong on a first PDF", () => {
   it("says the first PDF needs the internet, when Tectonic could not fetch its files", () => {
     const log =
@@ -125,7 +144,11 @@ describe("explaining what went wrong on a first PDF", () => {
   });
 });
 
-describe("the first run, which downloads the typesetting files", () => {
+// The stand-in engines below are shell scripts, which Windows cannot start directly. There, the real engine is exercised
+// by the packaged-app tests (a PDF with a diagram, the first-run download), so these describe blocks are skipped.
+const shellScripts = process.platform === "win32" ? describe.skip : describe;
+
+shellScripts("the first run, which downloads the typesetting files", () => {
   const downloads =
     'for i in 1 2 3 4 5 6; do echo "note: downloading f$i.sty"; sleep 0.4; done\necho "%PDF-1.5" > main.pdf';
 
@@ -140,12 +163,16 @@ describe("the first run, which downloads the typesetting files", () => {
   }, 30_000);
 
   it("lets an engine that keeps downloading run longer than the quiet limit", async () => {
-    const t = await script(downloads);
-    const { c } = await compiler(t, stubConvert, { idleMs: 1_000 });
+    // Prints every 0.4 s for about 5 s. The quiet limit is 2 s, five times the interval, so a slow start of the script on a
+    // busy machine (the whole suite runs in parallel) does not trip it.
+    const t = await script(
+      'for i in 1 2 3 4 5 6 7 8 9 10 11 12; do echo "note: downloading f$i.sty"; sleep 0.4; done\necho "%PDF-1.5" > main.pdf',
+    );
+    const { c } = await compiler(t, stubConvert, { idleMs: 2_000 });
     const started = Date.now();
     const r = await c.compile(req("page-slow"));
     expect(r.ok).toBe(true);
-    expect(Date.now() - started).toBeGreaterThan(1_800); // longer than the quiet limit, because it kept printing
+    expect(Date.now() - started).toBeGreaterThan(2_800); // longer than the quiet limit, because it kept printing
   }, 30_000);
 
   it("stops an engine that runs for too long, however much it prints", async () => {
@@ -224,7 +251,7 @@ describe("the first run, which downloads the typesetting files", () => {
   });
 });
 
-describe("PdfCompiler with stand-in tools", () => {
+shellScripts("PdfCompiler with stand-in tools", () => {
   it("reports an engine error in plain words and keeps the log", async () => {
     const t = await script('echo "error: main.tex:7: Undefined control sequence" >&2; exit 1');
     const { c } = await compiler(t);
@@ -481,14 +508,16 @@ describe("the natural width of a figure", () => {
   });
 });
 
-describe("tools that are not installed", () => {
+shellScripts("tools that are not installed", () => {
   it("says what is missing and how to install it, in plain words", async () => {
     const { c } = await compiler("/nonexistent/tectonic");
     const r = await c.compile(req("page-8"));
     expect(r.ok).toBe(false);
     const message = !r.ok && !r.cancelled ? r.message : "";
     expect(message).toContain("Tectonic, the PDF engine, was not found");
-    expect(message).toContain("brew install tectonic");
+    expect(message).toContain(
+      process.platform === "darwin" ? "brew install tectonic" : "tectonic-typesetting.github.io",
+    );
     expect(message).toContain("Markdown export still works");
     expect(
       explainLatexError("error: could not start /opt/x/other: spawn /opt/x/other ENOENT"),

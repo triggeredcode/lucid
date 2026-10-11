@@ -13,13 +13,17 @@
   --bg: #ffffff;
   --bg-2: #f9f8f7;
   --bg-3: #f0efed;
+  /* The side panels (pages, History): clearly apart from the page, with their own hover, edge and text strength. */
+  --panel: #f1efec;
+  --panel-2: #e7e4e0;
+  --panel-line: #d6d2cc;
   --hover: rgb(44 44 43 / 6%);
   --press: rgb(44 44 43 / 10%);
   --ink: #2c2c2b;
-  --ink-2: #7d7a75;
-  --ink-3: #a19e99;
-  --ink-4: #bcbab6;
-  --line: #e6e5e3;
+  --ink-2: #67635d;
+  --ink-3: #7f7b75;
+  --ink-4: #aeaba6;
+  --line: #e1dfdc;
   --line-2: #f0efed;
   --inverse-bg: #2c2c2b;
   --inverse-ink: #ffffff;
@@ -52,13 +56,16 @@
   --bg: #191919;
   --bg-2: #202020;
   --bg-3: #2c2c2b;
+  --panel: #262625;
+  --panel-2: #323230;
+  --panel-line: #41413f;
   --hover: rgb(255 255 255 / 5.5%);
   --press: rgb(255 255 255 / 9%);
   --ink: #f0efed;
-  --ink-2: #ada9a3;
-  --ink-3: #7d7a75;
-  --ink-4: #5f5e59;
-  --line: #383836;
+  --ink-2: #bcb8b2;
+  --ink-3: #8f8b85;
+  --ink-4: #6a6862;
+  --line: #3b3b39;
   --line-2: #2c2c2b;
   --inverse-bg: #f0efed;
   --inverse-ink: #191919;
@@ -131,7 +138,7 @@ select:focus-visible,
 /* ---- shell ---- */
 .app {
   display: grid;
-  grid-template-columns: clamp(228px, 14vw, 300px) minmax(0, 1fr);
+  grid-template-columns: clamp(272px, 16vw, 340px) minmax(0, 1fr);
   height: 100%;
 }
 .app[data-sidebar="closed"] {
@@ -311,26 +318,26 @@ select:focus-visible,
 
 /* ---- sidebar ---- */
 .sidebar {
-  background: var(--bg-2);
-  border-right: 1px solid var(--line);
+  background: var(--panel);
+  border-right: 1px solid var(--panel-line);
   display: flex;
   flex-direction: column;
-  padding: 10px 8px 8px;
+  padding: 14px 10px 10px;
   min-height: 0;
 }
 .brand {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   font-weight: 700;
-  font-size: 14px;
-  padding: 2px 6px 10px;
+  font-size: 15px;
+  padding: 2px 8px 14px;
 }
 .brand .icon-button {
   margin-left: auto;
-  width: 24px;
-  height: 24px;
-  color: var(--ink-3);
+  width: 26px;
+  height: 26px;
+  color: var(--ink-2);
 }
 .brand-mark {
   flex: none;
@@ -340,28 +347,53 @@ select:focus-visible,
 .new-from,
 .sidebar-settings {
   width: 100%;
-  height: 28px;
+  height: 32px;
   border: 0;
   background: transparent;
-  color: var(--ink-2);
+  color: var(--ink);
   text-align: left;
-  padding: 0 8px;
+  padding: 0 10px;
+  border-radius: 8px;
+}
+.new-from .icon,
+.sidebar-settings .icon {
+  color: var(--ink-2);
 }
 .new-page {
-  color: var(--ink);
+  height: 36px;
+  margin-bottom: 6px;
+  background: var(--bg);
+  border: 1px solid var(--panel-line);
+  box-shadow: var(--shadow-sm);
   font-weight: 700;
 }
-.new-page:hover,
+.new-page:hover {
+  background: var(--bg);
+  border-color: var(--ink-3);
+}
 .new-from:hover,
 .sidebar-settings:hover {
-  background: var(--hover);
+  background: var(--panel-2);
   color: var(--ink);
 }
 .side-label {
-  margin: 14px 8px 4px;
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--ink-3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 20px 10px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.side-count {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--panel-2);
+  color: var(--ink-2);
+  font-size: 11px;
+  letter-spacing: 0;
 }
 .page-list {
   flex: 1;
@@ -369,77 +401,124 @@ select:focus-visible,
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 4px;
+  margin: 0 -2px;
+  padding: 0 2px 2px;
 }
 .page-list-empty {
-  color: var(--ink-3);
-  padding: 4px 8px;
+  color: var(--ink-2);
+  padding: 4px 10px;
   margin: 0;
   font-size: 13px;
 }
+/* A page is a small file: its picture, its name in bold, and what kind of note it is and when it changed. */
 .page-row {
   position: relative;
   display: flex;
   align-items: center;
-  border-radius: 6px;
+  border: 1px solid transparent;
+  border-radius: 10px;
 }
 .page-row:hover {
-  background: var(--hover);
+  background: var(--panel-2);
 }
 .page-row[data-active="true"] {
-  background: var(--press);
+  background: var(--bg);
+  border-color: var(--panel-line);
+  box-shadow: var(--shadow-sm);
 }
 .page-open {
   flex: 1;
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
-  height: 28px;
+  gap: 12px;
+  min-height: 48px;
   background: none;
   border: 0;
-  padding: 0 8px;
+  padding: 8px 10px;
   text-align: left;
-  color: var(--ink-2);
-}
-.page-open .icon {
-  color: var(--ink-3);
-}
-.page-row[data-active="true"] .page-open,
-.page-row:hover .page-open {
   color: var(--ink);
 }
+.file-glyph {
+  flex: none;
+}
+.file-body {
+  fill: var(--bg);
+  stroke: var(--ink-3);
+  stroke-width: 1.1;
+}
+.file-fold,
+.file-lines {
+  stroke: var(--ink-3);
+  stroke-width: 1.1;
+}
+.page-row:hover .file-body,
+.page-row:hover .file-fold,
+.page-row:hover .file-lines {
+  stroke: var(--ink-2);
+}
+.page-row[data-active="true"] .file-body {
+  fill: var(--inverse-bg);
+  stroke: var(--inverse-bg);
+}
+.page-row[data-active="true"] .file-fold,
+.page-row[data-active="true"] .file-lines {
+  stroke: var(--inverse-ink);
+}
+.page-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 .page-title {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  line-height: 1.35;
+}
+.page-row[data-active="true"] .page-title {
+  font-weight: 700;
+}
+.page-sub {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  color: var(--ink-2);
+  font-size: 11px;
+}
+.page-kind {
   flex: 1;
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: 13px;
 }
 .page-when {
   flex: none;
   color: var(--ink-3);
-  font-size: 11px;
 }
 .page-delete {
   display: none;
   align-items: center;
-  margin-right: 4px;
+  margin-right: 6px;
   background: none;
   border: 0;
-  border-radius: 5px;
-  color: var(--ink-3);
-  height: 22px;
-  padding: 0 5px;
+  border-radius: 6px;
+  color: var(--ink-2);
+  height: 24px;
+  padding: 0 6px;
   font-size: 12px;
 }
 .page-row:hover .page-delete,
 .page-delete.confirm {
   display: inline-flex;
-}
-.page-row:hover .page-when {
-  display: none;
 }
 .page-delete:hover {
   background: var(--press);
@@ -453,8 +532,8 @@ select:focus-visible,
 .problems {
   margin-top: 10px;
   padding: 10px;
-  border-radius: 6px;
-  background: var(--bg-3);
+  border-radius: 8px;
+  background: var(--panel-2);
   color: var(--ink-2);
   font-size: 12px;
   line-height: 1.45;
@@ -468,8 +547,8 @@ select:focus-visible,
   align-items: center;
   gap: 4px;
   margin-top: 6px;
-  padding-top: 6px;
-  border-top: 1px solid var(--line);
+  padding-top: 8px;
+  border-top: 1px solid var(--panel-line);
 }
 .sidebar-foot .sidebar-settings {
   flex: 1;
@@ -485,6 +564,7 @@ select:focus-visible,
   --text: clamp(15px, calc(9px + 0.5vw), 21px);
   --page-width: clamp(660px, 58vw, 1100px);
   --gutter: clamp(16px, 3vw, 56px);
+  --bar-h: clamp(56px, calc(32px + 1.6vw), 72px);
   flex: 1;
   min-height: 0;
   display: grid;
@@ -500,13 +580,51 @@ select:focus-visible,
   flex-direction: column;
 }
 .topbar {
+  container: topbar / inline-size;
   display: flex;
   flex-wrap: wrap;
-  row-gap: 4px;
+  row-gap: 6px;
   align-items: center;
-  gap: 8px;
-  padding: 8px var(--gutter);
-  min-height: 44px;
+  gap: 10px;
+  padding: 10px var(--gutter);
+  min-height: var(--bar-h);
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+/* The bar grows with the window, like the page under it, and its buttons are a little larger than the ones in dialogs. */
+.topbar .ghost,
+.topbar .primary,
+.topbar .chip {
+  height: 34px;
+  padding: 0 13px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+.topbar .ghost {
+  border-color: var(--panel-line);
+}
+.topbar .lm-pill {
+  font-size: 12.5px;
+}
+/* The page's actions stay together at the right; when the bar has to wrap (a long status), they go to a second row, still
+   at the right. */
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+/* Narrow: the buttons keep their pictures and names (for screen readers and as tooltips) and lose the visible words, so the
+   bar stays on one line. */
+@container topbar (max-width: 880px) {
+  .topbar .btn-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
 }
 .spacer {
   flex: 1;
@@ -734,19 +852,20 @@ select:focus-visible,
 .side {
   min-height: 0;
   overflow-y: auto;
-  background: var(--bg-2);
-  border-left: 1px solid var(--line);
-  padding: 12px 14px;
-  font-size: 12.5px;
+  background: var(--panel);
+  border-left: 1px solid var(--panel-line);
+  padding: 14px 16px;
+  font-size: 13px;
 }
 .side header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  min-height: 34px;
+  margin-bottom: 6px;
 }
 .side header strong {
-  font-size: 13px;
+  font-size: 15px;
 }
 .side ol {
   list-style: none;
@@ -754,15 +873,18 @@ select:focus-visible,
   padding: 0;
 }
 .side li {
-  padding: 9px 0;
-  border-top: 1px solid var(--line);
+  margin: 0 0 8px;
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--panel-line);
+  border-radius: 10px;
 }
 .side p {
   margin: 2px 0;
   line-height: 1.45;
 }
 .history-empty {
-  color: var(--ink-3);
+  color: var(--ink-2);
 }
 .history-summary {
   color: var(--ink);
@@ -1731,10 +1853,12 @@ select:focus-visible,
 
 /* ---- History: the changes, and taking one back ---- */
 .side-h {
-  margin: 12px 0 4px;
+  margin: 18px 0 8px;
   font-size: 11px;
-  font-weight: 400;
-  color: var(--ink-3);
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-2);
 }
 .changes {
   list-style: none;
@@ -1742,8 +1866,8 @@ select:focus-visible,
   padding: 0;
 }
 .changes li {
-  padding: 9px 0;
-  border-top: 1px solid var(--line);
+  margin: 0 0 8px;
+  padding: 10px 12px;
 }
 .changes li[data-reverted="true"] p {
   color: var(--ink-3);

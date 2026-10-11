@@ -1,7 +1,8 @@
 # Trying Lucid with Wispr Flow (a check-list)
 
 Lucid does no speech recognition: Wispr Flow turns your voice into text and pastes it, Lucid's input box takes the paste. The
-automated tests paste with ⌘V (what Wispr does); only you can check it with your voice. About ten minutes:
+automated tests paste with ⌘V (what Wispr does); only you can check it with your voice. About ten minutes. (Wispr Flow runs on
+macOS and Windows; on Windows read ⌘ as Ctrl and ⌥ as Alt. It has no Linux version: there you type.)
 
 1. **Plain dictation.** Open a page, hold Wispr's key and say a thought ("Load balancer. Multiple application servers behind
    it. Health checks to avoid unhealthy servers."). The text appears in the input box and the notes appear in the page about

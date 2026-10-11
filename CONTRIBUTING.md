@@ -5,7 +5,7 @@ a local model. Its shape is small on purpose, so please open an issue to talk ab
 
 ## Set up
 
-You need macOS on Apple Silicon, Node 22.12 or newer and pnpm 9.
+You need macOS (Apple Silicon), Windows or Linux (x64), Node 22.12 or newer and pnpm 9.
 
 ```bash
 pnpm install
@@ -20,7 +20,7 @@ You do **not** need LM Studio for tests: unit, integration and end-to-end tests 
 
 ```bash
 pnpm run ci    # typecheck, lint, formatting, unit tests
-pnpm e2e       # the Electron tests, in a maximized window (do not touch the keyboard while it runs)
+pnpm e2e       # the Electron tests, in a maximized window (do not touch the keyboard while it runs; written and run on a Mac)
 ```
 
 - One concern per pull request, in small commits with [Conventional Commit](https://www.conventionalcommits.org) messages
@@ -30,6 +30,15 @@ pnpm e2e       # the Electron tests, in a maximized window (do not touch the key
 - If your change touches the prompts or the pipelines, run `pnpm eval` with the model and say what changed in the pass
   rates (see [`docs/evals.md`](docs/evals.md)).
 - Update the README, the guide (`docs/guide.html`) and the changelog when something a person sees changes.
+
+## Three systems
+
+The unit tests run on macOS, Linux and Windows in CI, and the packaged app is built and tested on all three before a release. So
+code must not assume one system: build file paths with `node:path` (or `posix`/`win32` when the system is a parameter), take
+the system as an argument where behaviour differs, so that a test can cover all three on any machine (see `electron/tools.ts`
+and `electron/studio.ts`), and never turn a file URL into a path with `.pathname` (use `fileURLToPath`). A test that needs a
+Unix shell script, a socket file or a Mac-only path says so with `skipIf` and a comment. Keyboard hints are written with ⌘ ⇧ ⌥ and
+shown through `keys()` (`apps/desktop/src/platform.ts`), which turns them into Ctrl, Shift and Alt on Windows and Linux.
 
 ## Rules the code keeps
 

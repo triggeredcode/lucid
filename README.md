@@ -7,14 +7,21 @@
 <p align="center">
   <b>A structured document, built while you think.</b><br />
   Say or type your thoughts. Lucid arranges them as headings, lists, tables and diagrams, and typesets them.<br />
-  A local-first note editor: the language model runs on your own Mac.
+  A local-first note editor for macOS, Windows and Linux: the language model runs on your own computer.
 </p>
 
 <p align="center">
   <a href="https://github.com/triggeredcode/lucid/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/triggeredcode/lucid?display_name=tag&color=1f1f1f" /></a>
   <a href="LICENSE"><img alt="MIT licence" src="https://img.shields.io/badge/licence-MIT-1f1f1f" /></a>
-  <img alt="macOS 13 or newer, Apple Silicon" src="https://img.shields.io/badge/macOS-13%2B%20%C2%B7%20Apple%20Silicon-1f1f1f" />
+  <img alt="macOS, Windows and Linux" src="https://img.shields.io/badge/macOS%20%C2%B7%20Windows%20%C2%B7%20Linux-1f1f1f" />
   <a href="https://github.com/triggeredcode/lucid/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/triggeredcode/lucid/actions/workflows/ci.yml/badge.svg" /></a>
+</p>
+
+<p align="center">
+  <a href="https://triggeredcode.github.io/lucid/"><b>Website</b></a> ·
+  <a href="https://github.com/triggeredcode/lucid/releases/latest"><b>Download</b></a> ·
+  <a href="docs/guide.html">User guide</a> ·
+  <a href="CHANGELOG.md">Changelog</a>
 </p>
 
 <p align="center">
@@ -71,31 +78,48 @@ What stays true whatever you say:
 
 ## Install
 
-Lucid is a macOS app for **Apple Silicon**, **macOS 13 or newer**.
+Lucid runs on **macOS** (Apple Silicon, macOS 13 or newer), **Windows** (Windows 10 or newer, 64-bit) and **Linux** (64-bit).
+The [website](https://triggeredcode.github.io/lucid/#download) offers the right download for your computer; they are all on the
+[latest release](https://github.com/triggeredcode/lucid/releases/latest):
 
-1. Download `Lucid-<version>-arm64.dmg` from the [latest release](https://github.com/triggeredcode/lucid/releases/latest),
-   open it and drag **Lucid** to **Applications**.
-2. Open Lucid. macOS will say it cannot check the app for malicious software, because Lucid is a free open-source app that is
-   not notarized by Apple. Allow it once:
-   - **macOS 15 and newer:** close the message, open **System Settings → Privacy & Security**, scroll down to the message
-     about Lucid and click **Open Anyway**.
-   - **macOS 13 and 14:** right-click Lucid in Applications, choose **Open**, then **Open** again.
-   - Or in Terminal: `xattr -dr com.apple.quarantine /Applications/Lucid.app`
-3. Install [LM Studio](https://lmstudio.ai), download the model **`qwen/qwen3.8-27b`**, and start its local server
-   (Developer tab). Lucid's pill at the top says what is missing and can load the model for you.
+| System | Download | Notes |
+|---|---|---|
+| **macOS** | `Lucid-<version>-mac-arm64.dmg` (or `.zip`) | Apple Silicon, macOS 13 or newer |
+| **Windows** | `Lucid-<version>-win-x64.exe` installer (or the portable `.zip`) | Windows 10 or newer, 64-bit |
+| **Linux** | `Lucid-<version>-linux-amd64.deb`, or `Lucid-<version>-linux-x64.AppImage` | 64-bit; the `.deb` is for Debian and Ubuntu |
 
-Each release lists SHA-256 checksums (`SHA256SUMS`), so you can check the download with `shasum -a 256 -c SHA256SUMS`. The
-source is here; you can [build the app yourself](#build-from-source).
+1. **Install it.**
+   - **macOS:** open the `.dmg` and drag **Lucid** to **Applications**. macOS will say it cannot check the app for malicious
+     software, because Lucid is a free open-source app that is not notarized by Apple. Allow it once: on macOS 15 and newer,
+     open **System Settings → Privacy & Security**, scroll to the message about Lucid and click **Open Anyway**; on macOS 13 and
+     14, right-click Lucid in Applications, choose **Open**, then **Open** again. Or in Terminal:
+     `xattr -dr com.apple.quarantine /Applications/Lucid.app`
+   - **Windows:** run the installer. It installs Lucid for you (no administrator needed) and starts it. Lucid is not signed,
+     so Windows SmartScreen may say "Windows protected your PC": click **More info**, then **Run anyway**. To remove it:
+     Settings → Apps → Lucid.
+   - **Linux:** `sudo apt install ./Lucid-<version>-linux-amd64.deb` (then start **Lucid** from the menu, or `lucid`), or with the
+     AppImage: `chmod +x Lucid-<version>-linux-x64.AppImage && ./Lucid-<version>-linux-x64.AppImage`. On Ubuntu 24.04 and newer an
+     AppImage can stop with a sandbox message: use the `.deb`, or start the AppImage with `--no-sandbox`.
+2. Install [LM Studio](https://lmstudio.ai) (it runs on all three systems), download the model **`qwen/qwen3.8-27b`**, and
+   start its local server (Developer tab). Lucid's pill at the top says what is missing and can load the model for you.
+
+Each release lists SHA-256 checksums (`SHA256SUMS`). To check a download, run `shasum -a 256 --ignore-missing -c SHA256SUMS` in
+the folder with both files (macOS, Linux), or `Get-FileHash .\Lucid-<version>-win-x64.exe -Algorithm SHA256` in PowerShell and
+compare. The source is here; you can [build the app yourself](#build-from-source).
 
 **Good to know**
 
 - Nothing else needs installing: the PDF engine ([Tectonic](https://tectonic-typesetting.github.io)) and the diagram
-  drawing come with the app.
+  drawing come with the app, on every system.
 - **The first PDF needs the internet, once.** Tectonic downloads its typesetting files the first time it runs (several hundred
   small ones, about five minutes). Lucid does it in the background after the first start and shows the progress next to
   *Download PDF*. After that PDFs take a second or two and work offline.
+- Every build is tested on GitHub's own macOS, Windows and Ubuntu machines before a release (it starts, makes a PDF with a
+  diagram, and connects an AI agent). The Mac version has had the most everyday use: please
+  [report](https://github.com/triggeredcode/lucid/issues/new/choose) what is off on Windows or Linux.
 - Lucid is evaluated with `qwen/qwen3.8-27b` only. Another model can be named in Settings, but expect more misses. A 27B
   model needs a lot of memory; Lucid was developed on a Mac with 48 GB.
+- On Windows and Linux the shortcuts use **Ctrl** where this page says ⌘ (⌘1 is Ctrl+1), and **Alt** where it says ⌥.
 
 ## Quick start
 
@@ -153,7 +177,7 @@ Dictation is placed under the section it belongs to ("the options are Kafka and 
 
 - **PDF**, typeset with Tectonic in a fixed house style (numbered sections, real tables and figures, formulas);
 - **Markdown** (diagrams as Mermaid blocks);
-- **A `.lucid` file**, the whole note with its history, to back up, move to another Mac or share.
+- **A `.lucid` file**, the whole note with its history, to back up, move to another computer or share.
 
 <p align="center">
   <img alt="A page of the exported PDF: a numbered section, a diagram and a footer" src="docs/images/pdf-page.png" width="420" />
@@ -200,7 +224,7 @@ text it pastes.
 
 ## Build from source
 
-You need macOS on Apple Silicon, Node 22.12 or newer, and [pnpm](https://pnpm.io) 9.
+You need macOS (Apple Silicon), Windows or Linux (x64), Node 22.12 or newer, and [pnpm](https://pnpm.io) 9.
 
 ```bash
 git clone https://github.com/triggeredcode/lucid.git
@@ -213,11 +237,11 @@ pnpm dev
 | Command | |
 |---|---|
 | `pnpm test` | unit tests (all packages) |
-| `pnpm e2e` | Electron end-to-end tests with a fake LM Studio, in a maximized window |
+| `pnpm e2e` | Electron end-to-end tests with a fake LM Studio, in a maximized window (written and run on a Mac) |
 | `pnpm run ci` | typecheck, lint, formatting and unit tests |
 | `pnpm eval` | 74 cases (and their variants) against the real model in LM Studio; see [`docs/evals.md`](docs/evals.md) |
-| `pnpm dist` | builds `apps/desktop/release/Lucid-<version>-arm64.dmg` and `.zip` |
-| `pnpm e2e:packaged` | runs the end-to-end tests against the built app (after `pnpm dist:dir`) |
+| `pnpm dist` | builds the installers for the system it runs on into `apps/desktop/release/`: a `.dmg` and `.zip` (macOS), an installer and `.zip` (Windows), an `.AppImage` and `.deb` (Linux) |
+| `pnpm e2e:packaged` | runs the end-to-end tests against the built app, on any of the three systems (after `pnpm dist:dir`) |
 
 The repository is a pnpm workspace:
 

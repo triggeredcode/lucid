@@ -1,11 +1,12 @@
 import { execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 /**
  * Writes THIRD_PARTY_NOTICES.md from the production dependencies pnpm installed: `node scripts/notices.mjs`.
  * `--check` fails when the file is out of date (run it after changing dependencies).
  */
-const OUT = new URL("../THIRD_PARTY_NOTICES.md", import.meta.url).pathname;
+const OUT = fileURLToPath(new URL("../THIRD_PARTY_NOTICES.md", import.meta.url));
 
 // A license pnpm cannot read from a package, checked by hand against the package's own repository.
 const KNOWN = { khroma: "MIT" };

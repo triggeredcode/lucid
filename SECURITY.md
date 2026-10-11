@@ -13,10 +13,13 @@ which version of Lucid and macOS you used. Lucid is maintained by one person: ex
   computer.
 - The only network use of Lucid's own code is the one-time download of typesetting files by its PDF engine (Tectonic), and
   the web pages you open from the Help menu.
-- AI agents reach the app through a socket in the library folder (`~/Lucid/.lucid/lucid.sock`) that only your user can use.
+- AI agents reach the app through a socket in the library folder (`~/Lucid/.lucid/lucid.sock`) that only your user can use on
+  macOS and Linux, and through a named pipe on Windows (named after the library folder, with the usual Windows protection for a
+  pipe: other users cannot write to it).
   An agent can only edit a page it has just read, and every change is one undo step, listed in the history.
 - The window loads only the app's own files, under a content security policy.
-- Lucid is **not notarized by Apple**. Check the SHA-256 of a download against `SHA256SUMS` in the release.
+- Lucid is **not notarized by Apple and not signed for Windows**. Check the SHA-256 of a download against `SHA256SUMS` in the
+  release.
 
 ## Supported versions
 

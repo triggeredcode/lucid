@@ -21,7 +21,17 @@ export interface PageSummary {
   title: string;
   updatedAt: string;
   fileName: string;
+  /** The note format of the page; none for a blank page. */
+  format?: string;
 }
+
+const summaryOf = (f: LucidFile, fileName: string): PageSummary => ({
+  id: f.id,
+  title: f.title,
+  updatedAt: f.updatedAt,
+  fileName,
+  ...(f.meta.format ? { format: f.meta.format } : {}),
+});
 
 export interface Problem {
   fileName: string;
@@ -93,7 +103,7 @@ export class Library {
     for (const fileName of await this.lucidFiles()) {
       try {
         const f = await this.read(fileName);
-        pages.push({ id: f.id, title: f.title, updatedAt: f.updatedAt, fileName });
+        pages.push(summaryOf(f, fileName));
       } catch (error) {
         problems.push({
           fileName,
@@ -172,12 +182,7 @@ export class Library {
     }
     const saved = await this.save(file);
     return {
-      page: {
-        id: saved.id,
-        title: saved.title,
-        updatedAt: saved.updatedAt,
-        fileName: fileNameFor(saved),
-      },
+      page: summaryOf(saved, fileNameFor(saved)),
       copy,
     };
   }
