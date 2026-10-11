@@ -140,12 +140,16 @@ describe("the first run, which downloads the typesetting files", () => {
   }, 30_000);
 
   it("lets an engine that keeps downloading run longer than the quiet limit", async () => {
-    const t = await script(downloads);
-    const { c } = await compiler(t, stubConvert, { idleMs: 1_000 });
+    // Prints every 0.4 s for about 5 s. The quiet limit is 2 s, five times the interval, so a slow start of the script on a
+    // busy machine (the whole suite runs in parallel) does not trip it.
+    const t = await script(
+      'for i in 1 2 3 4 5 6 7 8 9 10 11 12; do echo "note: downloading f$i.sty"; sleep 0.4; done\necho "%PDF-1.5" > main.pdf',
+    );
+    const { c } = await compiler(t, stubConvert, { idleMs: 2_000 });
     const started = Date.now();
     const r = await c.compile(req("page-slow"));
     expect(r.ok).toBe(true);
-    expect(Date.now() - started).toBeGreaterThan(1_800); // longer than the quiet limit, because it kept printing
+    expect(Date.now() - started).toBeGreaterThan(2_800); // longer than the quiet limit, because it kept printing
   }, 30_000);
 
   it("stops an engine that runs for too long, however much it prints", async () => {
