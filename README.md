@@ -86,7 +86,7 @@ The [website](https://triggeredcode.github.io/lucid/#download) offers the right 
 |---|---|---|
 | **macOS** | `Lucid-<version>-mac-arm64.dmg` (or `.zip`) | Apple Silicon, macOS 13 or newer |
 | **Windows** | `Lucid-<version>-win-x64.exe` installer (or the portable `.zip`) | Windows 10 or newer, 64-bit |
-| **Linux** | `Lucid-<version>-linux-amd64.deb`, or `Lucid-<version>-linux-x64.AppImage` | 64-bit; the `.deb` is for Debian and Ubuntu |
+| **Linux** | `Lucid-<version>-linux-amd64.deb`, or `Lucid-<version>-linux-x86_64.AppImage` | 64-bit; the `.deb` is for Debian and Ubuntu |
 
 1. **Install it.**
    - **macOS:** open the `.dmg` and drag **Lucid** to **Applications**. macOS will say it cannot check the app for malicious
@@ -98,7 +98,7 @@ The [website](https://triggeredcode.github.io/lucid/#download) offers the right 
      so Windows SmartScreen may say "Windows protected your PC": click **More info**, then **Run anyway**. To remove it:
      Settings → Apps → Lucid.
    - **Linux:** `sudo apt install ./Lucid-<version>-linux-amd64.deb` (then start **Lucid** from the menu, or `lucid`), or with the
-     AppImage: `chmod +x Lucid-<version>-linux-x64.AppImage && ./Lucid-<version>-linux-x64.AppImage`. On Ubuntu 24.04 and newer an
+     AppImage: `chmod +x Lucid-<version>-linux-x86_64.AppImage && ./Lucid-<version>-linux-x86_64.AppImage`. On Ubuntu 24.04 and newer an
      AppImage can stop with a sandbox message: use the `.deb`, or start the AppImage with `--no-sandbox`.
 2. Install [LM Studio](https://lmstudio.ai) (it runs on all three systems), download the model **`qwen/qwen3.8-27b`**, and
    start its local server (Developer tab). Lucid's pill at the top says what is missing and can load the model for you.
