@@ -125,7 +125,11 @@ describe("explaining what went wrong on a first PDF", () => {
   });
 });
 
-describe("the first run, which downloads the typesetting files", () => {
+// The stand-in engines below are shell scripts, which Windows cannot start directly. There, the real engine is exercised
+// by the packaged-app tests (a PDF with a diagram, the first-run download), so these describe blocks are skipped.
+const shellScripts = process.platform === "win32" ? describe.skip : describe;
+
+shellScripts("the first run, which downloads the typesetting files", () => {
   const downloads =
     'for i in 1 2 3 4 5 6; do echo "note: downloading f$i.sty"; sleep 0.4; done\necho "%PDF-1.5" > main.pdf';
 
@@ -228,7 +232,7 @@ describe("the first run, which downloads the typesetting files", () => {
   });
 });
 
-describe("PdfCompiler with stand-in tools", () => {
+shellScripts("PdfCompiler with stand-in tools", () => {
   it("reports an engine error in plain words and keeps the log", async () => {
     const t = await script('echo "error: main.tex:7: Undefined control sequence" >&2; exit 1');
     const { c } = await compiler(t);
@@ -485,7 +489,7 @@ describe("the natural width of a figure", () => {
   });
 });
 
-describe("tools that are not installed", () => {
+shellScripts("tools that are not installed", () => {
   it("says what is missing and how to install it, in plain words", async () => {
     const { c } = await compiler("/nonexistent/tectonic");
     const r = await c.compile(req("page-8"));
