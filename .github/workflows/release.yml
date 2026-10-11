@@ -34,7 +34,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          notes="$(cat .github/release-install.md; awk -v v="${GITHUB_REF_NAME#v}" '$0 ~ "^## \\["v"\\]" {on=1; next} /^## \[/ {on=0} on' CHANGELOG.md)"
+          # Release notes keep every line break, so lines wrapped in the changelog are joined first.
+          notes="$(cat .github/release-install.md; awk -v v="${GITHUB_REF_NAME#v}" '$0 ~ "^## \\["v"\\]" {on=1; next} /^## \[/ {on=0} on' CHANGELOG.md | awk '/^  / {sub(/^ +/, " "); buf = buf $0; next} {if (NR > 1) print buf; buf = $0} END {print buf}')"
           gh release create "$GITHUB_REF_NAME" \
             apps/desktop/release/*.dmg apps/desktop/release/*.zip apps/desktop/release/SHA256SUMS \
             --title "Lucid ${GITHUB_REF_NAME#v}" --notes "$notes"
