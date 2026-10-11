@@ -49,6 +49,7 @@ test("the app is there, carries what it needs, and is signed on a Mac", () => {
 });
 
 test("it opens as Lucid with its own version, and a PDF with a diagram is made with nothing installed", async () => {
+  test.setTimeout(720_000);
   const { app, page } = await launch();
   try {
     const identity = await app.evaluate(({ app: a }) => [
@@ -73,7 +74,8 @@ test("it opens as Lucid with its own version, and a PDF with a diagram is made w
 
     const path = await autoSaveDialog(app);
     // The first PDF may wait for the engine to prepare itself (it fetches typesetting files once).
-    const text = await downloadPdf(page, path);
+    // On a machine that has never made a PDF this downloads Tectonic's typesetting files, which takes minutes.
+    const text = await downloadPdf(page, path, 600_000);
     await expect(page.locator(".export-note")).not.toContainText("could not be drawn");
     if (text !== undefined)
       for (const word of ["Web Server", "Redis"]) expect(text, word).toContain(word);

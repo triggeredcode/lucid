@@ -16,10 +16,14 @@ export async function autoSaveDialog(app: ElectronApplication): Promise<string> 
 }
 
 /** Clicks Download PDF, waits for the file, and returns its text (when pdftotext is installed). */
-export async function downloadPdf(page: Page, path: string): Promise<string | undefined> {
+export async function downloadPdf(
+  page: Page,
+  path: string,
+  timeoutMs = 90_000,
+): Promise<string | undefined> {
   await page.getByRole("button", { name: "Download PDF" }).click();
   try {
-    await expect(page.getByText(/^Saved page\.pdf/)).toBeVisible({ timeout: 90_000 });
+    await expect(page.getByText(/^Saved page\.pdf/)).toBeVisible({ timeout: timeoutMs });
   } catch (error) {
     // Say what the window said instead (the engine's own message, if it failed), so a failure on another machine can be read.
     const said = await page.locator(".export-note").allTextContents();
