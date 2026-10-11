@@ -1,0 +1,6 @@
+placement: cursor
+code (1 line): use ``` for fences
+--- canonical LMD
+````
+use ``` for fences
+````

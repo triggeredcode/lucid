@@ -1,0 +1,4 @@
+type=flowchart direction=LR
+---
+line 1: unknown arrow "=>"; use one of: -> -- <-> -.-> -.- <-.-> ..> ... <..>
+line 2: unknown arrow "-->"; use one of: -> -- <-> -.-> -.- <-.-> ..> ... <..>

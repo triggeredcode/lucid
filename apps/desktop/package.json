@@ -1,0 +1,57 @@
+{
+  "name": "@lucid/desktop",
+  "productName": "Lucid",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lucid: structured notes (headings, lists, tables, diagrams) built while you think, with a local model",
+  "main": "./out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "e2e": "electron-vite build && playwright test",
+    "e2e:real": "electron-vite build && playwright test -c playwright.real.config.ts",
+    "prepack": "node ../../scripts/fetch-tectonic.mjs && node node_modules/electron/install.js && pnpm --filter @lucid/mcp bundle && electron-vite build",
+    "dist": "pnpm prepack && electron-builder --mac --arm64 --publish never",
+    "e2e:packaged": "playwright test -c playwright.packaged.config.ts",
+    "dist:dir": "pnpm prepack && electron-builder --mac --arm64 --dir"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Omkar Tripathi",
+    "url": "https://github.com/triggeredcode"
+  },
+  "homepage": "https://github.com/triggeredcode/lucid#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/triggeredcode/lucid.git",
+    "directory": "apps/desktop"
+  },
+  "dependencies": {
+    "@blocknote/core": "0.55.0",
+    "@blocknote/mantine": "0.55.0",
+    "@blocknote/react": "0.55.0",
+    "@fontsource/ia-writer-mono": "^5.3.0",
+    "@lucid/core": "workspace:^",
+    "@lucid/kit": "workspace:^",
+    "@lucid/llm": "workspace:^",
+    "@lucid/mcp": "workspace:^",
+    "@mermaid-js/layout-elk": "1.0.1",
+    "mermaid": "12.1.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@lucid/mock-lmstudio": "workspace:^",
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "@playwright/test": "1.64.0",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "5.2.0",
+    "electron": "44.7.0",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "5.0.0",
+    "vite": "7.3.7"
+  }
+}

@@ -1,0 +1,6 @@
+placement: @@ append_to b9
+bullet "Cassandra"
+bullet "ScyllaDB"
+--- canonical LMD
+- Cassandra
+- ScyllaDB

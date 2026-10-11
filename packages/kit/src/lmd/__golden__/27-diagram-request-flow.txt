@@ -1,0 +1,18 @@
+placement: cursor
+diagram flowchart LR "Request flow"
+  nodes: user[actor] "User"; client[client] "Client"; web[service] "Web Server"; redis[cache] "Redis"; pg[datastore] "PostgreSQL"
+  edges: e1 user->client "enters domain"; e2 client->web "HTTP request"; e3 web->redis "check cache"; e4 web-.->pg "cache miss: query"
+  groups: app "Application boundary" {web, redis}
+--- canonical LMD
+```graph type=flowchart dir=LR title="Request flow"
+user [actor]: User
+client [client]: Client
+web [service]: Web Server
+redis [cache]: Redis
+pg [datastore]: PostgreSQL
+user -> client: enters domain
+client -> web: HTTP request
+web -> redis: check cache
+web -.-> pg: cache miss: query
+group app: Application boundary {web, redis}
+```

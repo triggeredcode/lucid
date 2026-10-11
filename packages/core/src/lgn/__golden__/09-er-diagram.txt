@@ -1,0 +1,7 @@
+type=er direction=LR
+---
+user [storage]: USER
+url [storage]: URL
+click [storage]: CLICK
+user -> url: creates (one to many)
+url -> click: receives (one to many)

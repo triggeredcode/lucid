@@ -1,0 +1,49 @@
+name: Bug report
+description: Something in Lucid does not work or looks wrong
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you. Please do not paste notes you want to keep private. A screenshot of the problem is often enough.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what did you see instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: What you said or typed, in which mode, and what was on the page.
+      placeholder: |
+        1. New page, Input mode
+        2. Typed: "…"
+        3. …
+  - type: input
+    id: version
+    attributes:
+      label: Lucid version
+      description: Lucid menu → About Lucid
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version and chip
+      placeholder: "macOS 15.2, Apple M3"
+    validations:
+      required: true
+  - type: input
+    id: model
+    attributes:
+      label: LM Studio version and model
+      placeholder: "LM Studio 0.4.x, qwen/qwen3.8-27b"
+  - type: textarea
+    id: more
+    attributes:
+      label: Anything else
+      description: Screenshots, the message Lucid showed, whether it happens every time.

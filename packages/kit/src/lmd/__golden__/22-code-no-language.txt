@@ -1,0 +1,6 @@
+placement: cursor
+code (1 line): GET /api/v1/short/abc
+--- canonical LMD
+```
+GET /api/v1/short/abc
+```

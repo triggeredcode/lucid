@@ -1,0 +1,4 @@
+placement: cursor
+p "Literal *stars*, snake_case, a==b, {struck} and $5."
+--- canonical LMD
+Literal \*stars\*, snake\_case, a\=\=b, \{struck\} and \$5.

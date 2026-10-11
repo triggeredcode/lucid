@@ -1,0 +1,8 @@
+type=flowchart direction=LR
+---
+web [process]: Web
+redis [process]: Redis
+pg [process]: Pg
+web -> redis: check cache
+web -.-> redis: store result
+web -> pg: query

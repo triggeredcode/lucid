@@ -1,0 +1,45 @@
+# dependencies and build output
+node_modules/
+dist/
+out/
+build/
+coverage/
+*.tsbuildinfo
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# local agent settings
+.claude/settings.local.json
+
+# env and secrets
+.env
+.env.*
+!.env.example
+
+# Lucid runtime data and exports (never commit user notes)
+.lucid/
+Exports/
+
+# LaTeX build artifacts (sources are committed, outputs are not)
+*.aux
+*.log
+*.out
+*.toc
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+# generated PDFs are not committed
+*.pdf
+
+# playwright
+playwright-report/
+test-results/
+
+# fetched at build time (scripts/fetch-tectonic.mjs)
+apps/desktop/resources/bin/
+
+# packaged app
+apps/desktop/release/

@@ -1,0 +1,4 @@
+placement: cursor
+p "bold italic underline strike highlight code and both"
+--- canonical LMD
+**bold** *italic* __underline__ ~~strike~~ ==highlight== `code` and ***both***

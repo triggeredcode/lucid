@@ -1,0 +1,4 @@
+type=flowchart direction=LR
+---
+line 2: alt/opt/loop/par/else/end only work in sequence diagrams (use ```graph type=sequence)
+line 4: alt/opt/loop/par/else/end only work in sequence diagrams (use ```graph type=sequence)

@@ -1,0 +1,1 @@
+line 2: a placement directive (@@ ...) must be the first line

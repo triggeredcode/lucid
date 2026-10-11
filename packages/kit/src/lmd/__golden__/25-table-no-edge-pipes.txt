@@ -1,0 +1,9 @@
+placement: cursor
+table cols: c1 Tool | c2 Use
+  r1 vLLM | serving
+  r2 llama.cpp | local
+--- canonical LMD
+| Tool | Use |
+| --- | --- |
+| vLLM | serving |
+| llama.cpp | local |

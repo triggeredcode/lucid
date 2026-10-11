@@ -1,0 +1,11 @@
+type=flowchart direction=LR
+---
+pg [datastore]: PostgreSQL {struck}
+mongo [datastore]: MongoDB {struck}
+dynamo [datastore]: DynamoDB {chosen}
+secret [process]: Internal detail {hidden}
+app [service]: App
+app -> pg: considered {struck}
+app -> mongo: considered {struck}
+app -> dynamo: chosen {chosen}
+app -> secret {hidden}

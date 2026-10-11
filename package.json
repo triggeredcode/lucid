@@ -1,0 +1,62 @@
+{
+  "name": "lucid",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A structured document built while you think: headings, lists, tables and diagrams from speech or typing, with a local model. A toolbox for AI agents.",
+  "type": "module",
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @lucid/desktop dev",
+    "build": "pnpm --filter @lucid/desktop build",
+    "typecheck": "tsc -b",
+    "lint": "eslint . --no-error-on-unmatched-pattern",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run --passWithNoTests",
+    "test:core": "vitest run --project @lucid/core --passWithNoTests",
+    "test:coverage": "vitest run --coverage --passWithNoTests",
+    "e2e": "pnpm --filter @lucid/desktop e2e",
+    "e2e:real": "pnpm --filter @lucid/desktop e2e:real",
+    "ci": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
+    "mcp:build": "pnpm --filter @lucid/mcp bundle",
+    "notices": "node scripts/notices.mjs",
+    "notices:check": "node scripts/notices.mjs --check",
+    "eval": "node packages/evals/scripts/eval.mjs",
+    "dist": "pnpm --filter @lucid/desktop dist",
+    "e2e:packaged": "pnpm --filter @lucid/desktop e2e:packaged",
+    "dist:dir": "pnpm --filter @lucid/desktop dist:dir"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "22.20.5",
+    "@vitest/coverage-v8": "5.0.3",
+    "eslint": "10.12.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "3.9.10",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.71.1",
+    "vitest": "5.0.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild"
+    ]
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Omkar Tripathi",
+    "url": "https://github.com/triggeredcode"
+  },
+  "homepage": "https://github.com/triggeredcode/lucid#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/triggeredcode/lucid.git"
+  },
+  "bugs": {
+    "url": "https://github.com/triggeredcode/lucid/issues"
+  }
+}

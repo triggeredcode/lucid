@@ -1,0 +1,11 @@
+placement: cursor
+callout warning "Hot partitions": "Writes to one key throttle. / spread keys / add a suffix"
+  p "Writes to one key throttle."
+  bullet "spread keys"
+  bullet "add a suffix"
+--- canonical LMD
+> [!warning] Hot partitions
+> Writes to one key throttle.
+>
+> - spread keys
+> - add a suffix

@@ -1,0 +1,8 @@
+placement: cursor
+bullet "bullet"
+numbered "number"
+check [ ] "check"
+--- canonical LMD
+- bullet
+1. number
+- [ ] check

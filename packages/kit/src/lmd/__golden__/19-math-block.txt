@@ -1,0 +1,6 @@
+placement: cursor
+math "M_{KV} = 2 \cdot L \cdot H \cdot d_{head} \cdot b \cdot T"
+--- canonical LMD
+$$
+M_{KV} = 2 \cdot L \cdot H \cdot d_{head} \cdot b \cdot T
+$$

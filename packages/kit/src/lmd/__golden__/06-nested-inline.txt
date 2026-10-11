@@ -1,0 +1,4 @@
+placement: cursor
+p "bold with italic inside and strike then plain"
+--- canonical LMD
+**bold with *italic inside* and ~~strike~~** then plain

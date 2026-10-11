@@ -1,0 +1,40 @@
+name: Release
+
+# Pushing a tag like v0.1.0 builds the macOS app from that tag, tests it, and attaches it to a GitHub release.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build and publish
+    runs-on: macos-14
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Check
+        run: pnpm run ci
+      - name: Build the app
+        run: pnpm dist
+      - name: Test the built app
+        run: pnpm e2e:packaged
+      - name: Checksums
+        working-directory: apps/desktop/release
+        run: shasum -a 256 *.dmg *.zip > SHA256SUMS
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          notes="$(awk -v v="${GITHUB_REF_NAME#v}" '$0 ~ "^## \\["v"\\]" {on=1; next} /^## \[/ {on=0} on' CHANGELOG.md)"
+          gh release create "$GITHUB_REF_NAME" \
+            apps/desktop/release/*.dmg apps/desktop/release/*.zip apps/desktop/release/SHA256SUMS \
+            --title "Lucid ${GITHUB_REF_NAME#v}" --notes "$notes"

@@ -1,0 +1,12 @@
+type=flowchart direction=TB title="Cache decision"
+---
+start [actor]: Request arrives
+check [decision]: Cache hit?
+respond [process]: Return cached value
+load [process]: Load from database
+store [process]: Write to cache
+start -> check
+check -> respond: yes
+check -> load: no
+load -> store
+store -> respond

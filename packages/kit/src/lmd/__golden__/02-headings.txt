@@ -1,0 +1,10 @@
+placement: cursor
+h1 Title
+h2 Section
+h3 Sub-section
+--- canonical LMD
+# Title
+
+## Section
+
+### Sub-section

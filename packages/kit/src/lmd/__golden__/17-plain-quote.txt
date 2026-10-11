@@ -1,0 +1,6 @@
+placement: cursor
+callout note: "an aside the user made"
+  p "an aside the user made"
+--- canonical LMD
+> [!note]
+> an aside the user made

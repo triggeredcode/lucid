@@ -1,0 +1,8 @@
+placement: cursor
+bullet "PostgreSQL"
+bullet "MongoDB" {struck}
+bullet "DynamoDB" {chosen}
+--- canonical LMD
+- PostgreSQL
+- MongoDB {struck}
+- DynamoDB {chosen}

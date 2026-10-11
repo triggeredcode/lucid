@@ -1,0 +1,7 @@
+placement: cursor
+p "A cache sits in front of the database so most reads never reach it."
+p "Second paragraph."
+--- canonical LMD
+A cache sits in front of the database so most reads never reach it.
+
+Second paragraph.

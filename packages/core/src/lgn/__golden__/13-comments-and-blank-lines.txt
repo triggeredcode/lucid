@@ -1,0 +1,5 @@
+type=flowchart direction=LR
+---
+web [service]: Web
+redis [cache]: Redis
+web -> redis: get

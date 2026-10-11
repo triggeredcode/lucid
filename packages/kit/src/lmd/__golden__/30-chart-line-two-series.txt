@@ -1,0 +1,11 @@
+placement: cursor
+chart line "Latency"
+  categories: 1, 4, 16
+  series p50: 100, 150, 300 ms
+  series p95: 120, 180, 410 ms
+--- canonical LMD
+```chart kind=line title="Latency" x="Batch size" unit="ms"
+categories: 1, 4, 16
+series p50: 100, 150, 300
+series p95: 120, 180, 410
+```

@@ -1,0 +1,7 @@
+placement: cursor
+table cols: c1 A | c2 B
+  r1 a | b | c
+--- canonical LMD
+| A | B |
+| --- | --- |
+| a \| b | c |

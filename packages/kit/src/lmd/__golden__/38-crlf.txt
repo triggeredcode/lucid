@@ -1,0 +1,9 @@
+placement: cursor
+h2 Title
+bullet "a"
+bullet "b"
+--- canonical LMD
+## Title
+
+- a
+- b

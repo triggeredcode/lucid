@@ -1,0 +1,21 @@
+{
+  "name": "@lucid/evals",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@lucid/core": "workspace:*",
+    "@lucid/kit": "workspace:*",
+    "@lucid/llm": "workspace:*",
+    "@lucid/mock-lmstudio": "workspace:*",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}

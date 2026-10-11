@@ -1,0 +1,4 @@
+placement: cursor
+p "The hit rate is h = hits / (hits + misses) for a warm cache."
+--- canonical LMD
+The hit rate is $h = hits / (hits + misses)$ for a warm cache.

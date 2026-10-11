@@ -1,0 +1,17 @@
+type=sequence direction=LR title="Cache lookup"
+---
+client [client]: Client
+web [service]: Web Server
+redis [cache]: Redis
+pg [datastore]: PostgreSQL
+client -> web: GET /item/42
+web -> redis: GET item:42
+alt cache hit
+redis -.-> web: value
+else cache miss
+redis -.-> web: nil
+web -> pg: SELECT
+pg -.-> web: row
+web -> redis: SET item:42
+end
+web -.-> client: JSON

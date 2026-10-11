@@ -1,0 +1,6 @@
+placement: cursor
+callout decision "Database choice": "DynamoDB for key-value access at scale."
+  p "DynamoDB for key-value access at scale."
+--- canonical LMD
+> [!decision] Database choice
+> DynamoDB for key-value access at scale.

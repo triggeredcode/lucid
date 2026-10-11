@@ -1,0 +1,9 @@
+placement: cursor
+table cols: c1 Option | c2 Verdict
+  r1 PostgreSQL | not needed {struck}
+  r2 DynamoDB | fits {chosen}
+--- canonical LMD
+| Option | Verdict |
+| --- | --- |
+| PostgreSQL | not needed | {struck}
+| DynamoDB | fits | {chosen}

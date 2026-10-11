@@ -1,0 +1,6 @@
+placement: @@ section "Trade-offs"
+callout tradeoff "Latency": "Extra hop."
+  p "Extra hop."
+--- canonical LMD
+> [!tradeoff] Latency
+> Extra hop.
