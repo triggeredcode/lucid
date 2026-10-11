@@ -81,6 +81,29 @@ describe("site/index.html", () => {
       expect(tag).toContain('href="https://github.com/triggeredcode/lucid/releases/latest"');
   });
 
+  it("keeps every command and its Copy button side by side, with the command written exactly as shown", () => {
+    // The commands are in <pre>: any space or line break the formatter adds inside shows on the page, and a Copy button placed over
+    // the text hides it. So each box is a <pre><code> that starts at its first character, then the button, never over it.
+    const boxes = [...html.matchAll(/<div class="code">([\s\S]*?)<\/div>/g)].map((m) => m[1] ?? "");
+    expect(boxes.length).toBeGreaterThanOrEqual(4);
+    for (const box of boxes) {
+      expect(box, box.slice(0, 60)).toMatch(
+        /^\s*<pre><code>[^\s<][\s\S]*?[^\s]<\/code><\/pre>\s*<button\b[^>]*\bdata-copy="[^"]+"[^>]*>\s*Copy\s*<\/button>\s*$/,
+      );
+    }
+    expect(html.match(/\bdata-copy="/g)?.length).toBe(boxes.length);
+    const rule = (selector: string): string => {
+      const start = css.search(
+        new RegExp(`(^|\\n)${selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} \\{`),
+      );
+      expect(start, selector).toBeGreaterThanOrEqual(0);
+      return css.slice(start, css.indexOf("}", start));
+    };
+    expect(rule(".code")).toContain("display: flex");
+    expect(rule(".code button")).not.toContain("position: absolute");
+    expect(rule(".code pre")).toContain("flex: 1");
+  });
+
   it("serves its typeface from the site", () => {
     for (const m of css.matchAll(/url\("([^"]+)"\)/g))
       expect(existsSync(source(m[1] ?? "")), m[1]).toBe(true);

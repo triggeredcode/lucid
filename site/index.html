@@ -625,12 +625,13 @@
                     <li>Or in Terminal:</li>
                   </ol>
                   <div class="code">
+                    <pre><code>xattr -dr com.apple.quarantine /Applications/Lucid.app</code></pre>
                     <button
                       type="button"
                       data-copy="xattr -dr com.apple.quarantine /Applications/Lucid.app"
                     >
-                      Copy</button
-                    >xattr -dr com.apple.quarantine /Applications/Lucid.app
+                      Copy
+                    </button>
                   </div>
                 </div>
               </details>
@@ -639,9 +640,10 @@
                 <div class="details-body">
                   <p>Each release lists SHA-256 checksums. In the folder with both files:</p>
                   <div class="code">
+                    <pre><code>shasum -a 256 --ignore-missing -c SHA256SUMS</code></pre>
                     <button type="button" data-copy="shasum -a 256 --ignore-missing -c SHA256SUMS">
-                      Copy</button
-                    >shasum -a 256 --ignore-missing -c SHA256SUMS
+                      Copy
+                    </button>
                   </div>
                 </div>
               </details>
@@ -650,13 +652,17 @@
                 <div class="details-body">
                   <p>Needs Node 22.12 or newer and pnpm 9, on Apple Silicon.</p>
                   <div class="code">
+                    <pre><code>git clone https://github.com/triggeredcode/lucid.git
+cd lucid
+pnpm install
+node scripts/fetch-tectonic.mjs
+pnpm dev</code></pre>
                     <button
                       type="button"
                       data-copy="git clone https://github.com/triggeredcode/lucid.git&#10;cd lucid&#10;pnpm install&#10;node scripts/fetch-tectonic.mjs&#10;pnpm dev"
                     >
-                      Copy</button
-                    >git clone https://github.com/triggeredcode/lucid.git cd lucid pnpm install node
-                    scripts/fetch-tectonic.mjs pnpm dev
+                      Copy
+                    </button>
                   </div>
                 </div>
               </details>
@@ -685,16 +691,15 @@
             </div>
             <div class="reveal" style="--d: 0.1s">
               <div class="code">
+                <pre><code>claude mcp add lucid -e ELECTRON_RUN_AS_NODE=1 -- \
+  /Applications/Lucid.app/Contents/MacOS/Lucid \
+  /Applications/Lucid.app/Contents/Resources/lucid-mcp.mjs</code></pre>
                 <button
                   type="button"
                   data-copy="claude mcp add lucid -e ELECTRON_RUN_AS_NODE=1 -- /Applications/Lucid.app/Contents/MacOS/Lucid /Applications/Lucid.app/Contents/Resources/lucid-mcp.mjs"
                 >
-                  Copy</button
-                ><span class="code-wrap"
-                  >claude mcp add lucid -e ELECTRON_RUN_AS_NODE=1 -- \
-                  /Applications/Lucid.app/Contents/MacOS/Lucid \
-                  /Applications/Lucid.app/Contents/Resources/lucid-mcp.mjs</span
-                >
+                  Copy
+                </button>
               </div>
             </div>
           </div>
