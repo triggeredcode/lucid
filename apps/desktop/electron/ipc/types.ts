@@ -7,6 +7,8 @@ export interface PageSummary {
   title: string;
   updatedAt: string;
   fileName: string;
+  /** The note format of the page (a `@lucid/kit` format id); none for a blank page. */
+  format?: string;
 }
 export interface PageProblem {
   fileName: string;
