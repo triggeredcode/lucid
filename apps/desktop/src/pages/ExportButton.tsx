@@ -1,4 +1,5 @@
 import { Icon } from "../ui/Icon";
+import { keys } from "../platform";
 import { useEffect, useRef, useState } from "react";
 import { makePdf, pdfFileName } from "../preview/exportPdf";
 import { docToMarkdown } from "@lucid/kit";
@@ -181,7 +182,7 @@ export function ExportButton({
       <button
         className="ghost small"
         type="button"
-        title="Save this note as a file, with what you said and its history (⇧⌘E)"
+        title={keys("Save this note as a file, with what you said and its history (⇧⌘E)")}
         onClick={() => {
           setNoteOpen(true);
         }}

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import type { JobStatus, Mode, Utterance } from "../jobs/queue";
 import type { Phase, TablePhase } from "@lucid/core";
 import type { UiMode } from "../jobs/useJobs";
+import { keys } from "../platform";
 
 interface Props {
   mode: UiMode;
@@ -52,9 +53,9 @@ const BUILDER_PLACEHOLDER = {
 const BUILD_NAME = { diagram: "Diagram", table: "Table" } as const;
 
 const PILL_TITLE: Record<UiMode, string> = {
-  input: "Input (⌘1): your words become notes. ⌘/ switches between Input and Command",
-  command: "Command (⌘2): your words change the page. Hold the right ⌥ key for one command",
-  edit: "Edit (⌘3, or ⌘E): change the page by hand. Esc goes back",
+  input: keys("Input (⌘1): your words become notes. ⌘/ switches between Input and Command"),
+  command: keys("Command (⌘2): your words change the page. Hold the right ⌥ key for one command"),
+  edit: keys("Edit (⌘3, or ⌘E): change the page by hand. Esc goes back"),
 };
 
 function Dots() {
@@ -362,8 +363,10 @@ export function DictationBar({
                 disabled={Boolean(builder)}
                 title={
                   kind === "diagram"
-                    ? "Diagram (⌘4): build it step by step: parts, then connections, then fixes"
-                    : "Table (⌘5): build it step by step: columns, then rows, then fixes"
+                    ? keys(
+                        "Diagram (⌘4): build it step by step: parts, then connections, then fixes",
+                      )
+                    : keys("Table (⌘5): build it step by step: columns, then rows, then fixes")
                 }
                 onClick={() => {
                   onBuild(kind);
@@ -374,7 +377,7 @@ export function DictationBar({
             ))}
         </div>
         {mode === "edit" && !builder ? (
-          <p className="edit-hint">Editing by hand. Esc (or ⌘E) goes back.</p>
+          <p className="edit-hint">{keys("Editing by hand. Esc (or ⌘E) goes back.")}</p>
         ) : (
           <>
             <textarea
