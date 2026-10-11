@@ -1,5 +1,5 @@
 import { Icon } from "../ui/Icon";
-import { keys } from "../platform";
+import { baseName, keys } from "../platform";
 import { useEffect, useRef, useState } from "react";
 import { makePdf, pdfFileName } from "../preview/exportPdf";
 import { docToMarkdown } from "@lucid/kit";
@@ -90,7 +90,7 @@ export function ExportButton({
       const path = await window.lucid.pdf.save(made.pdf, pdfFileName(name));
       if (path) {
         const warning = made.warnings.length > 0 ? ` ${made.warnings.join(" ")}` : "";
-        setNote({ kind: "saved", text: `Saved ${path.split("/").pop() ?? path}.${warning}`, path });
+        setNote({ kind: "saved", text: `Saved ${baseName(path)}.${warning}`, path });
       }
     } finally {
       setBusy(false);
@@ -104,14 +104,14 @@ export function ExportButton({
       docToMarkdown(current, { title: name }),
       pdfFileName(name).replace(/\.pdf$/, ".md"),
     );
-    if (path) setNote({ kind: "saved", text: `Saved ${path.split("/").pop() ?? path}` });
+    if (path) setNote({ kind: "saved", text: `Saved ${baseName(path)}` });
   };
   const runNote = async (history: boolean) => {
     setNoteOpen(false);
     setNote(undefined);
     try {
       const path = await window.lucid.note.export(getNote(), { history });
-      if (path) setNote({ kind: "saved", text: `Saved ${path.split("/").pop() ?? path}.` });
+      if (path) setNote({ kind: "saved", text: `Saved ${baseName(path)}.` });
     } catch (error) {
       setNote({ kind: "error", text: `The note couldn’t be exported. ${plain(error)}` });
     }

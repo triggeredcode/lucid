@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { keys } from "./platform";
+import { baseName, keys } from "./platform";
 
 describe("keys", () => {
   it("leaves the Mac's symbols alone on a Mac", () => {
@@ -19,5 +19,14 @@ describe("keys", () => {
     expect(keys("click for 100% (⌘0). ⌘+ and ⌘− zoom", false)).toBe(
       "click for 100% (Ctrl+0). Ctrl++ and Ctrl+− zoom",
     );
+  });
+});
+
+describe("baseName", () => {
+  it("is the name of the file, on a Mac, Linux or Windows path", () => {
+    expect(baseName("/Users/a/Documents/page.pdf")).toBe("page.pdf");
+    expect(baseName("C:\\Users\\a\\Documents\\page.pdf")).toBe("page.pdf");
+    expect(baseName("D:/exports/page.pdf")).toBe("page.pdf");
+    expect(baseName("page.pdf")).toBe("page.pdf");
   });
 });

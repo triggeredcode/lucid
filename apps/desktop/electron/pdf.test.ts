@@ -107,6 +107,25 @@ describe("explainLatexError", () => {
   });
 });
 
+describe("explaining a missing PDF engine", () => {
+  const log =
+    "could not start /opt/Lucid/resources/bin/tectonic: spawn /opt/Lucid/resources/bin/tectonic ENOENT";
+  it("suggests Homebrew on a Mac only", () => {
+    expect(explainLatexError(log, "darwin")).toContain("brew install tectonic");
+    for (const platform of ["linux", "win32"] as const) {
+      const said = explainLatexError(log, platform);
+      expect(said).not.toContain("brew");
+      expect(said).toContain("tectonic-typesetting.github.io");
+    }
+  });
+
+  it("names the engine whichever way the path is written", () => {
+    const windows =
+      "could not start C:\\Lucid\\resources\\bin\\tectonic.exe: spawn C:\\Lucid\\resources\\bin\\tectonic.exe ENOENT";
+    expect(explainLatexError(windows, "win32")).toMatch(/^Tectonic, the PDF engine, was not found/);
+  });
+});
+
 describe("explaining what went wrong on a first PDF", () => {
   it("says the first PDF needs the internet, when Tectonic could not fetch its files", () => {
     const log =
@@ -496,7 +515,9 @@ shellScripts("tools that are not installed", () => {
     expect(r.ok).toBe(false);
     const message = !r.ok && !r.cancelled ? r.message : "";
     expect(message).toContain("Tectonic, the PDF engine, was not found");
-    expect(message).toContain("brew install tectonic");
+    expect(message).toContain(
+      process.platform === "darwin" ? "brew install tectonic" : "tectonic-typesetting.github.io",
+    );
     expect(message).toContain("Markdown export still works");
     expect(
       explainLatexError("error: could not start /opt/x/other: spawn /opt/x/other ENOENT"),
