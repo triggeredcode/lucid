@@ -1,0 +1,3 @@
+line 1: headings go up to ### (level 3)
+line 3: unknown callout kind "tip"; use note, key, decision, tradeoff, warning or question
+line 5: code fence is never closed

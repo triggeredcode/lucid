@@ -1,0 +1,20 @@
+patch
+---
+user [actor]: User
+client [client]: Client
+dns [external]: DNS
+web [service]: Web Server
+redis [cache]: Redis {struck}
+pg [datastore]: PostgreSQL
+cdn [cdn]: CDN
+user -> client: enters domain
+client -> dns: resolve domain
+dns -> client: IP address
+client -> web: HTTP request
+web -> redis: check cache
+web -.-> pg: cache miss: query
+pg -.-> web: data
+web -.-> redis: store result
+web -> client: JSON response
+redis -> web: cache hit: cached data
+cdn -> web

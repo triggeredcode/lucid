@@ -1,0 +1,7 @@
+placement: cursor
+h2 Old plan {struck}
+h3 Chosen approach {chosen}
+--- canonical LMD
+## Old plan {struck}
+
+### Chosen approach {chosen}

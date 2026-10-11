@@ -1,0 +1,12 @@
+placement: cursor
+bullet "Caching"
+  bullet "CDN"
+  bullet "Redis"
+    bullet "cluster mode"
+bullet "Queues"
+--- canonical LMD
+- Caching
+  - CDN
+  - Redis
+    - cluster mode
+- Queues

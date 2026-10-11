@@ -1,0 +1,4 @@
+placement: @@ after b7
+bullet "extra point"
+--- canonical LMD
+- extra point

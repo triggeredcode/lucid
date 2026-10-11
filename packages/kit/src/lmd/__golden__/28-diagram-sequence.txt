@@ -1,0 +1,16 @@
+placement: cursor
+diagram sequence LR "Cache lookup"
+  nodes: c[client] "Client"; w[service] "Web"; r[cache] "Redis"
+  edges: e1 c->w "GET"; e2 w->r "lookup"; e3 w->r "set"
+--- canonical LMD
+```graph type=sequence dir=LR title="Cache lookup"
+c [client]: Client
+w [service]: Web
+r [cache]: Redis
+c -> w: GET
+alt hit
+w -> r: lookup
+else miss
+w -> r: set
+end
+```

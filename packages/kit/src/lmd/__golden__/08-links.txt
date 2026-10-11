@@ -1,0 +1,4 @@
+placement: cursor
+p "Read the Redis docs first."
+--- canonical LMD
+Read [the Redis docs](https://redis.io/docs) first.

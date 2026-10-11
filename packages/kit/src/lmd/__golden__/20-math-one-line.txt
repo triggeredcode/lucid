@@ -1,0 +1,6 @@
+placement: cursor
+math "\text{hit rate} = \frac{hits}{hits + misses}"
+--- canonical LMD
+$$
+\text{hit rate} = \frac{hits}{hits + misses}
+$$

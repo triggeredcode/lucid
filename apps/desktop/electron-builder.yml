@@ -1,0 +1,56 @@
+# Packaging for macOS on Apple Silicon: `pnpm dist` makes release/Lucid-<version>-arm64.dmg and .zip.
+appId: io.github.triggeredcode.lucid
+productName: Lucid
+copyright: Copyright © 2026 Omkar Tripathi
+directories:
+  output: release
+asar: true
+npmRebuild: false
+nodeGypRebuild: false
+# Everything the app needs is bundled into out/ by electron-vite: the libraries it lists as dependencies are inside the
+# bundle, so no node_modules are shipped (the exclusion below).
+files:
+  - out/**/*
+  - package.json
+  - "!node_modules"
+extraResources:
+  # The PDF engine, so nothing has to be installed for PDFs (fetched by scripts/fetch-tectonic.mjs).
+  - from: resources/bin/tectonic
+    to: bin/tectonic
+  # For agents: `lucid-mcp.mjs` connects Claude Code or LM Studio to the open app (docs/mcp.md).
+  - from: ../../packages/mcp/dist/lucid-mcp.mjs
+    to: lucid-mcp.mjs
+  # The user guide and the licence notices, opened from the Help menu.
+  - from: ../../docs/guide.html
+    to: guide.html
+  - from: ../../LICENSE
+    to: LICENSE
+  - from: ../../THIRD_PARTY_NOTICES.md
+    to: THIRD_PARTY_NOTICES.md
+  # Chromium's licence notices (part of Electron, the app's runtime).
+  - from: node_modules/electron/dist/LICENSES.chromium.html
+    to: LICENSES.chromium.html
+mac:
+  category: public.app-category.productivity
+  icon: resources/icon.png
+  target:
+    - target: dmg
+      arch: [arm64]
+    - target: zip
+      arch: [arm64]
+  minimumSystemVersion: "13.0"
+  # Only English is shipped (Lucid's text is English); this removes the other Chromium language packs.
+  electronLanguages: [en, en_US]
+  darkModeSupport: true
+  # Not signed with a developer certificate (there is none yet): afterPack signs it ad hoc, which Apple Silicon requires to run.
+  identity: null
+  hardenedRuntime: false
+  gatekeeperAssess: false
+afterPack: scripts/afterPack.cjs
+dmg:
+  title: Lucid ${version}
+  iconSize: 96
+  window:
+    width: 540
+    height: 380
+artifactName: Lucid-${version}-${arch}.${ext}

@@ -1,0 +1,9 @@
+type=flowchart direction=LR
+---
+issue [service]: Issue #42 tracker
+p [process]: Postgres: primary
+q [process]: "  padded label  "
+r [process]: "ends with {struck}"
+s [process]: say "hi"
+issue -> p: writes: batched
+p -> q: replicate # async

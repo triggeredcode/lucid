@@ -1,0 +1,16 @@
+placement: cursor
+callout key "Takeaway": "x"
+  p "x"
+callout tradeoff "Cost": "y"
+  p "y"
+callout question "Open": "z"
+  p "z"
+--- canonical LMD
+> [!key] Takeaway
+> x
+
+> [!tradeoff] Cost
+> y
+
+> [!question] Open
+> z

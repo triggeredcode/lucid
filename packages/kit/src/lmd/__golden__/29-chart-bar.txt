@@ -1,0 +1,9 @@
+placement: cursor
+chart bar "Decode speed"
+  categories: Qwen 27B, Gemma 26B
+  series tok/s: 15.1, 17.7 tok/s
+--- canonical LMD
+```chart kind=bar title="Decode speed" y="Decode" unit="tok/s"
+categories: Qwen 27B, Gemma 26B
+series tok/s: 15.1, 17.7
+```

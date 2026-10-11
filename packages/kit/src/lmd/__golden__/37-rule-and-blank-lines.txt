@@ -1,0 +1,7 @@
+placement: cursor
+p "first"
+p "second"
+--- canonical LMD
+first
+
+second

@@ -1,0 +1,25 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "rootDir": ".",
+    "outDir": "dist/e2e",
+    "tsBuildInfoFile": "dist/e2e/.tsbuildinfo"
+  },
+  "include": [
+    "e2e",
+    "e2e-real",
+    "playwright.packaged.config.ts",
+    "e2e-packaged",
+    "playwright.config.ts",
+    "playwright.real.config.ts",
+    "src/env.d.ts",
+    "electron/ipc/types.ts"
+  ],
+  "references": [
+    {
+      "path": "../../packages/core"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+placement: cursor
+p "# not a heading"
+p "- not a bullet"
+p "1. not a list"
+p "Table: not a caption"
+--- canonical LMD
+\# not a heading
+
+\- not a bullet
+
+1\. not a list
+
+Table\: not a caption

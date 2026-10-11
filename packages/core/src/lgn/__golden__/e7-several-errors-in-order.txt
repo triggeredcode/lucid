@@ -1,0 +1,5 @@
+type=flowchart direction=LR
+---
+line 2: unknown arrow "=>"; use one of: -> -- <-> -.-> -.- <-.-> ..> ... <..>
+line 3: unknown node kind "nope"; valid kinds: actor, client, service, gateway, loadbalancer, datastore, cache, queue, cdn, external, decision, process, storage, note
+line 5: a group needs at least one member

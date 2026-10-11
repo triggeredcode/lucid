@@ -1,0 +1,12 @@
+type=flowchart direction=TB
+---
+lb [loadbalancer]: Load Balancer
+app1 [service]: App 1
+app2 [service]: App 2
+db [datastore]: Primary DB
+lb -> app1
+lb -> app2
+app1 -> db
+app2 -> db
+group tier: Application tier {app1, app2}
+group data: Data tier {db} {struck}

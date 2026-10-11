@@ -1,0 +1,4 @@
+placement: cursor
+p "um so kafka partitions keep ordering only inside a partition"
+--- canonical LMD
+um so kafka partitions keep ordering only inside a partition

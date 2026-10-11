@@ -1,0 +1,26 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "packages/core"
+    },
+    {
+      "path": "packages/kit"
+    },
+    {
+      "path": "packages/llm"
+    },
+    {
+      "path": "packages/mcp"
+    },
+    {
+      "path": "packages/mock-lmstudio"
+    },
+    {
+      "path": "packages/evals"
+    },
+    {
+      "path": "apps/desktop"
+    }
+  ]
+}

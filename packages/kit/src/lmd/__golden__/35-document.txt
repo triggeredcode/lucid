@@ -1,0 +1,29 @@
+placement: cursor
+h1 Designing a URL shortener
+h2 Requirements
+bullet "100M new URLs per day"
+bullet "Reads outnumber writes 100 to 1"
+h2 Design
+table "Key generation options" cols: c1 Approach | c2 Collisions
+  r1 Hash | possible
+  r2 Counter | none
+callout decision "Use a counter": "Base62-encode a distributed counter."
+  p "Base62-encode a distributed counter."
+--- canonical LMD
+# Designing a URL shortener
+
+## Requirements
+
+- 100M new URLs per day
+- Reads outnumber writes 100 to 1
+
+## Design
+
+Table: Key generation options
+| Approach | Collisions |
+| --- | --- |
+| Hash | possible |
+| Counter | none |
+
+> [!decision] Use a counter
+> Base62-encode a distributed counter.

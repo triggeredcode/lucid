@@ -1,0 +1,14 @@
+placement: cursor
+table "SQL vs NoSQL" cols: c1 Property | c2 SQL | c3 NoSQL
+  r1 Schema | Fixed | Flexible
+  r2 Relationships | Joins | Denormalised
+  r3 Scaling | Vertical | Horizontal
+  r4 Use cases | Transactions | Large-scale reads
+--- canonical LMD
+Table: SQL vs NoSQL
+| Property | SQL | NoSQL |
+| --- | --- | --- |
+| Schema | Fixed | Flexible |
+| Relationships | Joins | Denormalised |
+| Scaling | Vertical | Horizontal |
+| Use cases | Transactions | Large-scale reads |

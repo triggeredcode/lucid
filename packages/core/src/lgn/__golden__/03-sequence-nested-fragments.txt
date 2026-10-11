@@ -1,0 +1,11 @@
+type=sequence direction=LR
+---
+a [actor]: Caller
+b [service]: Service
+loop retry up to 3 times
+a -> b: request
+opt service is busy
+b -.-> a: 503
+end
+b -.-> a: 200
+end

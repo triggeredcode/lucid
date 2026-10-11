@@ -1,0 +1,26 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "rootDir": ".",
+    "outDir": "dist/web",
+    "tsBuildInfoFile": "dist/web/.tsbuildinfo",
+    "exactOptionalPropertyTypes": false
+  },
+  "include": ["src", "electron/ipc/types.ts"],
+  "references": [
+    {
+      "path": "../../packages/core"
+    },
+    {
+      "path": "../../packages/kit"
+    },
+    {
+      "path": "../../packages/llm"
+    },
+    {
+      "path": "../../packages/mock-lmstudio"
+    }
+  ]
+}

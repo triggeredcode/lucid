@@ -1,0 +1,8 @@
+placement: cursor
+numbered "Resolve the domain"
+numbered "Send the request"
+numbered "Read the response"
+--- canonical LMD
+1. Resolve the domain
+2. Send the request
+3. Read the response

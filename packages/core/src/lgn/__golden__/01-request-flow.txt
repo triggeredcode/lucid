@@ -1,0 +1,17 @@
+type=flowchart direction=LR title="Request flow"
+---
+user [actor]: User
+client [client]: Client
+dns [external]: DNS
+web [service]: Web Server
+redis [cache]: Redis
+pg [datastore]: PostgreSQL
+user -> client: enters domain
+client -> dns: resolve domain
+dns -> client: IP address
+client -> web: HTTP request
+web -> redis: check cache
+web -.-> pg: cache miss: query
+pg -.-> web: data
+web -.-> redis: store result
+web -> client: JSON response

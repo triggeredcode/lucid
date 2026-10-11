@@ -1,0 +1,8 @@
+placement: cursor
+check [ ] "Benchmark with 32k context"
+check [x] "Read the paper"
+check [ ] "Compare MLX and GGUF" {struck}
+--- canonical LMD
+- [ ] Benchmark with 32k context
+- [x] Read the paper
+- [ ] Compare MLX and GGUF {struck}

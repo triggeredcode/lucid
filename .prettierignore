@@ -1,0 +1,11 @@
+node_modules
+dist
+out
+coverage
+pnpm-lock.yaml
+*.md
+**/fixtures/**
+**/__snapshots__/**
+**/golden/**
+docs/guide.html
+**/release/**

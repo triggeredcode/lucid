@@ -1,0 +1,7 @@
+type=flowchart direction=LR
+---
+web_server [process]: Web Server
+api_gateway [gateway]: API Gateway
+auth_service [process]: Auth Service
+web_server -> api_gateway: proxies
+api_gateway -> auth_service

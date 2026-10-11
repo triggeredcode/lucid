@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "lib": ["ES2023"],
+    "rootDir": ".",
+    "outDir": "dist/node",
+    "tsBuildInfoFile": "dist/node/.tsbuildinfo"
+  },
+  "include": ["electron", "electron.vite.config.ts"],
+  "references": [
+    {
+      "path": "../../packages/core"
+    },
+    {
+      "path": "../../packages/kit"
+    }
+  ]
+}

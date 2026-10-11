@@ -1,0 +1,12 @@
+placement: cursor
+h2 Load Balancer
+p "A load balancer sits in front of several application servers and distributes incoming traffic across them."
+bullet "Health checks keep traffic away from unhealthy servers."
+bullet "The database can become the bottleneck as app servers scale out."
+--- canonical LMD
+## Load Balancer
+
+A load balancer sits in front of several application servers and distributes incoming traffic across them.
+
+- **Health checks** keep traffic away from unhealthy servers.
+- The **database** can become the bottleneck as app servers scale out.

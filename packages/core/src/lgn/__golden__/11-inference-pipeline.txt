@@ -1,0 +1,15 @@
+type=flowchart direction=LR title="LLM serving path"
+---
+gw [gateway]: API Gateway
+sched [service]: Scheduler
+prefill [service]: Prefill workers
+decode [service]: Decode workers
+kv [cache]: KV cache
+gpu [storage]: GPU HBM
+gw -> sched: request
+sched -> prefill: new prompt
+prefill -> kv: write KV blocks
+sched -> decode: continuing sequence
+decode -> kv: read KV blocks
+kv -- gpu
+group workers: GPU workers {prefill, decode}
