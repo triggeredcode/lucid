@@ -62,10 +62,21 @@ jobs:
         shell: pwsh
         run: |
           $setup = Get-ChildItem apps/desktop/release/*.exe | Select-Object -First 1
-          Start-Process -FilePath $setup.FullName -ArgumentList "/S" -Wait
-          $installed = Join-Path $env:LOCALAPPDATA "Programs\Lucid"
-          if (-not (Test-Path (Join-Path $installed "Lucid.exe"))) { throw "The installer did not install Lucid in $installed" }
-          $env:LUCID_APP = $installed
+          $run = Start-Process -FilePath $setup.FullName -ArgumentList "/S" -Wait -PassThru
+          "The installer ended with exit code $($run.ExitCode)"
+          # The installer may leave work to a process it started: wait until the program is there, then find it wherever it went.
+          $exe = $null
+          for ($i = 0; $i -lt 60 -and -not $exe; $i++) {
+            $exe = Get-ChildItem -Path $env:LOCALAPPDATA, $env:ProgramFiles -Filter Lucid.exe -Recurse -ErrorAction SilentlyContinue |
+              Where-Object { $_.FullName -notmatch 'node_modules|\\resources\\' } | Select-Object -First 1
+            if (-not $exe) { Start-Sleep -Seconds 2 }
+          }
+          if (-not $exe) {
+            Get-ChildItem "$env:LOCALAPPDATA\Programs" -ErrorAction SilentlyContinue | Out-String
+            throw "The installer did not install Lucid anywhere"
+          }
+          "Installed in $($exe.DirectoryName)"
+          $env:LUCID_APP = $exe.DirectoryName
           pnpm e2e:packaged
       - name: Test the Linux package
         if: runner.os == 'Linux'
