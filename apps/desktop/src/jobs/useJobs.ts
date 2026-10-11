@@ -2,6 +2,7 @@ import { newId, parseMeta, type ChangeEntry, type Meta, type TranscriptEntry } f
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { EditorApi } from "../editor/PageEditor";
 import { getModel } from "../llm/model";
+import { isCommandKey } from "./commandKey";
 import { JobQueue, type JobStatus, type Mode, type Utterance } from "./queue";
 
 /** What the page is doing: taking notes, taking commands, or being edited by hand. */
@@ -101,14 +102,14 @@ export function useJobs(options: Options) {
       } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "e") {
         e.preventDefault();
         setModeState((m) => (m === "edit" ? talkMode.current : "edit"));
-      } else if (e.code === "AltRight" && !held.current) {
+      } else if (isCommandKey(e) && !held.current) {
         held.current = true;
         clearTimeout(timer);
         setMomentary(true);
       }
     };
     const up = (e: KeyboardEvent) => {
-      if (e.code !== "AltRight") return;
+      if (e.code !== "AltRight" || !held.current) return;
       held.current = false;
       graceUntil.current = Date.now() + GRACE_MS;
       timer = setTimeout(() => {
