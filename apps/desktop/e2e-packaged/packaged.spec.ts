@@ -39,7 +39,9 @@ async function launch(home = mkdtempSync(join(tmpdir(), "lucid-home-"))) {
 test.beforeEach(() => {
   output.length = 0;
 });
-test.afterEach((_fixtures, testInfo) => {
+// Playwright requires the first argument of a hook to be a destructuring pattern, even when it uses no fixture.
+// eslint-disable-next-line no-empty-pattern
+test.afterEach(({}, testInfo) => {
   if (testInfo.status === testInfo.expectedStatus) return;
   console.log(
     `---- what the app and its window printed (${testInfo.title}) ----\n${output.slice(-200).join("\n")}`,
