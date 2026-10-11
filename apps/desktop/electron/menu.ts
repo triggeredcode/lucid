@@ -20,6 +20,7 @@ export function bundledFile(name: string): string {
  */
 export function buildMenu(
   send: (channel: string, action: PageZoomAction | MenuAction) => void = sendToWindow,
+  platform: NodeJS.Platform = process.platform,
 ): MenuItemConstructorOptions[] {
   const zoom = (action: PageZoomAction) => () => {
     send(IPC.pageZoom, action);
@@ -27,7 +28,7 @@ export function buildMenu(
   const note = (action: MenuAction) => () => {
     send(IPC.menuAction, action);
   };
-  const isMac = process.platform === "darwin";
+  const isMac = platform === "darwin";
   return [
     ...(isMac ? [{ role: "appMenu" } as const] : []),
     {
@@ -127,6 +128,19 @@ export function buildMenu(
             void shell.openPath(bundledFile("THIRD_PARTY_NOTICES.md"));
           },
         },
+        // On a Mac the About window is in the Lucid menu; elsewhere it belongs here.
+        ...(isMac
+          ? []
+          : [
+              { type: "separator" } as const,
+              {
+                id: "help-about",
+                label: "About Lucid",
+                click: () => {
+                  app.showAboutPanel();
+                },
+              },
+            ]),
       ],
     },
   ];
