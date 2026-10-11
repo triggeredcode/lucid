@@ -498,6 +498,7 @@ h3 {
   stroke-linejoin: round;
 }
 .doc {
+  grid-template-columns: minmax(0, 1fr);
   padding: var(--s5);
   display: grid;
   gap: var(--s4);
@@ -549,7 +550,7 @@ h3 {
 }
 @media (max-width: 860px) {
   .demo {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .arrow {
     justify-self: center;
@@ -655,7 +656,7 @@ h3 {
 }
 @media (max-width: 520px) {
   .blocks {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -698,7 +699,7 @@ h3 {
 }
 @media (max-width: 520px) {
   .steps {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -751,6 +752,7 @@ h3 {
   margin-inline: auto;
 }
 .history-mock {
+  grid-template-columns: minmax(0, 1fr);
   display: grid;
   gap: var(--s2);
   padding: var(--s4);
@@ -793,7 +795,7 @@ h3 {
 @media (max-width: 900px) {
   .feature,
   .feature.flip {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--s6);
   }
   .feature.flip .text {
@@ -845,7 +847,7 @@ h3 {
 }
 @media (max-width: 620px) {
   .formats {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -908,6 +910,7 @@ h3 {
   font-weight: 700;
 }
 .dl-side {
+  grid-template-columns: minmax(0, 1fr);
   display: grid;
   gap: var(--s3);
 }
@@ -953,6 +956,7 @@ details[open] summary::after {
   padding-left: var(--s5);
 }
 .code {
+  max-width: 100%;
   position: relative;
   padding: var(--s3) var(--s4);
   padding-right: 72px;
@@ -987,7 +991,7 @@ details[open] summary::after {
 }
 @media (max-width: 900px) {
   .download {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -1010,7 +1014,7 @@ details[open] summary::after {
 }
 @media (max-width: 860px) {
   .facts {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -1027,13 +1031,14 @@ details[open] summary::after {
 }
 @media (max-width: 900px) {
   .two {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--s6);
   }
 }
 
 /* ---- faq and footer ---- */
 .faq {
+  grid-template-columns: minmax(0, 1fr);
   display: grid;
   gap: var(--s3);
   max-width: 820px;

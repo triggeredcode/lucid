@@ -40,7 +40,9 @@
 
     <header class="site-header">
       <div class="wrap bar">
-        <a class="brand" href="#top"><img src="apple-touch-icon.png" alt="" width="28" height="28" />Lucid</a>
+        <a class="brand" href="#top"
+          ><img src="apple-touch-icon.png" alt="" width="28" height="28" />Lucid</a
+        >
         <nav class="nav" aria-label="Sections">
           <a href="#idea">The idea</a>
           <a href="#how">How it works</a>
@@ -49,8 +51,16 @@
           <a href="guide.html">Guide</a>
           <a class="keep" href="https://github.com/triggeredcode/lucid">GitHub</a>
         </nav>
-        <button class="icon-btn" id="theme" type="button" aria-label="Switch between light and dark" title="Light or dark">
-          <svg class="moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" /></svg>
+        <button
+          class="icon-btn"
+          id="theme"
+          type="button"
+          aria-label="Switch between light and dark"
+          title="Light or dark"
+        >
+          <svg class="moon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+          </svg>
           <svg class="sun" viewBox="0 0 24 24" aria-hidden="true">
             <path
               d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"
@@ -67,11 +77,15 @@
           <p class="eyebrow"><i></i> Free and open source · local-first · macOS</p>
           <h1>A structured document, built while you think.</h1>
           <p class="lead">
-            Say or type your thoughts. Lucid arranges them as headings, lists, tables and diagrams, and typesets them.
-            The language model runs on your own Mac, so nothing leaves it.
+            Say or type your thoughts. Lucid arranges them as headings, lists, tables and diagrams,
+            and typesets them. The language model runs on your own Mac, so nothing leaves it.
           </p>
           <div class="cta">
-            <a class="btn primary" href="https://github.com/triggeredcode/lucid/releases/latest" data-dl="dmg">
+            <a
+              class="btn primary"
+              href="https://github.com/triggeredcode/lucid/releases/latest"
+              data-dl="dmg"
+            >
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
               </svg>
@@ -85,7 +99,8 @@
             </a>
           </div>
           <p class="cta-note">
-            <span data-version>Apple Silicon</span> · macOS 13 or newer · <span data-size="dmg">free, MIT licence</span>
+            <span data-version>Apple Silicon</span> · macOS 13 or newer ·
+            <span data-size="dmg">free, MIT licence</span>
           </p>
 
           <figure class="window reveal" style="margin-bottom: 0">
@@ -115,9 +130,10 @@
             <p class="kicker">The idea</p>
             <h2>Engineers think in structure.</h2>
             <p class="section-lead">
-              A system design is an outline of sections and sub-sections, a list of options with the rejected ones crossed out, a
-              table that compares them and a diagram of how the parts connect. Lucid builds that document while you think out
-              loud, so you never stop to format.
+              A system design is an outline of sections and sub-sections, a list of options with the
+              rejected ones crossed out, a table that compares them and a diagram of how the parts
+              connect. Lucid builds that document while you think out loud, so you never stop to
+              format.
             </p>
           </div>
 
@@ -125,8 +141,9 @@
             <div class="card say reveal">
               <p class="label">You say</p>
               <blockquote>
-                <span>The browser sends API calls to a load balancer</span>, which forwards them to the order service. It reads
-                from Redis and queries PostgreSQL on a cache miss. <span>We’re not going with MongoDB</span>, PostgreSQL it is.
+                <span>The browser sends API calls to a load balancer</span>, which forwards them to
+                the order service. It reads from Redis and queries PostgreSQL on a cache miss.
+                <span>We’re not going with MongoDB</span>, PostgreSQL it is.
               </blockquote>
             </div>
             <div class="arrow" aria-hidden="true">
@@ -135,7 +152,12 @@
             <div class="card doc reveal" style="--d: 0.15s">
               <p class="label">Lucid builds</p>
               <h3>## The request flow</h3>
-              <svg class="mini-diagram" viewBox="0 0 340 112" role="img" aria-label="A diagram: browser, load balancer, order service, then Redis and PostgreSQL">
+              <svg
+                class="mini-diagram"
+                viewBox="0 0 340 112"
+                role="img"
+                aria-label="A diagram: browser, load balancer, order service, then Redis and PostgreSQL"
+              >
                 <rect x="4" y="6" width="76" height="26" rx="3" />
                 <text x="42" y="23">Browser</text>
                 <path class="line" d="M80 19h20" />
@@ -167,14 +189,20 @@
             <p class="kicker">What a page is made of</p>
             <h2>Typed blocks, drawn the same way every time.</h2>
             <p class="section-lead">
-              The model only chooses which block fits what you said and fills it in. It never writes LaTeX or drawing code; Lucid
-              draws and typesets the blocks, so a page looks the same however it was dictated.
+              The model only chooses which block fits what you said and fills it in. It never writes
+              LaTeX or drawing code; Lucid draws and typesets the blocks, so a page looks the same
+              however it was dictated.
             </p>
           </div>
           <div class="blocks">
             <article class="block reveal">
-              <div class="preview"><div class="p-h">## High-level design<small>### Data model</small></div></div>
-              <div><h3>Headings</h3><p>The outline: a title, sections and sub-sections. Numbered in the PDF.</p></div>
+              <div class="preview">
+                <div class="p-h">## High-level design<small>### Data model</small></div>
+              </div>
+              <div>
+                <h3>Headings</h3>
+                <p>The outline: a title, sections and sub-sections. Numbered in the PDF.</p>
+              </div>
             </article>
             <article class="block reveal" style="--d: 0.05s">
               <div class="preview">
@@ -184,21 +212,36 @@
                   <li>DynamoDB</li>
                 </ul>
               </div>
-              <div><h3>Lists</h3><p>Options, steps, trade-offs. Each item stands alone, so one can be crossed out, never deleted.</p></div>
+              <div>
+                <h3>Lists</h3>
+                <p>
+                  Options, steps, trade-offs. Each item stands alone, so one can be crossed out,
+                  never deleted.
+                </p>
+              </div>
             </article>
             <article class="block reveal" style="--d: 0.1s">
               <div class="preview">
                 <div class="p-table" role="img" aria-label="A small comparison table">
-                  <b></b><b>SQL</b><b>NoSQL</b>
-                  <span>Schema</span><span>Fixed</span><span>Flexible</span>
-                  <span>Scaling</span><span>Vertical</span><span>Horizontal</span>
+                  <b></b><b>SQL</b><b>NoSQL</b> <span>Schema</span><span>Fixed</span
+                  ><span>Flexible</span> <span>Scaling</span><span>Vertical</span
+                  ><span>Horizontal</span>
                 </div>
               </div>
-              <div><h3>Tables</h3><p>A comparison: properties by options. Typeset as a real table.</p></div>
+              <div>
+                <h3>Tables</h3>
+                <p>A comparison: properties by options. Typeset as a real table.</p>
+              </div>
             </article>
             <article class="block reveal" style="--d: 0.15s">
               <div class="preview">
-                <svg viewBox="0 0 200 60" role="img" aria-label="A small diagram" class="mini-diagram" style="max-width: none">
+                <svg
+                  viewBox="0 0 200 60"
+                  role="img"
+                  aria-label="A small diagram"
+                  class="mini-diagram"
+                  style="max-width: none"
+                >
                   <rect x="4" y="18" width="50" height="24" rx="3" />
                   <text x="29" y="34">Client</text>
                   <path class="line" d="M54 30h28" />
@@ -209,29 +252,60 @@
                   <text x="174" y="34">DB</text>
                 </svg>
               </div>
-              <div><h3>Diagrams</h3><p>How parts connect: architecture, flows, sequences. A database is drawn as a cylinder, a queue as a pipe.</p></div>
+              <div>
+                <h3>Diagrams</h3>
+                <p>
+                  How parts connect: architecture, flows, sequences. A database is drawn as a
+                  cylinder, a queue as a pipe.
+                </p>
+              </div>
             </article>
             <article class="block reveal">
-              <div class="preview"><div class="p-callout"><b>Decision</b>PostgreSQL: joins and transactions.</div></div>
-              <div><h3>Callouts</h3><p>The takeaway, a decision, a trade-off, a warning or an open question.</p></div>
+              <div class="preview">
+                <div class="p-callout"><b>Decision</b>PostgreSQL: joins and transactions.</div>
+              </div>
+              <div>
+                <h3>Callouts</h3>
+                <p>The takeaway, a decision, a trade-off, a warning or an open question.</p>
+              </div>
             </article>
             <article class="block reveal" style="--d: 0.05s">
-              <div class="preview"><div class="p-math" role="img" aria-label="M equals 2 times L times H times d times b times T">M = 2 · L · H · d · b · T</div></div>
-              <div><h3>Formulas</h3><p>Back-of-the-envelope maths: KV-cache size, FLOPs, bandwidth. Typeset LaTeX.</p></div>
+              <div class="preview">
+                <div
+                  class="p-math"
+                  role="img"
+                  aria-label="M equals 2 times L times H times d times b times T"
+                >
+                  M = 2 · L · H · d · b · T
+                </div>
+              </div>
+              <div>
+                <h3>Formulas</h3>
+                <p>Back-of-the-envelope maths: KV-cache size, FLOPs, bandwidth. Typeset LaTeX.</p>
+              </div>
             </article>
             <article class="block reveal" style="--d: 0.1s">
               <div class="preview p-chart">
                 <svg viewBox="0 0 200 72" role="img" aria-label="A small bar chart">
-                  <rect x="12" y="30" width="28" height="42" rx="2" /><rect x="52" y="10" width="28" height="62" rx="2" />
-                  <rect x="92" y="22" width="28" height="50" rx="2" /><rect x="132" y="42" width="28" height="30" rx="2" />
+                  <rect x="12" y="30" width="28" height="42" rx="2" />
+                  <rect x="52" y="10" width="28" height="62" rx="2" />
+                  <rect x="92" y="22" width="28" height="50" rx="2" />
+                  <rect x="132" y="42" width="28" height="30" rx="2" />
                 </svg>
               </div>
-              <div><h3>Charts</h3><p>Numbers you dictated, as bars or lines, using only the numbers you said.</p></div>
+              <div>
+                <h3>Charts</h3>
+                <p>Numbers you dictated, as bars or lines, using only the numbers you said.</p>
+              </div>
             </article>
             <article class="block reveal" style="--d: 0.15s">
-              <div class="preview"><div class="p-code">SELECT * FROM urls
-WHERE short_code = $1;</div></div>
-              <div><h3>Code</h3><p>An API request, a query, a shell command.</p></div>
+              <div class="preview">
+                <div class="p-code">SELECT * FROM urls WHERE short_code = $1;</div>
+              </div>
+              <div>
+                <h3>Code</h3>
+                <p>An API request, a query, a shell command.</p>
+              </div>
             </article>
           </div>
         </div>
@@ -247,19 +321,31 @@ WHERE short_code = $1;</div></div>
           <ol class="steps">
             <li class="reveal">
               <h3>Say or type</h3>
-              <p>One input box. Dictate with Wispr Flow (optional) or just type. Your words are never lost: if the model cannot use them, they are kept as written.</p>
+              <p>
+                One input box. Dictate with Wispr Flow (optional) or just type. Your words are never
+                lost: if the model cannot use them, they are kept as written.
+              </p>
             </li>
             <li class="reveal" style="--d: 0.08s">
               <h3>Lucid structures it</h3>
-              <p>A local model in LM Studio turns notes into blocks and places them under the right section.</p>
+              <p>
+                A local model in LM Studio turns notes into blocks and places them under the right
+                section.
+              </p>
             </li>
             <li class="reveal" style="--d: 0.16s">
               <h3>Refine by number</h3>
-              <p>“In block 3, add a row for cost.” Every change is one undo step, and any earlier change can be reverted on its own.</p>
+              <p>
+                “In block 3, add a row for cost.” Every change is one undo step, and any earlier
+                change can be reverted on its own.
+              </p>
             </li>
             <li class="reveal" style="--d: 0.24s">
               <h3>Export</h3>
-              <p>A typeset PDF, Markdown, or a <code>.lucid</code> file with its history. AI agents can edit the same blocks.</p>
+              <p>
+                A typeset PDF, Markdown, or a <code>.lucid</code> file with its history. AI agents
+                can edit the same blocks.
+              </p>
             </li>
           </ol>
 
@@ -276,19 +362,42 @@ WHERE short_code = $1;</div></div>
               </ul>
             </div>
             <div class="shot reveal" style="--d: 0.1s">
-              <img class="light-only" src="images/diagram-builder.png" width="1800" height="1095" loading="lazy" alt="The diagram builder: numbered components and connections beside the drawing" />
-              <img class="dark-only" src="images/diagram-builder-dark.png" width="1800" height="1095" loading="lazy" alt="The diagram builder in the dark theme" />
+              <img
+                class="light-only"
+                src="images/diagram-builder.png"
+                width="1800"
+                height="1095"
+                loading="lazy"
+                alt="The diagram builder: numbered components and connections beside the drawing"
+              />
+              <img
+                class="dark-only"
+                src="images/diagram-builder-dark.png"
+                width="1800"
+                height="1095"
+                loading="lazy"
+                alt="The diagram builder in the dark theme"
+              />
             </div>
           </div>
 
           <div class="feature flip">
             <div class="shot reveal">
-              <img src="images/block-numbers.png" width="1800" height="1095" loading="lazy" alt="Block numbers in the page margin; block 4, a diagram, lists its numbered parts and connections" />
+              <img
+                src="images/block-numbers.png"
+                width="1800"
+                height="1095"
+                loading="lazy"
+                alt="Block numbers in the page margin; block 4, a diagram, lists its numbered parts and connections"
+              />
             </div>
             <div class="text reveal" style="--d: 0.1s">
               <p class="kicker">Block numbers</p>
               <h2>Say which block you mean.</h2>
-              <p>Every block has a light number in the margin. Click one to see its parts, then talk about it.</p>
+              <p>
+                Every block has a light number in the margin. Click one to see its parts, then talk
+                about it.
+              </p>
               <ul>
                 <li>“In block 3, add a row for cost.”</li>
                 <li>“Cross out item 2 of block 6.”</li>
@@ -302,8 +411,9 @@ WHERE short_code = $1;</div></div>
               <p class="kicker">History you can trust</p>
               <h2>Take back one change, not just the last.</h2>
               <p>
-                The panel lists what you said and every change to the page: by Lucid, by a builder, by an AI agent. Show scrolls
-                to what a change touched. Revert takes back that one change and leaves later ones to other blocks alone.
+                The panel lists what you said and every change to the page: by Lucid, by a builder,
+                by an AI agent. Show scrolls to what a change touched. Revert takes back that one
+                change and leaves later ones to other blocks alone.
               </p>
             </div>
             <div class="shot reveal" style="--d: 0.1s">
@@ -329,14 +439,21 @@ WHERE short_code = $1;</div></div>
 
           <div class="feature flip">
             <div class="shot pdf reveal">
-              <img src="images/pdf-page.png" width="700" height="960" loading="lazy" alt="A page of the exported PDF: a numbered section, a diagram and a footer" />
+              <img
+                src="images/pdf-page.png"
+                width="700"
+                height="960"
+                loading="lazy"
+                alt="A page of the exported PDF: a numbered section, a diagram and a footer"
+              />
             </div>
             <div class="text reveal" style="--d: 0.1s">
               <p class="kicker">A real PDF</p>
               <h2>Typeset, not screenshotted.</h2>
               <p>
-                Numbered sections, real tables, vector diagrams and formulas, in a fixed house style. The PDF engine
-                (Tectonic) comes with the app. Or export Markdown, with diagrams as Mermaid.
+                Numbered sections, real tables, vector diagrams and formulas, in a fixed house
+                style. The PDF engine (Tectonic) comes with the app. Or export Markdown, with
+                diagrams as Mermaid.
               </p>
             </div>
           </div>
@@ -350,40 +467,83 @@ WHERE short_code = $1;</div></div>
             <p class="kicker">Made for system design, open to other fields</p>
             <h2>Start from a format, or make your own.</h2>
             <p class="section-lead">
-              A note format is the skeleton of a page: its sections, a hint for each, and which blocks suit it. Dictation is placed
-              under the section it belongs to.
+              A note format is the skeleton of a page: its sections, a hint for each, and which
+              blocks suit it. Dictation is placed under the section it belongs to.
             </p>
           </div>
           <div class="formats">
             <article class="format reveal">
               <h3>Concept note</h3>
               <p>One computer-science or system-design idea.</p>
-              <ol><li>Definition</li><li>Intuition</li><li>How it works</li><li>Example</li><li>Pitfalls and gotchas</li><li>Related concepts</li></ol>
+              <ol>
+                <li>Definition</li>
+                <li>Intuition</li>
+                <li>How it works</li>
+                <li>Example</li>
+                <li>Pitfalls and gotchas</li>
+                <li>Related concepts</li>
+              </ol>
             </article>
             <article class="format reveal" style="--d: 0.05s">
               <h3>System design</h3>
               <p>Designing a system end to end.</p>
-              <ol><li>Requirements</li><li>Capacity estimates</li><li>API</li><li>High-level design</li><li>Data model</li><li>Deep dives</li><li>Trade-offs and decisions</li><li>Open questions</li></ol>
+              <ol>
+                <li>Requirements</li>
+                <li>Capacity estimates</li>
+                <li>API</li>
+                <li>High-level design</li>
+                <li>Data model</li>
+                <li>Deep dives</li>
+                <li>Trade-offs and decisions</li>
+                <li>Open questions</li>
+              </ol>
             </article>
             <article class="format reveal" style="--d: 0.1s">
               <h3>Comparison</h3>
               <p>Choosing between technologies.</p>
-              <ol><li>Context</li><li>Options</li><li>Comparison</li><li>Pros and cons</li><li>Decision</li></ol>
+              <ol>
+                <li>Context</li>
+                <li>Options</li>
+                <li>Comparison</li>
+                <li>Pros and cons</li>
+                <li>Decision</li>
+              </ol>
             </article>
             <article class="format reveal">
               <h3>Inference engineering</h3>
               <p>KV cache, FLOPs, bandwidth, batching.</p>
-              <ol><li>Intuition</li><li>The math</li><li>Numbers to remember</li><li>Hardware implications</li><li>Pitfalls</li></ol>
+              <ol>
+                <li>Intuition</li>
+                <li>The math</li>
+                <li>Numbers to remember</li>
+                <li>Hardware implications</li>
+                <li>Pitfalls</li>
+              </ol>
             </article>
             <article class="format reveal" style="--d: 0.05s">
               <h3>Benchmark</h3>
               <p>Recording an experiment.</p>
-              <ol><li>Goal and hypothesis</li><li>Setup</li><li>Method</li><li>Results</li><li>Observations</li><li>Next experiments</li></ol>
+              <ol>
+                <li>Goal and hypothesis</li>
+                <li>Setup</li>
+                <li>Method</li>
+                <li>Results</li>
+                <li>Observations</li>
+                <li>Next experiments</li>
+              </ol>
             </article>
             <article class="format own reveal" style="--d: 0.1s">
               <h3>Your own</h3>
-              <p>A format is a small data entry in the source: an id, a description, the sections. A lab notebook, a reading log or a study plan is one more entry.</p>
-              <p><a href="https://github.com/triggeredcode/lucid/blob/main/CONTRIBUTING.md#adding-a-note-format">How to add one →</a></p>
+              <p>
+                A format is a small data entry in the source: an id, a description, the sections. A
+                lab notebook, a reading log or a study plan is one more entry.
+              </p>
+              <p>
+                <a
+                  href="https://github.com/triggeredcode/lucid/blob/main/CONTRIBUTING.md#adding-a-note-format"
+                  >How to add one →</a
+                >
+              </p>
             </article>
           </div>
         </div>
@@ -402,25 +562,50 @@ WHERE short_code = $1;</div></div>
                 <h3>Lucid for macOS</h3>
                 <span class="ver" data-version>latest</span>
               </div>
-              <p class="dl-meta">Apple Silicon · macOS 13 or newer · <span data-date>free and open source</span></p>
+              <p class="dl-meta">
+                Apple Silicon · macOS 13 or newer · <span data-date>free and open source</span>
+              </p>
               <div class="dl-buttons">
-                <a class="btn primary" href="https://github.com/triggeredcode/lucid/releases/latest" data-dl="dmg">
-                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>
+                <a
+                  class="btn primary"
+                  href="https://github.com/triggeredcode/lucid/releases/latest"
+                  data-dl="dmg"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                  </svg>
                   Download .dmg <span class="size" data-size="dmg"></span>
                 </a>
-                <a class="btn" href="https://github.com/triggeredcode/lucid/releases/latest" data-dl="zip">
+                <a
+                  class="btn"
+                  href="https://github.com/triggeredcode/lucid/releases/latest"
+                  data-dl="zip"
+                >
                   .zip <span class="size" data-size="zip"></span>
                 </a>
               </div>
               <p class="dl-more">
-                <a href="https://github.com/triggeredcode/lucid/releases/latest" data-dl="sums">SHA256SUMS</a> ·
-                <a href="https://github.com/triggeredcode/lucid/releases">All releases</a> ·
-                <a href="https://github.com/triggeredcode/lucid/blob/main/CHANGELOG.md">Changelog</a>
+                <a href="https://github.com/triggeredcode/lucid/releases/latest" data-dl="sums"
+                  >SHA256SUMS</a
+                >
+                · <a href="https://github.com/triggeredcode/lucid/releases">All releases</a> ·
+                <a href="https://github.com/triggeredcode/lucid/blob/main/CHANGELOG.md"
+                  >Changelog</a
+                >
               </p>
               <ul class="reqs">
-                <li>Nothing else to install for PDFs: the PDF engine and diagram drawing come with the app.</li>
-                <li><a href="https://lmstudio.ai">LM Studio</a> with the model <code>qwen/qwen3.8-27b</code> (a lot of memory; developed on 48 GB).</li>
-                <li>The first PDF needs the internet once, to fetch typesetting files (about five minutes).</li>
+                <li>
+                  Nothing else to install for PDFs: the PDF engine and diagram drawing come with the
+                  app.
+                </li>
+                <li>
+                  <a href="https://lmstudio.ai">LM Studio</a> with the model
+                  <code>qwen/qwen3.8-27b</code> (a lot of memory; developed on 48 GB).
+                </li>
+                <li>
+                  The first PDF needs the internet once, to fetch typesetting files (about five
+                  minutes).
+                </li>
               </ul>
             </div>
 
@@ -430,29 +615,49 @@ WHERE short_code = $1;</div></div>
                 <div class="details-body">
                   <p>Lucid is free and not notarized by Apple, so macOS asks once:</p>
                   <ol>
-                    <li><b>macOS 15:</b> System Settings → Privacy &amp; Security → <b>Open Anyway</b>.</li>
-                    <li><b>macOS 13 and 14:</b> right-click the app → <b>Open</b> → <b>Open</b>.</li>
+                    <li>
+                      <b>macOS 15:</b> System Settings → Privacy &amp; Security →
+                      <b>Open Anyway</b>.
+                    </li>
+                    <li>
+                      <b>macOS 13 and 14:</b> right-click the app → <b>Open</b> → <b>Open</b>.
+                    </li>
                     <li>Or in Terminal:</li>
                   </ol>
-                  <div class="code"><button type="button" data-copy="xattr -dr com.apple.quarantine /Applications/Lucid.app">Copy</button>xattr -dr com.apple.quarantine /Applications/Lucid.app</div>
+                  <div class="code">
+                    <button
+                      type="button"
+                      data-copy="xattr -dr com.apple.quarantine /Applications/Lucid.app"
+                    >
+                      Copy</button
+                    >xattr -dr com.apple.quarantine /Applications/Lucid.app
+                  </div>
                 </div>
               </details>
               <details class="reveal" style="--d: 0.05s">
                 <summary>Check the download</summary>
                 <div class="details-body">
                   <p>Each release lists SHA-256 checksums. In the folder with both files:</p>
-                  <div class="code"><button type="button" data-copy="shasum -a 256 --ignore-missing -c SHA256SUMS">Copy</button>shasum -a 256 --ignore-missing -c SHA256SUMS</div>
+                  <div class="code">
+                    <button type="button" data-copy="shasum -a 256 --ignore-missing -c SHA256SUMS">
+                      Copy</button
+                    >shasum -a 256 --ignore-missing -c SHA256SUMS
+                  </div>
                 </div>
               </details>
               <details class="reveal" style="--d: 0.1s">
                 <summary>Build it yourself</summary>
                 <div class="details-body">
                   <p>Needs Node 22.12 or newer and pnpm 9, on Apple Silicon.</p>
-                  <div class="code"><button type="button" data-copy="git clone https://github.com/triggeredcode/lucid.git&#10;cd lucid&#10;pnpm install&#10;node scripts/fetch-tectonic.mjs&#10;pnpm dev">Copy</button>git clone https://github.com/triggeredcode/lucid.git
-cd lucid
-pnpm install
-node scripts/fetch-tectonic.mjs
-pnpm dev</div>
+                  <div class="code">
+                    <button
+                      type="button"
+                      data-copy="git clone https://github.com/triggeredcode/lucid.git&#10;cd lucid&#10;pnpm install&#10;node scripts/fetch-tectonic.mjs&#10;pnpm dev"
+                    >
+                      Copy</button
+                    >git clone https://github.com/triggeredcode/lucid.git cd lucid pnpm install node
+                    scripts/fetch-tectonic.mjs pnpm dev
+                  </div>
                 </div>
               </details>
             </div>
@@ -468,16 +673,29 @@ pnpm dev</div>
               <p class="kicker">For AI agents</p>
               <h2>A toolbox, not just an app.</h2>
               <p>
-                Lucid is also an MCP server. With the app running, Claude Code, or a model in LM Studio’s chat, can read and edit
-                the same blocks with the same safe tools. Every agent change is one undo step and appears in the history as the
-                agent’s.
+                Lucid is also an MCP server. With the app running, Claude Code, or a model in LM
+                Studio’s chat, can read and edit the same blocks with the same safe tools. Every
+                agent change is one undo step and appears in the history as the agent’s.
               </p>
-              <p><a href="https://github.com/triggeredcode/lucid/blob/main/docs/mcp.md">The tools and the set-up →</a></p>
+              <p>
+                <a href="https://github.com/triggeredcode/lucid/blob/main/docs/mcp.md"
+                  >The tools and the set-up →</a
+                >
+              </p>
             </div>
             <div class="reveal" style="--d: 0.1s">
-              <div class="code"><button type="button" data-copy="claude mcp add lucid -e ELECTRON_RUN_AS_NODE=1 -- /Applications/Lucid.app/Contents/MacOS/Lucid /Applications/Lucid.app/Contents/Resources/lucid-mcp.mjs">Copy</button><span class="code-wrap">claude mcp add lucid -e ELECTRON_RUN_AS_NODE=1 -- \
-  /Applications/Lucid.app/Contents/MacOS/Lucid \
-  /Applications/Lucid.app/Contents/Resources/lucid-mcp.mjs</span></div>
+              <div class="code">
+                <button
+                  type="button"
+                  data-copy="claude mcp add lucid -e ELECTRON_RUN_AS_NODE=1 -- /Applications/Lucid.app/Contents/MacOS/Lucid /Applications/Lucid.app/Contents/Resources/lucid-mcp.mjs"
+                >
+                  Copy</button
+                ><span class="code-wrap"
+                  >claude mcp add lucid -e ELECTRON_RUN_AS_NODE=1 -- \
+                  /Applications/Lucid.app/Contents/MacOS/Lucid \
+                  /Applications/Lucid.app/Contents/Resources/lucid-mcp.mjs</span
+                >
+              </div>
             </div>
           </div>
         </div>
@@ -490,9 +708,24 @@ pnpm dev</div>
             <h2>Your notes stay on your Mac.</h2>
           </div>
           <div class="facts">
-            <div class="fact reveal"><h3>No account, no analytics</h3><p>Lucid has no server and sends nothing about you anywhere.</p></div>
-            <div class="fact reveal" style="--d: 0.08s"><h3>A model you run</h3><p>The language model runs in LM Studio on your computer. Settings refuses an address that is not local.</p></div>
-            <div class="fact reveal" style="--d: 0.16s"><h3>Plain files</h3><p>Every page is one JSON file in <code>~/Lucid</code> that you can back up or move. The code is MIT-licensed and open.</p></div>
+            <div class="fact reveal">
+              <h3>No account, no analytics</h3>
+              <p>Lucid has no server and sends nothing about you anywhere.</p>
+            </div>
+            <div class="fact reveal" style="--d: 0.08s">
+              <h3>A model you run</h3>
+              <p>
+                The language model runs in LM Studio on your computer. Settings refuses an address
+                that is not local.
+              </p>
+            </div>
+            <div class="fact reveal" style="--d: 0.16s">
+              <h3>Plain files</h3>
+              <p>
+                Every page is one JSON file in <code>~/Lucid</code> that you can back up or move.
+                The code is MIT-licensed and open.
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -507,23 +740,52 @@ pnpm dev</div>
           <div class="faq">
             <details>
               <summary>Why does macOS warn me when I open it?</summary>
-              <div class="details-body"><p>Lucid is a free open-source app without an Apple developer certificate, so it is not notarized. macOS asks you to allow it once (see “First time you open it” above). The download’s checksum lets you verify what you got, and the source is public.</p></div>
+              <div class="details-body">
+                <p>
+                  Lucid is a free open-source app without an Apple developer certificate, so it is
+                  not notarized. macOS asks you to allow it once (see “First time you open it”
+                  above). The download’s checksum lets you verify what you got, and the source is
+                  public.
+                </p>
+              </div>
             </details>
             <details>
               <summary>Do I need Wispr Flow?</summary>
-              <div class="details-body"><p>No. Dictation is optional: Wispr Flow pastes your words and Lucid takes the paste. You can just type. Wispr Flow is a separate app with its own privacy terms.</p></div>
+              <div class="details-body">
+                <p>
+                  No. Dictation is optional: Wispr Flow pastes your words and Lucid takes the paste.
+                  You can just type. Wispr Flow is a separate app with its own privacy terms.
+                </p>
+              </div>
             </details>
             <details>
               <summary>Which model does it use?</summary>
-              <div class="details-body"><p>Lucid is evaluated with <code>qwen/qwen3.8-27b</code> in LM Studio. Another model can be named in Settings, but expect more misses. A request takes 10 to 25 seconds on a laptop.</p></div>
+              <div class="details-body">
+                <p>
+                  Lucid is evaluated with <code>qwen/qwen3.8-27b</code> in LM Studio. Another model
+                  can be named in Settings, but expect more misses. A request takes 10 to 25 seconds
+                  on a laptop.
+                </p>
+              </div>
             </details>
             <details>
               <summary>Is it only for system design?</summary>
-              <div class="details-body"><p>It was made for system-design and engineering notes, but a page is just headings, lists, tables and diagrams, so it suits any subject that has that shape. Note formats are plain data you can extend.</p></div>
+              <div class="details-body">
+                <p>
+                  It was made for system-design and engineering notes, but a page is just headings,
+                  lists, tables and diagrams, so it suits any subject that has that shape. Note
+                  formats are plain data you can extend.
+                </p>
+              </div>
             </details>
             <details>
               <summary>Windows or Linux? Intel Macs?</summary>
-              <div class="details-body"><p>Not yet: the app is built and tested for macOS on Apple Silicon. The code is open if you want to help.</p></div>
+              <div class="details-body">
+                <p>
+                  Not yet: the app is built and tested for macOS on Apple Silicon. The code is open
+                  if you want to help.
+                </p>
+              </div>
             </details>
           </div>
         </div>
@@ -533,16 +795,26 @@ pnpm dev</div>
     <footer class="site-footer">
       <div class="wrap foot">
         <div>
-          <a class="brand" href="#top"><img src="apple-touch-icon.png" alt="" width="28" height="28" />Lucid</a>
+          <a class="brand" href="#top"
+            ><img src="apple-touch-icon.png" alt="" width="28" height="28" />Lucid</a
+          >
           <small>MIT licence · © 2026 Omkar Tripathi</small>
           <small>Set in iA Writer Mono (SIL Open Font Licence).</small>
         </div>
         <ul>
           <li><a href="https://github.com/triggeredcode/lucid">GitHub</a></li>
           <li><a href="guide.html">User guide</a></li>
-          <li><a href="https://github.com/triggeredcode/lucid/issues/new/choose">Report an issue</a></li>
-          <li><a href="https://github.com/triggeredcode/lucid/blob/main/SECURITY.md">Security</a></li>
-          <li><a href="https://github.com/triggeredcode/lucid/blob/main/THIRD_PARTY_NOTICES.md">Licences</a></li>
+          <li>
+            <a href="https://github.com/triggeredcode/lucid/issues/new/choose">Report an issue</a>
+          </li>
+          <li>
+            <a href="https://github.com/triggeredcode/lucid/blob/main/SECURITY.md">Security</a>
+          </li>
+          <li>
+            <a href="https://github.com/triggeredcode/lucid/blob/main/THIRD_PARTY_NOTICES.md"
+              >Licences</a
+            >
+          </li>
         </ul>
       </div>
     </footer>

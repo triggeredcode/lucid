@@ -15,7 +15,7 @@
       root.dataset.theme = next;
       try {
         localStorage.setItem("lucid-theme", next);
-      } catch (e) {
+      } catch {
         /* storage can be blocked */
       }
     });
@@ -69,9 +69,15 @@
   function fill(release) {
     var assets = release.assets || [];
     var by = {
-      dmg: assets.find(function (a) { return /\.dmg$/.test(a.name); }),
-      zip: assets.find(function (a) { return /\.zip$/.test(a.name); }),
-      sums: assets.find(function (a) { return a.name === "SHA256SUMS"; }),
+      dmg: assets.find(function (a) {
+        return /\.dmg$/.test(a.name);
+      }),
+      zip: assets.find(function (a) {
+        return /\.zip$/.test(a.name);
+      }),
+      sums: assets.find(function (a) {
+        return a.name === "SHA256SUMS";
+      }),
     };
     document.querySelectorAll("[data-dl]").forEach(function (a) {
       var asset = by[a.getAttribute("data-dl")];
@@ -83,22 +89,29 @@
     });
     var version = String(release.tag_name || "").replace(/^v/, "");
     document.querySelectorAll("[data-version]").forEach(function (el) {
-      if (version) el.textContent = el.closest(".dl-title") ? "v" + version : "v" + version + " · Apple Silicon";
+      if (version)
+        el.textContent = el.closest(".dl-title")
+          ? "v" + version
+          : "v" + version + " · Apple Silicon";
     });
     var date = release.published_at ? new Date(release.published_at) : null;
     document.querySelectorAll("[data-date]").forEach(function (el) {
       if (date && !isNaN(date)) {
-        el.textContent = "released " + date.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+        el.textContent =
+          "released " +
+          date.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
       }
     });
   }
   var KEY = "lucid-release";
-  var cached = null;
-  try {
-    cached = JSON.parse(sessionStorage.getItem(KEY) || "null");
-  } catch (e) {
-    cached = null;
+  function readCache() {
+    try {
+      return JSON.parse(sessionStorage.getItem(KEY) || "null");
+    } catch {
+      return null;
+    }
   }
+  var cached = readCache();
   if (cached && Date.now() - cached.at < 10 * 60 * 1000) {
     fill(cached.release);
   } else if (window.fetch) {
@@ -112,7 +125,7 @@
         fill(release);
         try {
           sessionStorage.setItem(KEY, JSON.stringify({ at: Date.now(), release: release }));
-        } catch (e) {
+        } catch {
           /* storage can be blocked */
         }
       })
