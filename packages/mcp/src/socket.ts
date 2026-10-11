@@ -1,4 +1,5 @@
 import { createServer, connect, type Server } from "node:net";
+import { createHash } from "node:crypto";
 import { chmod, mkdir, rm } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { homedir } from "node:os";
@@ -15,12 +16,20 @@ import {
 
 /**
  * The local socket between the MCP server (a process Claude Code or LM Studio starts) and the running Lucid app.
- * One request per connection: a line of JSON in, a line of JSON out. The socket file is in the library folder and
- * only its owner can use it.
+ * One request per connection: a line of JSON in, a line of JSON out. On macOS and Linux it is a socket file in the library
+ * folder that only its owner can use; on Windows it is a named pipe (there are no socket files), named after the library
+ * folder so that two libraries do not share one.
  */
 export const socketPathFor = (
   home = process.env["LUCID_HOME"] ?? join(homedir(), "Lucid"),
-): string => join(home, ".lucid", "lucid.sock");
+  platform: NodeJS.Platform = process.platform,
+): string =>
+  platform === "win32"
+    ? `\\\\.\\pipe\\lucid-${createHash("sha256").update(home.toLowerCase()).digest("hex").slice(0, 16)}`
+    : join(home, ".lucid", "lucid.sock");
+
+/** A Windows named pipe has no file to create, remove or protect. */
+export const isPipe = (path: string): boolean => path.startsWith("\\\\.\\pipe\\");
 
 const IdSchema = z.string().min(1).max(200);
 const NoteSchema = z.object({
@@ -51,8 +60,10 @@ type Reply = { ok: true; result: unknown } | { ok: false; error: string };
 
 /** Serves a backend on a unix socket. Returns a function that stops it and removes the socket file. */
 export async function serveBackend(path: string, backend: Backend): Promise<() => Promise<void>> {
-  await mkdir(dirname(path), { recursive: true });
-  await rm(path, { force: true });
+  if (!isPipe(path)) {
+    await mkdir(dirname(path), { recursive: true });
+    await rm(path, { force: true });
+  }
   const server: Server = createServer((socket) => {
     let buffer = "";
     socket.setEncoding("utf8");
@@ -73,14 +84,14 @@ export async function serveBackend(path: string, backend: Backend): Promise<() =
     server.once("error", reject);
     server.listen(path, resolve);
   });
-  await chmod(path, 0o600).catch(() => undefined);
+  if (!isPipe(path)) await chmod(path, 0o600).catch(() => undefined);
   return async () => {
     await new Promise<void>((resolve) => {
       server.close(() => {
         resolve();
       });
     });
-    await rm(path, { force: true });
+    if (!isPipe(path)) await rm(path, { force: true });
   };
 }
 
