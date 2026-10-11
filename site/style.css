@@ -1104,3 +1104,94 @@ details[open] summary::after {
     transition: none;
   }
 }
+
+/* ---- the system tabs of the download card ---- */
+.tabs {
+  display: inline-flex;
+  gap: var(--s1);
+  padding: var(--s1);
+  margin-bottom: var(--s5);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--r2);
+}
+.tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  min-height: 40px;
+  padding: 0 var(--s5);
+  border: 0;
+  border-radius: var(--r1);
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.tabs button:hover {
+  color: var(--ink);
+}
+.tabs button[aria-selected="true"] {
+  background: var(--inverse-bg);
+  color: var(--inverse-ink);
+}
+.tabs .here {
+  padding: 1px var(--s2);
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.8;
+}
+/* Without scripts every system is shown, one under the other: the tab buttons only make sense with them. */
+html:not(.js) .tabs {
+  display: none;
+}
+.panel[hidden],
+.dl-side details[hidden] {
+  display: none;
+}
+.panel + .panel {
+  margin-top: var(--s6);
+  padding-top: var(--s6);
+  border-top: 1px solid var(--line);
+}
+.js .panel + .panel {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+.dl-note {
+  margin-top: var(--s4);
+  color: var(--ink-2);
+  font-size: 14px;
+}
+.btn[aria-disabled="true"] {
+  opacity: 0.45;
+  pointer-events: none;
+}
+.code-label {
+  margin: var(--s4) 0 var(--s2);
+  color: var(--ink-3);
+  font-size: var(--t-1);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.code-label:first-child {
+  margin-top: 0;
+}
+@media (max-width: 520px) {
+  .tabs {
+    display: flex;
+  }
+  .tabs button {
+    flex: 1;
+    justify-content: center;
+    padding: 0 var(--s2);
+  }
+  .tabs .here {
+    display: none;
+  }
+}

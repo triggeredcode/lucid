@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { colourTokens, contrastRatio } from "./wcag";
+import { detectSystem, megabytes, pickAssets } from "../../../site/downloads.js";
 
 /**
  * The GitHub Pages site (site/, with the pictures from docs/images and the guide, assembled by scripts/build-site.mjs): its
@@ -59,8 +60,11 @@ describe("site/index.html", () => {
   });
 
   it("asks the network for one thing only: the latest release of the project", () => {
-    const hosts = [...js.matchAll(/https?:\/\/[^"'\s)]+/g)].map((m) => m[0]);
-    expect(hosts.filter((h) => !h.startsWith("https://api.github.com/repos/"))).toEqual([]);
+    const hosts = [...js.matchAll(/https?:\/\/[^"'`\s)<]+/g)].map((m) => m[0]);
+    const allowed = ["https://api.github.com/repos/", "https://github.com/"];
+    expect(hosts.filter((h) => !allowed.some((a) => h.startsWith(a)))).toEqual([]);
+    expect(js.match(/fetch\(/g)).toHaveLength(1);
+    expect(js).toContain("https://api.github.com/repos/${REPO}/releases/latest");
     expect(js).toContain('REPO = "triggeredcode/lucid"');
   });
 
@@ -104,6 +108,18 @@ describe("site/index.html", () => {
     expect(rule(".code pre")).toContain("flex: 1");
   });
 
+  it("has one tab and one panel for each system, tied together", () => {
+    for (const system of ["mac", "windows", "linux"]) {
+      expect(html, system).toContain(`id="tab-${system}"`);
+      expect(html, system).toContain(`aria-controls="panel-${system}"`);
+      expect(html, system).toContain(`id="panel-${system}"`);
+      expect(html, system).toContain(`aria-labelledby="tab-${system}"`);
+      // And a download button for each of its files.
+      expect(html, system).toContain(`data-dl="${system}.primary"`);
+      expect(html, system).toContain(`data-dl="${system}.secondary"`);
+    }
+  });
+
   it("serves its typeface from the site", () => {
     for (const m of css.matchAll(/url\("([^"]+)"\)/g))
       expect(existsSync(source(m[1] ?? "")), m[1]).toBe(true);
@@ -137,5 +153,145 @@ describe.each([
   });
   it("show the button text clearly", () => {
     expect(contrastRatio(get("--inverse-ink"), get("--inverse-bg"))).toBeGreaterThanOrEqual(7);
+  });
+});
+
+describe("detectSystem", () => {
+  const chrome = (userAgent: string, platform?: string, maxTouchPoints = 0) => ({
+    userAgent,
+    platform: platform ?? "",
+    maxTouchPoints,
+  });
+
+  it.each([
+    [
+      "a Mac",
+      chrome(
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/130 Safari/537.36",
+        "MacIntel",
+      ),
+      "mac",
+    ],
+    [
+      "Windows",
+      chrome(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/130 Safari/537.36",
+        "Win32",
+      ),
+      "windows",
+    ],
+    [
+      "Linux",
+      chrome(
+        "Mozilla/5.0 (X11; Linux x86_64; rv:130.0) Gecko/20100101 Firefox/130.0",
+        "Linux x86_64",
+      ),
+      "linux",
+    ],
+    [
+      "a Chromebook (the Linux downloads suit it no better, but it is not a Mac or Windows)",
+      chrome(
+        "Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 Chrome/130",
+        "Linux x86_64",
+      ),
+      "linux",
+    ],
+    [
+      "Windows by the newer browser interface",
+      { userAgent: "", platform: "", userAgentData: { platform: "Windows" } },
+      "windows",
+    ],
+    [
+      "macOS by the newer browser interface",
+      { userAgent: "", platform: "", userAgentData: { platform: "macOS" } },
+      "mac",
+    ],
+  ] as const)("recognises %s", (_name, nav, expected) => {
+    expect(detectSystem(nav)).toBe(expected);
+  });
+
+  it.each([
+    [
+      "an iPhone",
+      chrome(
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15",
+        "iPhone",
+      ),
+    ],
+    [
+      "an Android phone",
+      chrome(
+        "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/130 Mobile",
+        "Linux armv8l",
+      ),
+    ],
+    [
+      "an iPad asking for the desktop site",
+      chrome("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15", "MacIntel", 5),
+    ],
+    ["something unknown", chrome("", "")],
+  ])("says 'other' for %s, where the page shows all three", (_name, nav) => {
+    expect(detectSystem(nav)).toBe("other");
+  });
+});
+
+describe("pickAssets", () => {
+  const asset = (name: string, size = 1_000_000) => ({
+    name,
+    size,
+    browser_download_url: `https://github.com/triggeredcode/lucid/releases/download/v0.2.0/${name}`,
+  });
+
+  it("finds each system's files in a release with all three", () => {
+    const picked = pickAssets({
+      assets: [
+        asset("Lucid-0.2.0-mac-arm64.dmg", 143_000_000),
+        asset("Lucid-0.2.0-mac-arm64.zip"),
+        asset("Lucid-0.2.0-win-x64.exe", 90_000_000),
+        asset("Lucid-0.2.0-win-x64.zip"),
+        asset("Lucid-0.2.0-linux-amd64.deb"),
+        asset("Lucid-0.2.0-linux-x64.AppImage"),
+        asset("SHA256SUMS", 600),
+      ],
+    });
+    expect(picked.mac.primary?.name).toBe("Lucid-0.2.0-mac-arm64.dmg");
+    expect(picked.mac.secondary?.name).toBe("Lucid-0.2.0-mac-arm64.zip");
+    expect(picked.windows.primary?.name).toBe("Lucid-0.2.0-win-x64.exe");
+    expect(picked.windows.secondary?.name).toBe("Lucid-0.2.0-win-x64.zip");
+    expect(picked.linux.primary?.name).toBe("Lucid-0.2.0-linux-amd64.deb");
+    expect(picked.linux.secondary?.name).toBe("Lucid-0.2.0-linux-x64.AppImage");
+    expect(picked.sums?.name).toBe("SHA256SUMS");
+    expect(picked.mac.primary?.url).toContain("/releases/download/v0.2.0/");
+  });
+
+  it("does not mix the two zip files up", () => {
+    const picked = pickAssets({
+      assets: [asset("Lucid-0.2.0-win-x64.zip"), asset("Lucid-0.2.0-mac-arm64.zip")],
+    });
+    expect(picked.mac.secondary?.name).toBe("Lucid-0.2.0-mac-arm64.zip");
+    expect(picked.windows.secondary?.name).toBe("Lucid-0.2.0-win-x64.zip");
+  });
+
+  it("knows the first release, which was for the Mac only and named differently", () => {
+    const picked = pickAssets({
+      assets: [asset("Lucid-0.1.0-arm64.dmg"), asset("Lucid-0.1.0-arm64.zip"), asset("SHA256SUMS")],
+    });
+    expect(picked.mac.primary?.name).toBe("Lucid-0.1.0-arm64.dmg");
+    expect(picked.mac.secondary?.name).toBe("Lucid-0.1.0-arm64.zip");
+    expect(picked.windows.primary).toBeUndefined();
+    expect(picked.linux.primary).toBeUndefined();
+    expect(picked.linux.secondary).toBeUndefined();
+  });
+
+  it("copes with a release without files, or with no release", () => {
+    expect(pickAssets({ assets: [] }).mac.primary).toBeUndefined();
+    expect(pickAssets({}).sums).toBeUndefined();
+  });
+});
+
+describe("megabytes", () => {
+  it("counts as the Finder and Explorer do", () => {
+    expect(megabytes(142_781_742)).toBe("143 MB");
+    expect(megabytes(1_499_999)).toBe("1 MB");
   });
 });
