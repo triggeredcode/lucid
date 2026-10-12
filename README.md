@@ -53,8 +53,8 @@ flowchart LR
   page --> history["The history keeps what you said,<br/>what was understood, what changed"]
 ```
 
-The model runs on your computer and never leaves it. It always has the page in front of it, so it does not only add text: it
-puts what you said under the right heading and builds the right kind of block. Every change is exactly one undo step, and your
+The model runs on your own computer, because you talk a lot and change a lot, and a local model keeps that cheap: every call is
+free. It always has the page in front of it, so it does not only add text: it puts what you said under the right heading and builds the right kind of block. Every change is exactly one undo step, and your
 words are never lost.
 
 ## The two parts I like most
