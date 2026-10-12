@@ -141,7 +141,7 @@ footer { color: var(--ink-3); font-size: 12.5px; border-top: 1px solid var(--lin
   <a href="#formats">Note formats</a>
   <a href="#files">Saving, export and import</a>
   <a href="#export">Export</a>
-  <a href="#wispr">Dictating with Wispr Flow</a>
+  <a href="#wispr">Dictating</a>
   <a href="#wrong">When something goes wrong</a>
   <a href="#where">Where things live</a>
   <a href="#agents">For AI agents</a>
@@ -160,7 +160,7 @@ footer { color: var(--ink-3); font-size: 12.5px; border-top: 1px solid var(--lin
   <ol class="steps">
     <li><div><b>Have LM Studio running with the model loaded.</b> The small pill at the top of Lucid shows a green dot and the model name when it is ready. If it says <i>No model loaded</i>, click the <b>Load …</b> button in the pill (it asks first, and takes about half a minute).</div></li>
     <li><div><b>Click New page</b> (top of the left column), type a title, press Enter.</div></li>
-    <li><div><b>Talk or type into the box at the bottom.</b> With Wispr Flow just dictate: the words appear in the box and are sent about half a second after you stop. Typing: press Enter.</div></li>
+    <li><div><b>Talk or type into the box at the bottom.</b> With a dictation app just dictate: the words appear in the box and are sent about half a second after you stop. Typing: press Enter.</div></li>
     <li><div><b>Watch the page.</b> Your words become notes. To change something, say what to change (Command mode, below). To undo anything, say <code>undo</code>.</div></li>
     <li><div><b>Download PDF</b> (top right) when it looks right.</div></li>
   </ol>
@@ -452,14 +452,14 @@ footer { color: var(--ink-3); font-size: 12.5px; border-top: 1px solid var(--lin
 </section>
 
 <section id="wispr">
-  <h2>Dictating with Wispr Flow</h2>
-  <p class="sub">Lucid does no speech recognition. Wispr Flow turns your voice into text and pastes it; Lucid's input box takes the paste.</p>
+  <h2>Dictating</h2>
+  <p class="sub">Lucid does no speech recognition. A dictation app (Wispr Flow, OpenWhispr, VoiceNative, the system's own) turns your voice into text and pastes it; Lucid's input box takes the paste.</p>
   <ul>
     <li>A paste goes to the input box <b>wherever the focus is</b> (after clicking a button, a pill, the page, or with the cursor in the title) and is sent about half a second after the last piece arrives. Several pastes in a row are joined.</li>
     <li>It stays where you meant it when it should: into a field of an open dialog, and into the page itself in Edit mode. While a builder is open, it goes to the builder.</li>
     <li>Start typing after a paste and the automatic send is cancelled, so you can correct the words first.</li>
-    <li>For one command by voice, hold the <b>right ⌥ key</b> while you dictate, or begin with <code>Lucid, …</code>. Wispr's own command mode is not used.</li>
-    <li>There is a short check-list for trying it with your own voice: <a href="https://github.com/triggeredcode/lucid/blob/main/docs/wispr.md">docs/wispr.md</a> on GitHub.</li>
+    <li>For one command by voice, hold the <b>right ⌥ key</b> while you dictate, or begin with <code>Lucid, …</code>. The dictation app's own command mode is not used.</li>
+    <li>There is a short check-list for trying it with your own voice: <a href="https://github.com/triggeredcode/lucid/blob/main/docs/dictation.md">docs/dictation.md</a> on GitHub, which also lists the free and open-source dictation apps.</li>
   </ul>
 </section>
 
@@ -477,7 +477,7 @@ footer { color: var(--ink-3); font-size: 12.5px; border-top: 1px solid var(--lin
     <tr><td><i>Tectonic, the PDF engine, was not found</i></td><td>The copy of Lucid is damaged. Download it again from the project’s releases (Help, Check for Updates…). Markdown export works meanwhile.</td></tr>
     <tr><td>PDF without some diagrams, and a note that they could not be drawn</td><td>The note says which. Send the page to Lucid again, or fix the diagram in its builder (click the diagram), then download the PDF again. Please report it if it keeps happening.</td></tr>
     <tr><td>Revert is greyed out</td><td>The blocks that change touched were changed after it (by another change or by you). Use undo, or fix it in Edit mode.</td></tr>
-    <tr><td>Nothing happens when you dictate</td><td>Click once in the Lucid window so it has the focus; check that Wispr Flow is pasting (the text should appear in the box).</td></tr>
+    <tr><td>Nothing happens when you dictate</td><td>Click once in the Lucid window so it has the focus; check that your dictation app is pasting (the text should appear in the box).</td></tr>
   </table></div>
 </section>
 
@@ -502,9 +502,9 @@ footer { color: var(--ink-3); font-size: 12.5px; border-top: 1px solid var(--lin
   <ul>
     <li>The model is a local 27-billion-parameter model. It is usually right, not always; Edit mode, undo and Revert are for the rest.</li>
     <li>A request takes 10 to 25 seconds, which is normal for a 27B model on a laptop (the first one after a change is the slowest). The line above the input box counts the seconds.</li>
-    <li>Pasting, not hearing: Lucid depends on Wispr Flow (or you typing) for the words.</li>
+    <li>Pasting, not hearing: Lucid depends on a dictation app (or you typing) for the words.</li>
     <li>A diagram with 15 parts in one long column cannot be big on a single PDF page.</li>
-    <li>The app is tested with a scripted model and with the real one; how Wispr Flow behaves on your voice can only be checked by you (<a href="https://github.com/triggeredcode/lucid/blob/main/docs/wispr.md">a check-list</a>).</li>
+    <li>The app is tested with a scripted model and with the real one; how a dictation app behaves on your voice can only be checked by you (<a href="https://github.com/triggeredcode/lucid/blob/main/docs/dictation.md">a check-list</a>).</li>
   </ul>
 </section>
 

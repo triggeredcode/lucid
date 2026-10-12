@@ -72,8 +72,9 @@ What stays true whatever you say:
 - **You stay in charge.** Every change by the model is exactly one undo step, any earlier change can be reverted on its own,
   and your words are never lost: if the model cannot use them, they are kept as written.
 - **One view.** The page, one input box under it, an optional history panel. It scales to a full-screen window.
-- **Voice or keyboard.** Dictate with [Wispr Flow](https://wisprflow.ai) (optional) or just type. Lucid takes the text from
-  there.
+- **Voice or keyboard.** Dictate with any app that pastes text, or just type. [Wispr Flow](https://wisprflow.ai),
+  [OpenWhispr](https://github.com/OpenWhispr/openwhispr) (free, open source) and
+  [VoiceNative](https://github.com/triggeredcode/voicenative) (free, macOS) are covered in [docs/dictation.md](docs/dictation.md).
 - **A toolbox for AI agents.** An MCP server lets Claude Code, or a model in LM Studio's chat, read and edit the same blocks.
 
 ## Install
@@ -219,7 +220,7 @@ wrong are in [`docs/mcp.md`](docs/mcp.md).
 
 Lucid has no account, no analytics and no cloud service. Your notes are files on your disk, and the language model runs in
 LM Studio on your computer. The only time Lucid's own PDF engine uses the internet is the one-time download of typesetting
-files described above. If you dictate with Wispr Flow, that is a separate app with its own privacy terms; Lucid only sees the
+files described above. If you dictate with another app, that is a separate app with its own privacy terms; Lucid only sees the
 text it pastes.
 
 ## Build from source
