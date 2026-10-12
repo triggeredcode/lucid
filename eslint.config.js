@@ -42,6 +42,8 @@ export default tseslint.config(
       "**/release/**",
       "_site/**",
       "site/**/*.d.ts",
+      // The intro video is its own package (plain ESM, with browser code), outside the workspace and its checks.
+      "video/**",
     ],
   },
   js.configs.recommended,

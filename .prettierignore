@@ -10,3 +10,6 @@ pnpm-lock.yaml
 docs/guide.html
 **/release/**
 _site
+video/.cache
+video/out
+video/package-lock.json
