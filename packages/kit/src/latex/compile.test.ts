@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { registry } from "../defaultRegistry";
 import { FORMATS, skeleton, type Format } from "../formats";
-import { LUCID_STY, renderDocument } from "./index";
+import { FONTS, LUCID_STY, renderDocument, type ResolvedPdfStyle } from "./index";
 
 // Integration: every block type's fixtures, with figures, compile to a real PDF with Tectonic (skipped when the tools are
 // not installed). This is what proves the LaTeX the model's content turns into is valid.
@@ -27,6 +27,7 @@ function compile(
     info?: Record<string, string>;
     figureWidths?: Record<string, number>;
     figureHeights?: Record<string, number>;
+    style?: Partial<ResolvedPdfStyle>;
   } = {},
 ): { pdf: string; text: string } {
   const dir = mkdtempSync(join(tmpdir(), "lucid-tex-"));
@@ -115,6 +116,84 @@ describe.skipIf(!have)("LaTeX compiles with Tectonic", () => {
     expect(out.text).toContain("Cost is 100%");
     expect(out.text).toContain("café");
     expect(out.text).toContain("def f(x):");
+  }, 300_000);
+});
+
+const PDFFONTS = "/opt/homebrew/bin/pdffonts";
+const haveFonts = have && existsSync(PDFFONTS);
+
+describe.skipIf(!haveFonts)("PDF style choices compile with Tectonic", () => {
+  const fixture = (type: "table") => {
+    const found = registry.get(type).fixtures[0];
+    if (!found) throw new Error(`no ${type} fixture`);
+    return found;
+  };
+  const blocks = () => {
+    return [
+      registry.validateBlock({
+        id: "h1",
+        type: "heading",
+        props: { level: 1 },
+        content: [{ type: "text", text: "Caching strategies", styles: {} }],
+      }),
+      registry.validateBlock({
+        id: "p1",
+        type: "paragraph",
+        props: {},
+        content: [
+          {
+            type: "text",
+            text: "Hot keys stay in memory so most reads never reach the database.",
+            styles: {},
+          },
+        ],
+      }),
+      registry.validateBlock(fixture("table")),
+    ];
+  };
+  const fontsOf = (pdf: string): string => execFileSync(PDFFONTS, [pdf], { encoding: "utf8" });
+  const FONT_FILES = {
+    "latin-modern": "LMRoman",
+    palatino: "TeXGyrePagella",
+    times: "TeXGyreTermes",
+    helvetica: "TeXGyreHeros",
+  } as const;
+
+  for (const font of FONTS) {
+    it(`${font}: the typeface is embedded in the PDF`, () => {
+      const { pdf } = compile("Fonts", blocks(), "", { style: { font } });
+      expect(fontsOf(pdf)).toContain(FONT_FILES[font]);
+    }, 300_000);
+  }
+
+  it("paper, text size, margins, accent and numbering all at once", () => {
+    const { pdf, text } = compile("Everything", blocks(), "", {
+      style: {
+        paper: "a4",
+        fontSize: 12,
+        font: "palatino",
+        margins: "narrow",
+        accent: "teal",
+        numberedHeadings: false,
+        showDate: false,
+      },
+    });
+    expect(text).toContain("Caching strategies");
+    // No section number in front of the heading, and no date.
+    expect(text).not.toMatch(/1\s+Caching strategies/);
+    expect(text).not.toMatch(
+      /(January|February|March|April|May|June|July|August|September|October|November|December) \d/,
+    );
+    const size = execFileSync("/opt/homebrew/bin/pdfinfo", [pdf], { encoding: "utf8" });
+    expect(size).toMatch(/Page size:\s+595\.\d+ x 841\.\d+ pts \(A4\)/);
+  }, 300_000);
+
+  it("the numbers and the date are there by default", () => {
+    const { text } = compile("Defaults", blocks(), "", { style: {} });
+    expect(text).toMatch(/1\s+Caching strategies/);
+    expect(text).toMatch(
+      /(January|February|March|April|May|June|July|August|September|October|November|December) \d/,
+    );
   }, 300_000);
 });
 
