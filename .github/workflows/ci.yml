@@ -28,7 +28,6 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm format:check
-      - run: pnpm notices:check
 
   test:
     name: Unit tests (${{ matrix.name }})

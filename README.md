@@ -279,6 +279,7 @@ described in [`SECURITY.md`](SECURITY.md). Changes are listed in [`CHANGELOG.md`
 
 ## Licence
 
-[MIT](LICENSE). Lucid is built on open-source software; see [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md). Special thanks
+[MIT](LICENSE). Lucid is built on open-source software; the list of what it bundles and their licences comes with the app
+(Help, Licences of the Software Lucid Uses). Special thanks
 to [BlockNote](https://www.blocknotejs.org), [Mermaid](https://mermaid.js.org), [Tectonic](https://tectonic-typesetting.github.io),
 [Electron](https://www.electronjs.org) and [iA Writer Mono](https://github.com/iaolo/iA-Fonts).

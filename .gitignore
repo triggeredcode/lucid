@@ -4,6 +4,8 @@ dist/
 out/
 build/
 coverage/
+# made when the app is packaged (scripts/notices.mjs)
+/THIRD_PARTY_NOTICES.md
 *.tsbuildinfo
 
 # OS / editor

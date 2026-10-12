@@ -23,7 +23,6 @@
     "ci": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
     "mcp:build": "pnpm --filter @lucid/mcp bundle",
     "notices": "node scripts/notices.mjs",
-    "notices:check": "node scripts/notices.mjs --check",
     "eval": "node packages/evals/scripts/eval.mjs",
     "dist": "pnpm --filter @lucid/desktop dist",
     "e2e:packaged": "pnpm --filter @lucid/desktop e2e:packaged",
