@@ -78,7 +78,8 @@ changes to other blocks alone.
 
 - **PDF**, typeset with Tectonic in a fixed house style (numbered sections, real tables and figures, formulas). Settings →
   **PDF look** changes the paper (A4 or Letter), the text size, the typeface, the margins, an accent colour, whether headings
-  are numbered and whether the date shows.
+  are numbered and whether the date shows. **Edit template…** opens `lucid.sty`, the file behind the house style, to change
+  anything else; if it has a mistake, the PDF is made with the built-in one and says so.
 - **Markdown** (diagrams as Mermaid blocks).
 - **A `.lucid` file**, the whole note with its history, to back up, move to another computer or share.
 
