@@ -5,6 +5,10 @@ and Lucid uses [semantic versioning](https://semver.org).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-12
+
+PDFs and dictation can be set up the way you like them, the Mac window is cleaner, and the documents are shorter and easier to find your way in.
+
 ### Added
 
 - **The look of the PDF is yours to set** (Settings, "PDF look"): paper (Auto picks Letter or A4 by where the computer is), text size, typeface (Latin Modern, Palatino, Times or Helvetica), margins, an accent colour for the title and headings, numbered or plain headings, and the date under the title. The defaults are the look PDFs always had. **Edit template…** opens `lucid.sty`, the file that sets the house style, so everything else can be changed too; if it has a mistake the PDF is made with the built-in one and says so.
@@ -12,6 +16,8 @@ and Lucid uses [semantic versioning](https://semver.org).
 
 ### Changed
 
+- **A clean top of the window on a Mac.** The grey title bar with the name in it is gone: the page's top row takes its place, with the three round buttons at its left. Windows and Linux keep their own window frame.
+- **A short README**, with the details in `docs/` (installing, what Lucid does, the note formats, accessibility, dictation), and a few words on why Lucid exists: so that notes can be taken by voice, or with one hand. The website says the same.
 - Tables in the PDF are set ragged right with a little more room between rows, and the bars of a chart use the same greys as on screen.
 - Dictation: the docs say that any app that pastes works, and list the free and open-source ones (OpenWhispr, VoiceNative) next to Wispr Flow.
 - The picture of each note format (`docs/format-samples`) is made with the real app, with real diagrams and every section filled.
@@ -78,6 +84,7 @@ The first public release.
 - The first PDF on a computer downloads Tectonic's typesetting files (about five minutes, once).
 - Only `qwen/qwen3.8-27b` has been evaluated. A request takes 10 to 25 seconds on a laptop.
 
-[Unreleased]: https://github.com/triggeredcode/lucid/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/triggeredcode/lucid/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/triggeredcode/lucid/releases/tag/v0.3.0
 [0.2.0]: https://github.com/triggeredcode/lucid/releases/tag/v0.2.0
 [0.1.0]: https://github.com/triggeredcode/lucid/releases/tag/v0.1.0
