@@ -51,7 +51,10 @@ const LOOKS: Record<
   Look,
   { vars: Record<string, string | boolean | Record<string, string>>; css: string }
 > = {
-  pdf: { vars: { fontFamily: SANS }, css: LABEL_CSS },
+  pdf: {
+    vars: { fontFamily: SANS, xyChart: chart("#1a1a1a", "#ffffff", "#5f5e59,#a19e99,#bcbab6") },
+    css: LABEL_CSS,
+  },
   light: {
     vars: {
       fontFamily: MONO,
