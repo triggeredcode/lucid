@@ -162,8 +162,8 @@ describe("blocksToLatex", () => {
     const text = latex([fx("table", "fx-table-2")]);
     expect(text).toBe(
       [
-        "\\begin{table}[H]\\centering\\small",
-        "\\begin{tabularx}{\\linewidth}{@{}*{2}{X}@{}}",
+        "\\begin{table}[H]\\centering\\small\\renewcommand{\\arraystretch}{1.25}",
+        "\\begin{tabularx}{\\linewidth}{@{}*{2}{Y}@{}}",
         "\\toprule",
         "\\textbf{Option} & \\textbf{Verdict} \\\\",
         "\\midrule",
@@ -175,7 +175,7 @@ describe("blocksToLatex", () => {
       ].join("\n"),
     );
     const wide = latex([fx("table", "fx-table-1")]);
-    expect(wide).toContain("{@{}l*{2}{X}@{}}");
+    expect(wide).toContain("{@{}l*{2}{Y}@{}}");
     expect(wide).toContain("\\caption{SQL vs NoSQL}");
   });
 
