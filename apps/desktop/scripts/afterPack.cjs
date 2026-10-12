@@ -2,7 +2,7 @@
 //  - It refuses an app that lacks a file it must carry (for example Electron was never downloaded, so its licence notices were
 //    not there to copy): a broken build must stop here instead of shipping.
 //  - On a Mac it signs the app "ad hoc" (no identity): Apple Silicon only runs signed code, and without a developer certificate
-//    this is what lets it run once the person has allowed it (see README: Install).
+//    this is what lets it run once the person has allowed it (see docs/install.md).
 const { execFileSync } = require("node:child_process");
 const { existsSync } = require("node:fs");
 const path = require("node:path");
