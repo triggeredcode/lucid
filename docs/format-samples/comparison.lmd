@@ -1,0 +1,28 @@
+## Context
+The order service needs to publish events that three other services read. We must pick a message system before the first release, and moving later means rewriting every producer and consumer.
+
+## Options
+- Kafka {chosen}
+- Amazon SQS
+- RabbitMQ {struck}
+
+## Comparison
+Table: Kafka, SQS and RabbitMQ
+| Property | Kafka | SQS | RabbitMQ |
+| --- | --- | --- | --- |
+| Ordering | Per partition | Only in FIFO queues | Per queue |
+| Replay old events | Yes, by offset | No, deleted once read | No |
+| Throughput | Very high | High, managed for you | Moderate |
+| Running it | A cluster, or a managed service | Nothing to run | A broker to run |
+
+## Pros and cons
+Table: What each one gives and costs
+| Option | Strength | Weakness |
+| --- | --- | --- |
+| Kafka | Replay and very high throughput | A cluster to operate and learn |
+| SQS | No servers, simple to start | No replay, ordering costs throughput |
+| RabbitMQ | Flexible routing | Lower throughput, one more broker to run |
+
+## Decision
+> [!decision] Kafka
+> Three services need the same events, and a new one must be able to read the history. Only Kafka replays. We accept running a managed cluster.

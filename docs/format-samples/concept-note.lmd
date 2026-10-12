@@ -1,0 +1,48 @@
+## Definition
+A **Bloom filter** is a small bit array that answers one question: "is this key *possibly* in the set?" It never says "no" for a key that was added, but it sometimes says "maybe" for one that was not.
+
+## Intuition
+- Hash each key to a few positions in the array and switch those bits on.
+- If any of a key's bits is still off, the key was never added. If all are on, it probably was.
+- The win is space: about 10 bits per key gives a false-positive rate near 1%, and the keys themselves are never stored.
+
+## How it works
+```graph type=flowchart dir=TB title="Looking up a key"
+key [client]: Key
+bits [storage]: Bit array
+skip [note]: Not present, skip the disk read
+disk [datastore]: Read from disk
+key -> bits: hash to k positions
+bits -> skip: a bit is off
+bits -> disk: all bits on
+```
+1. To add a key, switch on the k bits its hash functions point to.
+2. To look a key up, check the same k bits.
+3. One bit off means the key is absent. All bits on means it may be present.
+
+## Example
+A filter of 10 bits with 2 hash functions, after adding "cat" (bits 1 and 6) and "dog" (bits 3 and 6):
+
+Table: Lookups after adding cat and dog
+| Key | Bits checked | Answer |
+| --- | --- | --- |
+| cat | 1, 6 | maybe present (it was added) |
+| emu | 3, 8 | not present, bit 8 is off |
+| fox | 1, 3 | maybe present, a false positive |
+
+With m bits, n keys and k hash functions, the chance of a false positive is about:
+
+$$
+p \approx \left(1 - e^{-kn/m}\right)^{k}
+$$
+
+## Pitfalls and gotchas
+- A key cannot be removed: switching its bits off could also remove other keys. A counting Bloom filter keeps a small counter per position instead of a bit.
+- The false-positive rate climbs as the filter fills, so size it for the number of keys you expect, not the number you have today.
+> [!warning] A "maybe" is not an answer
+> Always confirm a "maybe" against the real store. The filter only saves you the lookups that would have failed.
+
+## Related concepts
+- Counting Bloom filter
+- Cuckoo filter, which supports deletes
+- LSM trees, which keep one filter per file to skip disk reads

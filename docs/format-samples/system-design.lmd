@@ -1,0 +1,61 @@
+## Requirements
+- Create a short link for a long URL, and redirect from the short link to it.
+- Links can have a custom alias and an expiry date.
+- 100 million new links per month, and 100 times more reads than writes.
+- Redirects in under 50 ms at the 99th percentile. Availability matters more than strict consistency.
+
+## Capacity estimates
+Table: Back-of-envelope numbers
+| Quantity | Estimate | How |
+| --- | --- | --- |
+| Writes | about 40 per second | 100 million per month, 2.6 million seconds in a month |
+| Reads | about 4,000 per second | 100 times the writes |
+| Storage over 5 years | about 3 TB | 6 billion links at 500 bytes each |
+
+## API
+Table: Three calls
+| Call | What it does |
+| --- | --- |
+| POST /links | Body: url, optional alias and expires_at. Returns the short code. |
+| GET /{code} | Redirects to the long URL. |
+| DELETE /links/{code} | Removes a link. |
+
+## High-level design
+```graph type=flowchart dir=TB title="URL shortener"
+client [client]: Browser
+lb [loadbalancer]: Load balancer
+api [service]: API service
+cache [cache]: Redis
+db [datastore]: Link store
+ids [service]: ID generator
+client -> lb
+lb -> api
+api -> cache: look up code
+api -.-> db: on a cache miss
+api -> ids: new code (writes)
+api -> db: save link (writes)
+```
+
+## Data model
+Table: The links table
+| Column | Type | Notes |
+| --- | --- | --- |
+| code | string, 7 characters | primary key, base62 of an id |
+| url | text | the long URL |
+| created_at | timestamp | |
+| expires_at | timestamp | optional |
+
+## Deep dives
+- **Codes.** An ID generator hands each API server a block of 1,000 ids, so no coordination is needed per request. The id is written in base62: seven characters give $62^7$, about 3.5 trillion codes.
+- **Reads.** Hot links are kept in Redis with a time to live. A miss reads the link store and fills the cache.
+
+## Trade-offs and decisions
+> [!decision] Redirect status
+> Use 302, not 301. Browsers do not cache a 302, so every click reaches us and can be counted. The cost is more traffic.
+
+> [!tradeoff] Counter, not a hash
+> A counter never collides and is predictable, so codes can be guessed. Random-looking codes need a check for collisions on every write.
+
+## Open questions
+- [ ] Abuse: should URLs be scanned before they are shortened?
+- [ ] Custom aliases: which words are reserved?

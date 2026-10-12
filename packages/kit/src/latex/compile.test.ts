@@ -224,10 +224,7 @@ describe.skipIf(!have)("every note format compiles with Tectonic", () => {
         date: "October 2026",
         hardware: "Apple M4 Max, 64 GB",
       };
-      const { text, pdf } = compile(`${format.name} sample`, blocks, "", { format, info });
-      // `LUCID_SAMPLES_DIR=docs/format-samples pnpm exec vitest run --project @lucid/kit compile` keeps the PDFs to look at.
-      const keep = process.env["LUCID_SAMPLES_DIR"];
-      if (keep) execFileSync("cp", [pdf, join(keep, `format-${format.id}.pdf`)]);
+      const { text } = compile(`${format.name} sample`, blocks, "", { format, info });
       expect(text).toContain(`${format.name} sample`);
       // The first section heading is printed, an unfilled one is not.
       expect(text).toContain(format.sections[0]?.heading ?? "?");
