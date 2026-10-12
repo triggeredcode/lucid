@@ -59,14 +59,14 @@ A diagram of ten parts is hard to say in one breath, so there is a guided builde
 cylinder, a queue as a pipe, a CDN as a cloud, a load balancer as a hexagon. Big diagrams stay readable in the page and in the
 PDF. Tables have a builder in the same spirit.
 
-![The diagram builder: numbered components and connections beside the drawing](images/diagram-builder.png)
+![The diagram builder: numbered components and connections beside the drawing](images/readme/diagram-builder.png)
 
 ## Say which block you mean
 
 Every block has a light number in the margin (B1, B2, …). Click one to see its parts, then say *"in block 3, add a row for
 cost"* or *"cross out item 2 of block 6"*. The numbers can be hidden in Settings.
 
-![Block numbers in the page margin; block 4, a diagram, lists its numbered parts and connections](images/block-numbers.png)
+![Block numbers in the page margin; block 4, a diagram, lists its numbered parts and connections](images/readme/block-numbers.png)
 
 ## History you can trust
 
@@ -83,7 +83,7 @@ changes to other blocks alone.
 - **Markdown** (diagrams as Mermaid blocks).
 - **A `.lucid` file**, the whole note with its history, to back up, move to another computer or share.
 
-![A page of the exported PDF: a numbered section, a diagram and a footer](images/pdf-page.png)
+![A page of the exported PDF: a numbered section, a diagram and a footer](images/readme/pdf-page.png)
 
 Light and dark themes, three typefaces for the page on screen, and a zoom for the page (⌘+, ⌘−, ⌘0) are in the app. Pages are
 plain files in `~/Lucid` (one JSON file per page).
