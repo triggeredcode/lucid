@@ -22,7 +22,12 @@ function compile(
   title: string,
   blocks: ReturnType<typeof registry.validateBlock>[],
   extraSty = "",
-  style: { format?: Format; info?: Record<string, string> } = {},
+  style: {
+    format?: Format;
+    info?: Record<string, string>;
+    figureWidths?: Record<string, number>;
+    figureHeights?: Record<string, number>;
+  } = {},
 ): { pdf: string; text: string } {
   const dir = mkdtempSync(join(tmpdir(), "lucid-tex-"));
   mkdirSync(join(dir, "figures"));
@@ -35,7 +40,9 @@ function compile(
   });
   const rendered: Record<string, string> = {};
   for (const f of first.figures) {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="120" xml:space="preserve"><rect width="400" height="120" fill="white" stroke="black"/><text x="20" y="65" font-size="18" font-family="Helvetica">${f.kind} ${f.blockId}</text></svg>`;
+    const w = style.figureWidths?.[f.blockId] ?? 400;
+    const h = style.figureHeights?.[f.blockId] ?? 120;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${String(w)}" height="${String(h)}" xml:space="preserve"><rect width="${String(w)}" height="${String(h)}" fill="white" stroke="black"/><text x="20" y="65" font-size="18" font-family="Helvetica">${f.kind} ${f.blockId}</text></svg>`;
     writeFileSync(join(dir, f.file.replace(".pdf", ".svg")), svg);
     execFileSync(RSVG, [
       "-f",
@@ -108,6 +115,48 @@ describe.skipIf(!have)("LaTeX compiles with Tectonic", () => {
     expect(out.text).toContain("Cost is 100%");
     expect(out.text).toContain("café");
     expect(out.text).toContain("def f(x):");
+  }, 300_000);
+});
+
+describe.skipIf(!have)("a tall diagram", () => {
+  it("never leaves an empty page behind (a diagram almost as tall as the page cannot share it with a heading)", () => {
+    const words = (n: number) => "Words that fill the first page of the note. ".repeat(n);
+    const para = (id: string, text: string) =>
+      registry.validateBlock({
+        id,
+        type: "paragraph",
+        props: {},
+        content: [{ type: "text", text, styles: {} }],
+      });
+    const heading = (id: string, text: string) =>
+      registry.validateBlock({
+        id,
+        type: "heading",
+        props: { level: 2 },
+        content: [{ type: "text", text, styles: {} }],
+      });
+    const fixture = registry.get("diagram").fixtures[0];
+    if (!fixture) throw new Error("no diagram fixture");
+    const diagram = registry.validateBlock({ ...fixture, id: "tall" });
+    const blocks = [
+      heading("h1", "Intuition"),
+      para("p1", words(60)),
+      heading("h2", "How it works"),
+      diagram,
+      para("p2", "The steps, one by one."),
+    ];
+    // 296 x 546 pt: what a five-box flowchart drawn top to bottom measures.
+    const { pdf } = compile("Tall", blocks, "", {
+      figureWidths: { tall: 296 },
+      figureHeights: { tall: 546 },
+    });
+    const pages = execFileSync(PDFTOTEXT, [pdf, "-"], { encoding: "utf8" }).split("\f");
+    pages.pop(); // the text after the last form feed
+    expect(pages.length).toBeGreaterThanOrEqual(2);
+    for (const [i, page] of pages.entries()) {
+      const body = page.replace(/Page \d+/, "").trim();
+      expect(body.length, `page ${String(i + 1)} is empty`).toBeGreaterThan(20);
+    }
   }, 300_000);
 });
 

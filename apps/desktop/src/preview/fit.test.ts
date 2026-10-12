@@ -68,7 +68,7 @@ describe("choosing between the two", () => {
 });
 
 describe("the space on a PDF page", () => {
-  it("is 1.3 times the text width and 0.9 of the text height, in the drawing's pixels", () => {
-    expect(pdfBox()).toEqual({ width: 598, height: 710 });
+  it("is 1.3 times the text width and 0.65 of the text height, in the drawing's pixels", () => {
+    expect(pdfBox()).toEqual({ width: 598, height: 513 });
   });
 });
