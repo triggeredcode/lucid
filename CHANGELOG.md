@@ -3,6 +3,23 @@
 All notable changes to Lucid are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and Lucid uses [semantic versioning](https://semver.org).
 
+## [Unreleased]
+
+### Added
+
+- **The look of the PDF is yours to set** (Settings, "PDF look"): paper (Auto picks Letter or A4 by where the computer is), text size, typeface (Latin Modern, Palatino, Times or Helvetica), margins, an accent colour for the title and headings, numbered or plain headings, and the date under the title. The defaults are the look PDFs always had.
+
+### Changed
+
+- Tables in the PDF are set ragged right with a little more room between rows, and the bars of a chart use the same greys as on screen.
+- Dictation: the docs say that any app that pastes works, and list the free and open-source ones (OpenWhispr, VoiceNative) next to Wispr Flow.
+- The picture of each note format (`docs/format-samples`) is made with the real app, with real diagrams and every section filled.
+- The list of bundled licences is made when the app is packaged and comes with the app (Help, Licences of the Software Lucid Uses); it is no longer kept in the repository.
+
+### Fixed
+
+- A diagram almost as tall as the page no longer leaves an empty page in the PDF.
+
 ## [0.2.0] - 2026-10-12
 
 Lucid now runs on Windows and Linux as well as the Mac, has clearer panels and a new look for the list of pages, and has a website.
@@ -60,5 +77,6 @@ The first public release.
 - The first PDF on a computer downloads Tectonic's typesetting files (about five minutes, once).
 - Only `qwen/qwen3.8-27b` has been evaluated. A request takes 10 to 25 seconds on a laptop.
 
+[Unreleased]: https://github.com/triggeredcode/lucid/compare/v0.2.0...HEAD
 [0.2.0]: https://github.com/triggeredcode/lucid/releases/tag/v0.2.0
 [0.1.0]: https://github.com/triggeredcode/lucid/releases/tag/v0.1.0
