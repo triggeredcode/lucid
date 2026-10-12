@@ -31,6 +31,10 @@
   </picture>
 </p>
 
+<p align="center">
+  <img alt="A thought is pasted into the input box and becomes a heading, a list and a table; a diagram is built by voice; one command adds a cache" src="docs/images/lucid-demo.gif" width="760" />
+</p>
+
 ## Why
 
 - **Speech becomes structure, not a wall of text.** Dictation apps give you the words. Lucid gives you the document: an outline
