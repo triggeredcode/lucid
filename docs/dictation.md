@@ -17,8 +17,8 @@ sees the text that arrives.
 
 Two things to know:
 
-- A **paste** is sent about half a second after the last piece arrives, with no Enter. Text that is typed key by key is not
-  sent on its own: press Enter.
+- A **paste** is sent about half a second after the last piece arrives, with no Enter (Settings → Dictation makes that 1 s or
+  2 s, or never). Text that is typed key by key is not sent on its own: press Enter.
 - Lucid's own command key is the **right ⌥ key** (right Alt on Windows and Linux). Choose another key for your dictation app's
   push-to-talk (VoiceNative's is right Shift) so they do not meet.
 

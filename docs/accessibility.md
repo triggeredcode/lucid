@@ -16,6 +16,8 @@ Lucid does no speech recognition itself: a dictation app turns your voice into t
 [dictation](dictation.md) for free and open-source choices). From there:
 
 - **Notes without pressing Enter.** A pasted dictation is sent by itself about half a second after the last piece arrives.
+  Settings → **Dictation** makes the pause 1 s or 2 s (slower speech), or turns it off so the words wait in the box until you
+  press Enter and you can read them first.
 - **Commands by voice.** In Command mode, say what to change: *"cross out Memcached, we are choosing the local LRU"*, *"add a
   CDN in front of the web server"*, *"undo"*. Say *"command mode"*, *"input mode"* or *"edit mode"* to change mode.
 - **One key for one command.** Hold the **right ⌥ key** (right Alt on Windows and Linux) and everything you dictate while it is
