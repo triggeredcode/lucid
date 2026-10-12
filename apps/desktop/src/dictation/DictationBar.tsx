@@ -114,6 +114,8 @@ export function DictationBar({
   const sendWhenQuiet = () => {
     pasted.current = true;
     clearTimeout(timer.current);
+    // Never: the words wait in the box until Enter.
+    if (autoSubmitDelayMs <= 0) return;
     timer.current = setTimeout(() => {
       sendRef.current("wispr");
     }, autoSubmitDelayMs);

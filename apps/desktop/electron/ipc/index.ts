@@ -154,6 +154,7 @@ export function registerIpc(): void {
     author: s.author,
     footerRight: s.footerRight,
     pdf: s.pdf,
+    dictation: s.dictation,
     vocabulary: s.vocabulary,
     llm: {
       baseUrl: process.env["LUCID_LLM_URL"] ?? s.llm.baseUrl,

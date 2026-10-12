@@ -23,7 +23,7 @@ import { LmStatusPill } from "./LmStatusPill";
 import { ZoomChip } from "./ZoomChip";
 import { zoomPageByWheel } from "../theme/pageZoom";
 import { agentName, setAgentHandler } from "../agent/bridge";
-import { peekSettings } from "../settings/settingsStore";
+import { peekSettings, useAutoSendMs } from "../settings/settingsStore";
 import { HistoryPanel } from "./HistoryPanel";
 import { useAutosave } from "./useAutosave";
 
@@ -137,6 +137,7 @@ export function Workspace({ file, onSaved, sidebarOpen, onToggleSidebar }: Props
     retry,
     snapshot,
   } = useAutosave(file, { title, doc, transcripts, changeLog, format, info }, onSaved);
+  const autoSendMs = useAutoSendMs();
   const jobs = useJobs({
     editor: () => editorApi.current,
     title: () => titleRef.current,
@@ -488,6 +489,7 @@ export function Workspace({ file, onSaved, sidebarOpen, onToggleSidebar }: Props
         <div className="dock">
           <div className="page-column">
             <DictationBar
+              autoSubmitDelayMs={autoSendMs}
               mode={jobs.shownMode}
               onMode={jobs.setMode}
               status={jobs.status}

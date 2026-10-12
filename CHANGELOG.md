@@ -8,6 +8,7 @@ and Lucid uses [semantic versioning](https://semver.org).
 ### Added
 
 - **The look of the PDF is yours to set** (Settings, "PDF look"): paper (Auto picks Letter or A4 by where the computer is), text size, typeface (Latin Modern, Palatino, Times or Helvetica), margins, an accent colour for the title and headings, numbered or plain headings, and the date under the title. The defaults are the look PDFs always had. **Edit template…** opens `lucid.sty`, the file that sets the house style, so everything else can be changed too; if it has a mistake the PDF is made with the built-in one and says so.
+- **Dictation timing** (Settings, "Dictation"): how long a paste waits before it is sent by itself: 0.5 s as before, 1 s, 2 s, or never (the words wait in the box until Enter).
 
 ### Changed
 

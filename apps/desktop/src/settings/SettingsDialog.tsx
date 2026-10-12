@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { ACCENT_COLORS, FONT_NAMES, type PdfStyle } from "@lucid/kit";
-import type { PublicSettings } from "../../electron/ipc/types";
+import { AUTO_SEND_MS, type AutoSendMs, type PublicSettings } from "../../electron/ipc/types";
 import {
   setFont,
   setTheme,
@@ -72,6 +72,13 @@ const MARGIN_OPTIONS = [
   ["normal", "Normal"],
   ["wide", "Wide"],
 ] as const;
+const SEND_LABELS: Record<AutoSendMs, string> = {
+  450: "0.5 s",
+  1000: "1 s",
+  2000: "2 s",
+  0: "Never",
+};
+const SEND_OPTIONS = AUTO_SEND_MS.map((ms) => [ms, SEND_LABELS[ms]] as const);
 const HEADING_OPTIONS = [
   [true, "Numbered"],
   [false, "Plain"],
@@ -91,6 +98,7 @@ export function SettingsDialog({ settings, onClose }: Props) {
   const [author, setAuthor] = useState(settings.author);
   const [footer, setFooter] = useState(settings.footerRight);
   const [pdf, setPdf] = useState<PdfStyle>(settings.pdf);
+  const [autoSend, setAutoSend] = useState<AutoSendMs>(settings.dictation.autoSendMs);
   // The PDF template: whether the person has their own, and whether its window is open.
   const [ownTemplate, setOwnTemplate] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState(false);
@@ -132,6 +140,7 @@ export function SettingsDialog({ settings, onClose }: Props) {
         author,
         footerRight: footer,
         pdf,
+        dictation: { autoSendMs: autoSend },
         vocabulary: words
           .split(/\r?\n/)
           .map((w) => w.trim())
@@ -410,6 +419,21 @@ export function SettingsDialog({ settings, onClose }: Props) {
               Applies to the next PDF. A typeface other than Latin Modern is fetched the first time
               it is used, so that PDF needs the internet once. Auto picks Letter or A4 by where this
               computer is.
+            </small>
+          </fieldset>
+
+          <fieldset className="dictation-settings">
+            <legend>Dictation</legend>
+            <Choice
+              label="Send a paste after a pause of"
+              value={autoSend}
+              options={SEND_OPTIONS}
+              onChange={setAutoSend}
+            />
+            <small>
+              Dictation apps paste what they heard; Lucid sends it by itself once nothing more has
+              arrived for this long. A longer pause suits slower speech, and Never leaves the words
+              in the box until you press Enter, so you can read them first.
             </small>
           </fieldset>
 

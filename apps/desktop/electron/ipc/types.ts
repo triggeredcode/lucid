@@ -99,11 +99,17 @@ export type AgentReply =
   { id: number; ok: true; result: unknown } | { id: number; ok: false; error: string };
 
 /** What the renderer may know about the settings, and change (no program paths). */
+/** How long a paste waits for more before it is sent by itself, in ms (0: never, press Enter). */
+export const AUTO_SEND_MS = [450, 1000, 2000, 0] as const;
+export type AutoSendMs = (typeof AUTO_SEND_MS)[number];
+
 export interface PublicSettings {
   author: string;
   footerRight: string;
   /** How PDFs look (paper, text size, typeface, margins, accent, numbering, date). */
   pdf: PdfStyle;
+  /** What dictation does with a paste. */
+  dictation: { autoSendMs: AutoSendMs };
   vocabulary: string[];
   llm: { baseUrl: string; model: string; contextLength: number };
   /** The address comes from the LUCID_LLM_URL environment variable (tests, development) and is not changed here. */
