@@ -9,6 +9,13 @@ import { svgToPdf } from "../svgPdf";
 import { resolveTectonic } from "../tools";
 import { Library } from "../library";
 import { SettingsError, loadSettings, saveSettings, type Settings } from "../settings";
+import {
+  TemplateError,
+  loadTemplate,
+  readCustomTemplate,
+  resetTemplate,
+  saveTemplate,
+} from "../template";
 import { getFormat } from "@lucid/kit";
 import { serveBackend, socketPathFor } from "@lucid/mcp/socket";
 import { AppBackend } from "../appBackend";
@@ -16,7 +23,13 @@ import { RendererBridge } from "../agentBridge";
 import { lmLoad, lmStatus, type LmDeps } from "../lmstudio";
 import { LMSTUDIO_DOWNLOAD, defaultLmsPath, findLmStudio } from "../studio";
 import { checkLlmUrl, registerLlmIpc } from "./llm";
-import { IPC, type NoteImportResult, type PublicSettings, type SettingsSaveResult } from "./types";
+import {
+  IPC,
+  type NoteImportResult,
+  type PublicSettings,
+  type SettingsSaveResult,
+  type TemplateSaveResult,
+} from "./types";
 
 /** Where pages live: LUCID_HOME (tests) or ~/Lucid. */
 export const libraryDir = (): string => process.env["LUCID_HOME"] ?? join(homedir(), "Lucid");
@@ -119,6 +132,7 @@ export function registerIpc(): void {
       footerRight: s.footerRight,
       style: s.pdf,
       country: app.getLocaleCountryCode(),
+      readTemplate: () => readCustomTemplate(dir),
       onProgress: (progress) => {
         engineStatus.report(progress);
         for (const w of BrowserWindow.getAllWindows()) {
@@ -172,6 +186,16 @@ export function registerIpc(): void {
       throw error;
     }
   });
+  ipcMain.handle(IPC.templateGet, () => loadTemplate(libraryDir()));
+  ipcMain.handle(IPC.templateSave, async (_e, text: unknown): Promise<TemplateSaveResult> => {
+    try {
+      return { ok: true, template: await saveTemplate(libraryDir(), text) };
+    } catch (error) {
+      if (error instanceof TemplateError) return { ok: false, problems: error.problems };
+      throw error;
+    }
+  });
+  ipcMain.handle(IPC.templateReset, () => resetTemplate(libraryDir()));
   ipcMain.handle(IPC.pdfCompile, async (_e, req: unknown) => {
     const r = req as {
       pageId?: unknown;
