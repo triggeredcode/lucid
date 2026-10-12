@@ -1,7 +1,8 @@
 /* global window, document */
-// Makes the window pictures of the README and the site (docs/images/lucid-light.png, lucid-dark.png, diagram-builder.png,
-// diagram-builder-dark.png, block-numbers.png) with the real app: a library of three pages, the first with a diagram and some
-// history, the diagram builder half way through a diagram, and block 4 opened in the margin.
+// Makes the window pictures of the README, the docs and the site (docs/images) with the real app, in the light and the dark
+// theme: a library of three pages, the first with a diagram and some history; the diagram builder in its three phases (the
+// keywords, the connections, edits by number: the builder card of each); the New page and Export note dialogs; block 4 opened in the margin; and the page
+// with a look of its own, apart from the app's. Then frame-images.mjs makes the framed copies the README and the docs show.
 //
 //   pnpm build && node scripts/screenshots.mjs
 //
@@ -170,20 +171,23 @@ try {
     });
     return png;
   };
-  const resized = async (png, name) => {
-    // The window is as big as the screen, at the screen's density: bring every picture to 1800 pixels wide.
-    const data = await app.evaluate(({ nativeImage }, base64) => {
-      const image = nativeImage.createFromBuffer(Buffer.from(base64, "base64"));
-      const size = image.getSize();
-      return image
-        .resize({
-          width: 1800,
-          height: Math.round((1800 * size.height) / size.width),
-          quality: "best",
-        })
-        .toPNG()
-        .toString("base64");
-    }, png.toString("base64"));
+  const resized = async (png, name, wide = 1800) => {
+    // The window is as big as the screen, at the screen's density: bring every picture to 1800 pixels wide (a crop, less).
+    const data = await app.evaluate(
+      ({ nativeImage }, { base64, wide }) => {
+        const image = nativeImage.createFromBuffer(Buffer.from(base64, "base64"));
+        const size = image.getSize();
+        return image
+          .resize({
+            width: wide,
+            height: Math.round((wide * size.height) / size.width),
+            quality: "best",
+          })
+          .toPNG()
+          .toString("base64");
+      },
+      { base64: png.toString("base64"), wide },
+    );
     writeFileSync(join(out, name), Buffer.from(data, "base64"));
     console.log(name);
   };
@@ -211,46 +215,91 @@ try {
     }
     await resized(await shoot(), scheme === "light" ? "lucid-light.png" : "lucid-dark.png");
 
-    // The diagram builder, half way through a diagram.
+    const dark = scheme === "dark";
+    const named = (name) => (dark ? `${name}-dark.png` : `${name}.png`);
+
+    // The diagram builder, in its three phases: the keywords, the connections, then edits by number.
     const bar = page.getByLabel("Dictate or type your notes");
+    const say = async (text) => {
+      await bar.fill(text);
+      await bar.press("Enter");
+    };
     await bar.focus();
     await page.keyboard.press("Meta+4");
-    await bar.fill(
-      "add keywords: browser, CDN, load balancer, order service, Redis, PostgreSQL, Kafka",
-    );
-    await bar.press("Enter");
-    await bar.fill("connections");
-    await bar.press("Enter");
-    for (const line of ["1 to 2", "1 to 3", "3 to 4", "4 to 5", "4 to 6", "4 to 7"]) {
-      await bar.fill(line);
-      await bar.press("Enter");
-    }
+    await say("add keywords: browser, CDN, load balancer, order service, Redis, PostgreSQL, Kafka");
     await page.locator(".wb-svg svg g.node").first().waitFor({ timeout: 20_000 });
     await page.waitForTimeout(1200);
-    await resized(
-      await shoot(),
-      scheme === "light" ? "diagram-builder.png" : "diagram-builder-dark.png",
-    );
+    const card = page.locator(".workbench");
+    await resized(await card.screenshot(), named("builder-keywords"), 1000);
+    await say("connections");
+    for (const line of ["1 to 2", "1 to 3", "3 to 4", "4 to 5", "4 to 6", "4 to 7"])
+      await say(line);
+    await page.waitForTimeout(1200);
+    await resized(await shoot(), named("diagram-builder"));
+    await resized(await card.screenshot(), named("builder-connections"), 1000);
+    await say("edit");
+    for (const line of [
+      "connection 1 is static files",
+      "connection 4 is cache reads",
+      "rename 7 to Event bus",
+    ])
+      await say(line);
+    await page.waitForTimeout(1200);
+    await resized(await card.screenshot(), named("builder-edit"), 1000);
     await page.getByRole("button", { name: "Cancel" }).click();
     await page.waitForTimeout(500);
+
     // The New page dialog, as the guide shows it.
     await page.getByRole("button", { name: "New from a format…" }).click();
     await page.locator(".np-dialog").waitFor();
     await page.waitForTimeout(500);
-    await page.locator(".np-dialog").screenshot({
-      path: join(out, scheme === "light" ? "new-page.png" : "new-page-dark.png"),
-    });
+    await page.locator(".np-dialog").screenshot({ path: join(out, named("new-page")) });
     await page.keyboard.press("Escape");
     await page.waitForTimeout(300);
-    if (scheme === "light") {
-      // Block 4 opened in the margin.
-      await page.locator(".block-no").nth(3).click();
-      await page.waitForTimeout(600);
-      await resized(await shoot(), "block-numbers.png");
-      await page.keyboard.press("Escape");
-      await page.waitForTimeout(300);
+
+    // The Export note dialog.
+    await page.getByRole("button", { name: "Export note" }).click();
+    const exporting = page.getByRole("dialog", { name: "Export note" });
+    await exporting.waitFor();
+    await page.waitForTimeout(500);
+    await exporting.screenshot({ path: join(out, named("export-note")) });
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(300);
+
+    // Block 4 opened in the margin.
+    await page.locator(".block-no").nth(3).click();
+    await page.waitForTimeout(600);
+    await resized(await shoot(), named("block-numbers"));
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(300);
+
+    // The page's own look, the other way round from the app's.
+    const look = dark ? "light" : "dark";
+    const switchLook = page.locator(".page-look");
+    for (let i = 0; i < 3; i++) {
+      if (
+        ((await switchLook.getAttribute("aria-label")) ?? "").startsWith(
+          `Look of the page: ${look}.`,
+        )
+      )
+        break;
+      await switchLook.click();
+    }
+    await page.waitForTimeout(800);
+    await resized(await shoot(), `page-look-${look}-page.png`);
+    for (let i = 0; i < 3; i++) {
+      if (
+        ((await switchLook.getAttribute("aria-label")) ?? "").startsWith(
+          "Look of the page: like the app.",
+        )
+      )
+        break;
+      await switchLook.click();
     }
   }
 } finally {
   await app.close();
 }
+
+// The framed copies the README and the docs show.
+await import("./frame-images.mjs");
