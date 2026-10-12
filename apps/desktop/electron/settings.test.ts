@@ -2,6 +2,7 @@ import { mkdtemp, readFile, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { DEFAULT_PDF_STYLE } from "@lucid/kit";
 import { SettingsError, loadSettings, saveSettings } from "./settings";
 
 describe("loadSettings", () => {
@@ -24,6 +25,20 @@ describe("loadSettings", () => {
     expect(await loadSettings(dir)).toMatchObject({ author: "Asha", footerRight: "" });
   });
 
+  it("gives the house style to a settings file from before there were PDF choices, and keeps partial ones", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "lucid-set-"));
+    await mkdir(join(dir, ".lucid"));
+    const file = join(dir, ".lucid", "settings.json");
+    await writeFile(file, JSON.stringify({ author: "Asha" }), "utf8");
+    expect((await loadSettings(dir)).pdf).toEqual(DEFAULT_PDF_STYLE);
+    await writeFile(file, JSON.stringify({ pdf: { paper: "a4", font: "times" } }), "utf8");
+    expect((await loadSettings(dir)).pdf).toEqual({
+      ...DEFAULT_PDF_STYLE,
+      paper: "a4",
+      font: "times",
+    });
+  });
+
   it("falls back to the defaults for a damaged file without overwriting it", async () => {
     const dir = await mkdtemp(join(tmpdir(), "lucid-set-"));
     await mkdir(join(dir, ".lucid"));
@@ -37,6 +52,7 @@ describe("saveSettings", () => {
   const valid = {
     author: "Asha",
     footerRight: "Notes",
+    pdf: { ...DEFAULT_PDF_STYLE, paper: "a4", fontSize: 11, accent: "navy", showDate: false },
     vocabulary: ["vLLM", "Kafka", "vLLM"],
     llm: { baseUrl: "http://localhost:1234/", model: "other/model-7b", contextLength: 16384 },
   };
@@ -53,6 +69,7 @@ describe("saveSettings", () => {
     expect(saved).toMatchObject({
       author: "Asha",
       footerRight: "Notes",
+      pdf: { paper: "a4", fontSize: 11, accent: "navy", showDate: false },
       vocabulary: ["vLLM", "Kafka"],
       tectonicPath: "/custom/tectonic",
       llm: {
@@ -91,6 +108,16 @@ describe("saveSettings", () => {
       await bad({ vocabulary: Array.from({ length: 201 }, (_, i) => `w${String(i)}`) }),
     ).toBeInstanceOf(SettingsError);
     expect(await bad({ tectonicPath: "/bin/sh" })).toBeInstanceOf(SettingsError);
+    expect(await bad({ pdf: { ...DEFAULT_PDF_STYLE, fontSize: 14 } })).toBeInstanceOf(
+      SettingsError,
+    );
+    expect(await bad({ pdf: { ...DEFAULT_PDF_STYLE, font: "comic-sans" } })).toBeInstanceOf(
+      SettingsError,
+    );
+    expect(await bad({ pdf: { ...DEFAULT_PDF_STYLE, template: "/etc/passwd" } })).toBeInstanceOf(
+      SettingsError,
+    );
+    expect(await bad({ pdf: undefined })).toBeInstanceOf(SettingsError);
     expect(await loadSettings(dir)).toEqual(before);
   });
 });

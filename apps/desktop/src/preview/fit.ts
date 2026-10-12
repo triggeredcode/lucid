@@ -70,11 +70,12 @@ export const minWidthFor = (size: Size): number => Math.round(size.width * MIN_S
 
 /**
  * The most a figure can get on a PDF page, in the drawing's pixels (1 px is 0.75 pt): the text area of the house style is
- * about 345 pt wide and 592 pt high, a big figure may reach 1.3 times the text width (into the margins) and 0.85 of the
- * text height (a taller one could not be on a page with its caption). The same limits as in the LaTeX.
+ * about 345 pt wide and 592 pt high (or what the chosen paper, margins and text size give), a big figure may reach 1.3 times the
+ * text width (into the margins) and 0.85 of the text height (a taller one could not be on a page with its caption). The same
+ * limits as in the LaTeX.
  */
-export function pdfBox(): Box {
-  const textWidthPx = 345 / 0.75;
-  const textHeightPx = 592 / 0.75;
+export function pdfBox(text: Size = { width: 345, height: 592 }): Box {
+  const textWidthPx = text.width / 0.75;
+  const textHeightPx = text.height / 0.75;
   return { width: Math.round(1.3 * textWidthPx), height: Math.round(0.85 * textHeightPx) };
 }

@@ -1,5 +1,6 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
+import { DEFAULT_PDF_STYLE, PdfStyleSchema } from "@lucid/kit";
 import { z } from "zod";
 
 /** User settings in `<library>/.lucid/settings.json`. Missing file or fields fall back to the defaults. */
@@ -8,6 +9,8 @@ export const SettingsSchema = z.object({
   author: z.string().default(""),
   /** Right-hand footer text of exported PDFs (optional; the page number is on the left). */
   footerRight: z.string().default(""),
+  /** How PDFs look: paper, text size, typeface, margins, accent, numbering and date (the house style by default). */
+  pdf: PdfStyleSchema.default(DEFAULT_PDF_STYLE),
   /** Words speech recognition tends to get wrong (names, tools); kept as spoken when the notes are written. */
   vocabulary: z.array(z.string()).default([]),
   /** The Tectonic to run; empty means the one that comes with Lucid, or an installed one. */
@@ -83,6 +86,7 @@ const LocalAddress = z
 export const EditableSettingsSchema = z.strictObject({
   author: oneLine(80),
   footerRight: oneLine(40),
+  pdf: PdfStyleSchema,
   vocabulary: z.array(oneLine(60).min(1)).max(200, "at most 200 words"),
   llm: z.strictObject({
     baseUrl: LocalAddress,
@@ -115,6 +119,7 @@ export async function saveSettings(libraryDir: string, input: unknown): Promise<
     ...current,
     author: parsed.data.author,
     footerRight: parsed.data.footerRight,
+    pdf: parsed.data.pdf,
     vocabulary: [...new Set(parsed.data.vocabulary)],
     llm: { ...current.llm, ...parsed.data.llm },
   };

@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { ACCENT_COLORS, FONT_NAMES, type PdfStyle } from "@lucid/kit";
 import type { PublicSettings } from "../../electron/ipc/types";
 import {
   setFont,
@@ -22,6 +23,63 @@ const FONT_OPTIONS: { value: Typeface; label: string }[] = [
   { value: "serif", label: "Serif" },
 ];
 
+/** A row of one-of-several choices in the look of the Appearance rows. */
+function Choice<T extends string | number | boolean>(props: {
+  label: string;
+  value: T;
+  options: readonly (readonly [T, string])[];
+  onChange: (value: T) => void;
+}) {
+  const id = useId();
+  return (
+    <div className="setting-row">
+      <span id={id}>{props.label}</span>
+      <div className="segmented" role="radiogroup" aria-labelledby={id}>
+        {props.options.map(([value, text]) => (
+          <button
+            key={String(value)}
+            type="button"
+            role="radio"
+            aria-checked={props.value === value}
+            onClick={() => {
+              props.onChange(value);
+            }}
+          >
+            {text}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const PAPER_OPTIONS = [
+  ["auto", "Auto"],
+  ["a4", "A4"],
+  ["letter", "Letter"],
+] as const;
+const SIZE_OPTIONS = [
+  [10, "10 pt"],
+  [11, "11 pt"],
+  [12, "12 pt"],
+] as const;
+const TYPEFACE_OPTIONS = (Object.keys(FONT_NAMES) as PdfStyle["font"][]).map(
+  (key) => [key, FONT_NAMES[key]] as const,
+);
+const MARGIN_OPTIONS = [
+  ["narrow", "Narrow"],
+  ["normal", "Normal"],
+  ["wide", "Wide"],
+] as const;
+const HEADING_OPTIONS = [
+  [true, "Numbered"],
+  [false, "Plain"],
+] as const;
+const DATE_OPTIONS = [
+  [true, "Show"],
+  [false, "Hide"],
+] as const;
+
 interface Props {
   settings: PublicSettings;
   onClose: () => void;
@@ -31,6 +89,10 @@ interface Props {
 export function SettingsDialog({ settings, onClose }: Props) {
   const [author, setAuthor] = useState(settings.author);
   const [footer, setFooter] = useState(settings.footerRight);
+  const [pdf, setPdf] = useState<PdfStyle>(settings.pdf);
+  const changePdf = (change: Partial<PdfStyle>) => {
+    setPdf((before) => ({ ...before, ...change }));
+  };
   const [address, setAddress] = useState(settings.llm.baseUrl);
   const [model, setModel] = useState(settings.llm.model);
   const [context, setContext] = useState(String(settings.llm.contextLength));
@@ -59,6 +121,7 @@ export function SettingsDialog({ settings, onClose }: Props) {
       const result = await saveSettings({
         author,
         footerRight: footer,
+        pdf,
         vocabulary: words
           .split(/\r?\n/)
           .map((w) => w.trim())
@@ -160,8 +223,8 @@ export function SettingsDialog({ settings, onClose }: Props) {
             </div>
           </div>
           <small>
-            Applied at once. Mono is the default; PDFs keep their own typesetting. Block numbers
-            (B1, B2…) sit in the page margin; say “in block 3, …” to talk about one.
+            Applied at once. Mono is the default; the look of PDFs is set below. Block numbers (B1,
+            B2…) sit in the page margin; say “in block 3, …” to talk about one.
           </small>
         </fieldset>
 
@@ -231,6 +294,94 @@ export function SettingsDialog({ settings, onClose }: Props) {
             />
             <small>The page number is on the left.</small>
           </label>
+        </fieldset>
+
+        <fieldset className="pdf-look">
+          <legend>PDF look</legend>
+          <Choice
+            label="Paper"
+            value={pdf.paper}
+            options={PAPER_OPTIONS}
+            onChange={(paper) => {
+              changePdf({ paper });
+            }}
+          />
+          <Choice
+            label="Text size"
+            value={pdf.fontSize}
+            options={SIZE_OPTIONS}
+            onChange={(fontSize) => {
+              changePdf({ fontSize });
+            }}
+          />
+          <Choice
+            label="Typeface"
+            value={pdf.font}
+            options={TYPEFACE_OPTIONS}
+            onChange={(font) => {
+              changePdf({ font });
+            }}
+          />
+          <Choice
+            label="Margins"
+            value={pdf.margins}
+            options={MARGIN_OPTIONS}
+            onChange={(margins) => {
+              changePdf({ margins });
+            }}
+          />
+          <div className="setting-row">
+            <span id="accent-label">Accent colour</span>
+            <div className="segmented" role="radiogroup" aria-labelledby="accent-label">
+              <button
+                type="button"
+                role="radio"
+                aria-checked={pdf.accent === "none"}
+                onClick={() => {
+                  changePdf({ accent: "none" });
+                }}
+              >
+                None
+              </button>
+              {(Object.keys(ACCENT_COLORS) as Exclude<PdfStyle["accent"], "none">[]).map((name) => (
+                <button
+                  key={name}
+                  type="button"
+                  role="radio"
+                  className="swatch-button"
+                  aria-checked={pdf.accent === name}
+                  aria-label={name}
+                  title={name}
+                  onClick={() => {
+                    changePdf({ accent: name });
+                  }}
+                >
+                  <span className="swatch" style={{ background: `#${ACCENT_COLORS[name]}` }} />
+                </button>
+              ))}
+            </div>
+          </div>
+          <Choice
+            label="Headings"
+            value={pdf.numberedHeadings}
+            options={HEADING_OPTIONS}
+            onChange={(numberedHeadings) => {
+              changePdf({ numberedHeadings });
+            }}
+          />
+          <Choice
+            label="Date under the title"
+            value={pdf.showDate}
+            options={DATE_OPTIONS}
+            onChange={(showDate) => {
+              changePdf({ showDate });
+            }}
+          />
+          <small>
+            Applies to the next PDF. A typeface other than Latin Modern is fetched the first time it
+            is used, so that PDF needs the internet once. Auto picks Letter or A4 by where this
+            computer is.
+          </small>
         </fieldset>
 
         <fieldset>

@@ -117,6 +117,8 @@ export function registerIpc(): void {
       convertSvg: svgToPdf,
       author: s.author,
       footerRight: s.footerRight,
+      style: s.pdf,
+      country: app.getLocaleCountryCode(),
       onProgress: (progress) => {
         engineStatus.report(progress);
         for (const w of BrowserWindow.getAllWindows()) {
@@ -137,6 +139,7 @@ export function registerIpc(): void {
   const publicSettings = (s: Settings): PublicSettings => ({
     author: s.author,
     footerRight: s.footerRight,
+    pdf: s.pdf,
     vocabulary: s.vocabulary,
     llm: {
       baseUrl: process.env["LUCID_LLM_URL"] ?? s.llm.baseUrl,
@@ -157,7 +160,11 @@ export function registerIpc(): void {
           ? { ...sent, llm: { ...sent.llm, baseUrl: stored.llm.baseUrl } }
           : input;
       const saved = await saveSettings(libraryDir(), checked);
-      (await compiler).setStyle({ author: saved.author, footerRight: saved.footerRight });
+      (await compiler).setStyle({
+        author: saved.author,
+        footerRight: saved.footerRight,
+        style: saved.pdf,
+      });
       (await library).setAuthor(saved.author);
       return { ok: true, settings: publicSettings(saved) };
     } catch (error) {
