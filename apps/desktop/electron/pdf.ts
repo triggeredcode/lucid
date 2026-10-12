@@ -2,7 +2,14 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { basename, join } from "node:path";
-import { LUCID_STY, registry, renderDocument, type Format } from "@lucid/kit";
+import {
+  LUCID_STY,
+  registry,
+  renderDocument,
+  resolveStyle,
+  type Format,
+  type PdfStyle,
+} from "@lucid/kit";
 import type { LucidDoc } from "@lucid/core";
 import type { PdfProgress } from "./ipc/types";
 
@@ -38,6 +45,10 @@ export interface PdfOptions {
   convertSvg: (svg: string) => Promise<Uint8Array>;
   author: string;
   footerRight: string;
+  /** How PDFs look (paper, text size, typeface, margins, accent, numbering, date); the house style when absent. */
+  style?: PdfStyle;
+  /** The country of the computer, for the paper when the style says "auto" (Letter in North America, A4 elsewhere). */
+  country?: string | undefined;
   /** The longest a single engine run may take in all (default 30 minutes: a first start downloads for about six). */
   timeoutMs?: number;
   /** The longest the engine may print nothing before it is taken to be stuck (default 90 s). */
@@ -272,10 +283,16 @@ export class PdfCompiler {
     }
   }
 
-  /** The author and footer of PDFs made from now on (the Settings window changed them). */
-  setStyle(style: { author: string; footerRight: string }): void {
+  /** The author, footer and look of PDFs made from now on (the Settings window changed them). */
+  setStyle(style: { author: string; footerRight: string; style?: PdfStyle }): void {
     this.options.author = style.author;
     this.options.footerRight = style.footerRight;
+    if (style.style) this.options.style = style.style;
+  }
+
+  /** The look of the next PDF, with the paper decided; none when no look was ever set (the house style as it was). */
+  private look(): ReturnType<typeof resolveStyle> | undefined {
+    return this.options.style ? resolveStyle(this.options.style, this.options.country) : undefined;
   }
 
   async compile(req: CompileRequest): Promise<CompileResult> {
@@ -335,6 +352,7 @@ export class PdfCompiler {
         info: req.info,
         figureWidths,
         figureHeights,
+        style: this.look(),
       });
       const rendered: Record<string, string> = {};
       const warnings: string[] = [];
@@ -372,6 +390,7 @@ export class PdfCompiler {
           info: req.info,
           figureWidths,
           figureHeights,
+          style: this.look(),
         },
         rendered,
       );

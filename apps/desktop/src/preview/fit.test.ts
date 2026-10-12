@@ -71,4 +71,7 @@ describe("the space on a PDF page", () => {
   it("is 1.3 times the text width and 0.85 of the text height, in the drawing's pixels", () => {
     expect(pdfBox()).toEqual({ width: 598, height: 671 });
   });
+  it("follows a text area of another size (wider margins, another paper)", () => {
+    expect(pdfBox({ width: 468, height: 648 })).toEqual({ width: 811, height: 734 });
+  });
 });

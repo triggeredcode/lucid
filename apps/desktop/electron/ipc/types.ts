@@ -1,6 +1,7 @@
 // Single source of truth for the preload bridge (`window.lucid`). Imported by main, preload and
 // the renderer, so it must stay free of Electron and Node imports.
 import type { BlockPatch, LucidDoc, LucidFile } from "@lucid/core";
+import type { PdfStyle } from "@lucid/kit";
 
 export interface PageSummary {
   id: string;
@@ -101,6 +102,8 @@ export type AgentReply =
 export interface PublicSettings {
   author: string;
   footerRight: string;
+  /** How PDFs look (paper, text size, typeface, margins, accent, numbering, date). */
+  pdf: PdfStyle;
   vocabulary: string[];
   llm: { baseUrl: string; model: string; contextLength: number };
   /** The address comes from the LUCID_LLM_URL environment variable (tests, development) and is not changed here. */

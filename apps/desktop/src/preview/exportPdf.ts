@@ -1,7 +1,8 @@
 import type { LucidDoc } from "@lucid/core";
-import { collectFigures } from "@lucid/kit";
+import { collectFigures, resolveStyle, textSize } from "@lucid/kit";
 import { pdfBox } from "./fit";
 import { renderFitted } from "./mermaid";
+import { peekSettings } from "../settings/settingsStore";
 
 export type PdfMade =
   { ok: true; pdf: Uint8Array; warnings: string[] } | { ok: false; message: string };
@@ -16,7 +17,8 @@ export async function makePdf(
   try {
     const figures: Record<string, string> = {};
     // A big diagram is drawn in the direction that has to be shrunk least to fit the page, not squeezed until it cannot be read.
-    const box = pdfBox();
+    const look = peekSettings()?.pdf;
+    const box = pdfBox(look ? textSize(resolveStyle(look)) : undefined);
     for (const f of collectFigures(doc.blocks))
       figures[f.blockId] = (await renderFitted(f.mermaid, "pdf", box)).svg;
     const result = await window.lucid.pdf.compile({

@@ -2,7 +2,7 @@ import { chmod, mkdtemp, readdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { getFormat, registry } from "@lucid/kit";
+import { DEFAULT_PDF_STYLE, getFormat, registry } from "@lucid/kit";
 import { describe, expect, it } from "vitest";
 import type { LucidDoc } from "@lucid/core";
 import {
@@ -310,6 +310,40 @@ shellScripts("PdfCompiler with stand-in tools", () => {
     const next = await readFile(join(workRoot, "page-6", "main.tex"), "utf8");
     expect(next).toContain("lucidfooterright}{Notes}");
     expect(next).toContain("\\author{Asha \\& Co}");
+  });
+
+  it("sets the page in the look chosen in Settings, and the next PDF in a changed one", async () => {
+    const t = await script("exit 1");
+    const { c, workRoot } = await compiler(t);
+    await c.compile(req("page-look", "text"));
+    // No look was ever set: the house style, as it always was.
+    expect(await readFile(join(workRoot, "page-look", "main.tex"), "utf8")).toContain(
+      "\\documentclass{article}",
+    );
+    c.setStyle({
+      author: "Asha",
+      footerRight: "Notes",
+      style: { ...DEFAULT_PDF_STYLE, paper: "a4", fontSize: 12, accent: "teal", font: "palatino" },
+    });
+    await c.compile(req("page-look", "text"));
+    const tex = await readFile(join(workRoot, "page-look", "main.tex"), "utf8");
+    expect(tex).toContain("\\documentclass[a4paper,12pt]{article}");
+    expect(tex).toContain("\\setmainfont{texgyrepagella}");
+    expect(tex).toContain("lucidaccent");
+  });
+
+  it("decides the paper from the country when the look says auto", async () => {
+    const t = await script("exit 1");
+    const make = async (country: string) => {
+      const { c, workRoot } = await compiler(t, stubConvert, {
+        style: DEFAULT_PDF_STYLE,
+        country,
+      });
+      await c.compile(req(`page-${country}`, "text"));
+      return readFile(join(workRoot, `page-${country}`, "main.tex"), "utf8");
+    };
+    expect(await make("US")).toContain("\\documentclass[letterpaper]{article}");
+    expect(await make("IN")).toContain("\\documentclass[a4paper]{article}");
   });
 
   it("sets the page in its note format: the fields under the title, and no empty sections", async () => {

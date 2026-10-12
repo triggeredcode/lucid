@@ -193,7 +193,8 @@ test("Settings can hide the numbers, and the choice is remembered", async () => 
     await expect(labels(page)).toHaveCount(6);
     await page.keyboard.press("Meta+,");
     const dialog = page.getByRole("dialog", { name: "Settings" });
-    await dialog.getByRole("radio", { name: "Hide" }).click();
+    // The Appearance group (the PDF look has its own Show and Hide for the date).
+    await dialog.locator(".appearance").getByRole("radio", { name: "Hide" }).click();
     await page.keyboard.press("Escape");
     await expect(labels(page)).toHaveCount(0);
     await page.reload();
@@ -206,6 +207,7 @@ test("Settings can hide the numbers, and the choice is remembered", async () => 
     await page.keyboard.press("Meta+,");
     await page
       .getByRole("dialog", { name: "Settings" })
+      .locator(".appearance")
       .getByRole("radio", { name: "Show" })
       .click();
     await page.keyboard.press("Escape");
