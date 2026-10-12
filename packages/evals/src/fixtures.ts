@@ -59,7 +59,7 @@ const formatPage = (id: string): LucidDoc => {
 
 const FIXTURE_BUILDERS: Record<FixtureName, () => LucidDoc> = {
   "format-comparison": () => formatPage("comparison"),
-  "format-benchmark": () => formatPage("benchmark"),
+  "format-system-design": () => formatPage("system-design"),
   empty: () => ({ blocks: [] }),
   "request-flow": sample,
   "request-flow-no-cache": requestFlowNoCache,

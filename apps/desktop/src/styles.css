@@ -1878,6 +1878,46 @@ select:focus-visible,
   position: absolute;
   opacity: 0;
 }
+/* The blank page is a small button under the formats, not a card: it is the plain choice, the formats are the specific ones. */
+.np-blank-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+.np-blank {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.np-blank:hover {
+  background: var(--hover);
+}
+.np-blank[data-selected="true"] {
+  border-color: var(--ink);
+  background: var(--bg-2);
+  box-shadow: 0 0 0 1px var(--ink);
+  font-weight: 700;
+}
+.np-blank input {
+  position: absolute;
+  opacity: 0;
+}
+.np-blank:has(input:focus-visible),
+.np-format:has(input:focus-visible) {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.np-blank-hint {
+  color: var(--ink-3);
+  font-size: 12px;
+}
 .np-name {
   font-weight: 700;
 }

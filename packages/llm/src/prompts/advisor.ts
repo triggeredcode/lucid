@@ -25,19 +25,19 @@ export interface AdvisorExample {
 
 export const ADVISOR_EXAMPLES: readonly AdvisorExample[] = [
   {
-    description: "notes on how paged attention saves KV cache memory",
+    description: "notes on how a bloom filter avoids disk reads",
     answer: {
-      formatId: "inference-math",
-      title: "Paged attention and KV cache memory",
-      reason: "It is about memory sizing in LLM inference.",
+      formatId: "concept-note",
+      title: "How a bloom filter avoids disk reads",
+      reason: "It explains one idea: what it is, how it works and where it goes wrong.",
     },
   },
   {
-    description: "benchmarking qwen versus gemma tokens per second on my mac",
+    description: "Kafka versus SQS for our order events",
     answer: {
-      formatId: "benchmark",
-      title: "Qwen vs Gemma tokens per second on my Mac",
-      reason: "It records a measured experiment.",
+      formatId: "comparison",
+      title: "Kafka vs SQS for order events",
+      reason: "It chooses between two options.",
     },
   },
   {

@@ -46,7 +46,7 @@ export const FIXTURES = [
   "dictated-notes",
   "lb-points",
   "format-comparison",
-  "format-benchmark",
+  "format-system-design",
 ] as const;
 export type FixtureName = (typeof FIXTURES)[number];
 

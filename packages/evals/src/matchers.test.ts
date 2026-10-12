@@ -390,11 +390,11 @@ describe("note format matchers", () => {
       after: fixture("empty"),
       outcome: "advice",
       utterance: "x",
-      formatId: "benchmark",
+      formatId: "system-design",
     };
-    expect(evaluate("advisor", { formatId: "benchmark" }, o)).toEqual([]);
+    expect(evaluate("advisor", { formatId: "system-design" }, o)).toEqual([]);
     expect(evaluate("advisor", { formatId: "comparison" }, o)).toEqual([
-      "expected the format comparison, got benchmark",
+      "expected the format comparison, got system-design",
     ]);
   });
 

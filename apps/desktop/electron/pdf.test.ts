@@ -400,25 +400,25 @@ shellScripts("PdfCompiler with stand-in tools", () => {
       title: "Q",
       doc: {
         blocks: [
-          heading("a", "Goal and hypothesis"),
+          heading("a", "Context"),
           {
             id: "p",
             type: "paragraph",
             props: {},
-            content: [{ type: "text", text: "Does it?", styles: {} }],
+            content: [{ type: "text", text: "Which queue?", styles: {} }],
           },
-          heading("b", "Setup"),
+          heading("b", "Options"),
         ],
       },
       figures: {},
-      format: getFormat("benchmark"),
-      info: { hardware: "M4 Max", source: "ignored" },
+      format: getFormat("comparison"),
+      info: { date: "2026-10-12", hardware: "ignored" },
     });
     const tex = await readFile(join(workRoot, "page-7", "main.tex"), "utf8");
-    expect(tex).toContain("\\lucidmeta{Hardware}{M4 Max}");
+    expect(tex).toContain("\\lucidmeta{Date}{2026-10-12}");
     expect(tex).not.toContain("ignored");
-    expect(tex).toContain("{Goal and hypothesis}");
-    expect(tex).not.toContain("{Setup}");
+    expect(tex).toContain("{Context}");
+    expect(tex).not.toContain("{Options}");
   });
 
   it("writes main.tex, the style and one work folder per page", async () => {

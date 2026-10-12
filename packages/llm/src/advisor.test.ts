@@ -63,10 +63,10 @@ describe("runAdvisor", () => {
   });
 
   it("falls back to the keywords when the model names a format that does not exist or answers badly", async () => {
-    const wrong = await advise("benchmarking qwen vs gemma tok/s", [
+    const wrong = await advise("Kafka vs SQS for order events", [
       reply(JSON.stringify({ formatId: "essay", title: "x", reason: "y" })),
     ]);
-    expect(wrong).toMatchObject({ formatId: "benchmark", source: "keywords" });
+    expect(wrong).toMatchObject({ formatId: "comparison", source: "keywords" });
     expect(wrong.fallbackBecause).toContain("does not exist");
     const junk = await advise("design a URL shortener", [reply("not json")]);
     expect(junk).toMatchObject({
