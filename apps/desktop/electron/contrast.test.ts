@@ -11,8 +11,9 @@ import { colourTokens, contrastRatio as ratio } from "./wcag";
 const css = readFileSync(join(__dirname, "../src/styles.css"), "utf8");
 
 describe.each([
-  ["light", ":root"],
-  ["dark", ':root[data-theme="dark"]'],
+  // The colour tokens are shared by the app and by a page that has a look of its own (data-page-look).
+  ["light", '[data-page-look="light"]'],
+  ["dark", '[data-page-look="dark"]'],
 ])("the %s theme", (_name, selector) => {
   const t = colourTokens(css, selector);
   const get = (k: string): string => {

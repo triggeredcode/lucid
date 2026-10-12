@@ -19,7 +19,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { minWidthFor, type Layout } from "../preview/fit";
 import { renderFitted } from "../preview/mermaid";
 import { useWidth } from "../preview/useWidth";
-import { useResolvedTheme } from "../theme/appearance";
+import { useResolvedPageLook } from "../theme/appearance";
 
 export const CALLOUT_KINDS = [
   "note",
@@ -117,7 +117,7 @@ function Figure({
 }) {
   const [layout, setLayout] = useState<Layout | undefined>();
   const [failed, setFailed] = useState(false);
-  const look = useResolvedTheme();
+  const look = useResolvedPageLook();
   const figure = useRef<HTMLElement>(null);
   const width = useWidth(figure);
   useEffect(() => {

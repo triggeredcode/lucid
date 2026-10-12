@@ -1,5 +1,5 @@
 import { filterSuggestionItems, insertOrUpdateBlockForSlashMenu } from "@blocknote/core";
-import { useResolvedTheme } from "../theme/appearance";
+import { useResolvedPageLook } from "../theme/appearance";
 import "@blocknote/core/fonts/inter.css";
 import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/mantine/style.css";
@@ -108,7 +108,7 @@ export function PageEditor({ initial, onChange, onReady, editable = true }: Prop
   const [live, setLive] = useState<LucidDoc>(initial);
   const rootRef = useRef<HTMLDivElement>(null);
   const lastRevert = useRef<Revert | undefined>(undefined);
-  const look = useResolvedTheme();
+  const look = useResolvedPageLook();
   const first = useMemo(() => toBn(initial), [initial]);
   const editor = useCreateBlockNote(
     {

@@ -20,10 +20,12 @@ import { getFormat, skeleton } from "@lucid/kit";
 import { ExportButton } from "./ExportButton";
 import { FormatChip } from "./FormatChip";
 import { LmStatusPill } from "./LmStatusPill";
+import { PageLookSwitch } from "./PageLookSwitch";
 import { ZoomChip } from "./ZoomChip";
 import { zoomPageByWheel } from "../theme/pageZoom";
 import { agentName, setAgentHandler } from "../agent/bridge";
 import { peekSettings, useAutoSendMs } from "../settings/settingsStore";
+import { useAppearance } from "../theme/appearance";
 import { HistoryPanel } from "./HistoryPanel";
 import { useAutosave } from "./useAutosave";
 
@@ -138,6 +140,9 @@ export function Workspace({ file, onSaved, sidebarOpen, onToggleSidebar }: Props
     snapshot,
   } = useAutosave(file, { title, doc, transcripts, changeLog, format, info }, onSaved);
   const autoSendMs = useAutoSendMs();
+  // Only a page with a look of its own is marked; one that follows the app inherits the app's colours.
+  const { pageLook: pageLookChoice } = useAppearance();
+  const pageLook = pageLookChoice === "auto" ? undefined : pageLookChoice;
   const jobs = useJobs({
     editor: () => editorApi.current,
     title: () => titleRef.current,
@@ -381,6 +386,7 @@ export function Workspace({ file, onSaved, sidebarOpen, onToggleSidebar }: Props
             }}
           />
           <span className="spacer" />
+          <PageLookSwitch />
           <ZoomChip />
           <LmStatusPill />
           <div className="save-note" data-state={saveState} role="status">
@@ -429,7 +435,12 @@ export function Workspace({ file, onSaved, sidebarOpen, onToggleSidebar }: Props
             />
           </div>
         </header>
-        <div className="editor-scroll" hidden={Boolean(builder.state)} ref={pageScroll}>
+        <div
+          className="editor-scroll"
+          hidden={Boolean(builder.state)}
+          ref={pageScroll}
+          data-page-look={pageLook}
+        >
           <div className="page-column zoomable">
             <textarea
               ref={titleInput}
@@ -460,7 +471,7 @@ export function Workspace({ file, onSaved, sidebarOpen, onToggleSidebar }: Props
           </div>
         </div>
         {builder.state && (
-          <div className="editor-scroll">
+          <div className="editor-scroll" data-page-look={pageLook}>
             <div className="page-column wide">
               {builder.state.kind === "table" ? (
                 <TableWorkbench
