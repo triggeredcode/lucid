@@ -185,41 +185,42 @@ test("an agent can see the formats, create a page of one, and put notes under it
       }),
     );
     const formats = text(await client.callTool({ name: "list_formats", arguments: {} }));
-    expect(formats).toContain("benchmark: Benchmark note.");
-    expect(formats).toContain("  - Setup:");
+    expect(formats).toContain("concept-note: Concept note.");
+    expect(formats).toContain("  - Intuition:");
+    expect(formats).not.toContain("benchmark");
 
     const made = text(
       await client.callTool({
         name: "create_document",
-        arguments: { title: "Agent benchmark", format: "benchmark" },
+        arguments: { title: "Agent concept", format: "concept-note" },
       }),
     );
-    expect(made).toContain("format benchmark");
+    expect(made).toContain("format concept-note");
     // The page appears in the list at once; opening it shows the format.
-    const row = page.getByRole("navigation", { name: "Pages" }).getByText("Agent benchmark");
+    const row = page.getByRole("navigation", { name: "Pages" }).getByText("Agent concept");
     await expect(row).toBeVisible({ timeout: 15_000 });
     await row.click();
     await expect(page.locator(".page-editor h2")).toHaveCount(6);
-    await expect(page.getByRole("button", { name: /^Benchmark note/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /^Concept note/ })).toBeVisible();
 
     const outline = text(await client.callTool({ name: "get_outline", arguments: {} }));
-    expect(outline).toContain("open in Lucid, format benchmark");
-    expect(outline).toContain("SECTIONS of this benchmark note");
+    expect(outline).toContain("open in Lucid, format concept-note");
+    expect(outline).toContain("SECTIONS of this concept note");
 
     const added = await client.callTool({
       name: "insert_notes",
-      arguments: { lmd: "- M4 Max, 48 GB\n- LM Studio", position: "section:Setup" },
+      arguments: { lmd: "- Hash the key\n- Set the bits", position: "section:Intuition" },
     });
     expect(added.isError).toBe(false);
     const order = await page
       .locator(".page-editor .bn-block-content")
       .evaluateAll((els) => els.map((e) => e.textContent.trim()).filter((t) => t.length > 0));
     expect(order.slice(0, 5)).toEqual([
-      "Goal and hypothesis",
-      "Setup",
-      "M4 Max, 48 GB",
-      "LM Studio",
-      "Method",
+      "Definition",
+      "Intuition",
+      "Hash the key",
+      "Set the bits",
+      "How it works",
     ]);
 
     const bad = await client.callTool({

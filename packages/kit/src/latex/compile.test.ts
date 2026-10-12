@@ -270,15 +270,6 @@ function filled(format: Format) {
       registry.validateBlock(para("Choosing a store for the session data.")),
       registry.validateBlock(fx("table", "fx-table-1")),
     ],
-    "inference-math": [
-      registry.validateBlock(para("The KV cache grows with every token.")),
-      registry.validateBlock(fx("math", "fx-math-1")),
-      registry.validateBlock(fx("table", "fx-table-1")),
-    ],
-    benchmark: [
-      registry.validateBlock(para("Does batching raise throughput without hurting p50 latency?")),
-      registry.validateBlock(fx("table", "fx-table-1")),
-    ],
   };
   // Fill sections 1, 3 and 5; leave the others as empty headings.
   const sections = [0, 2, 4];

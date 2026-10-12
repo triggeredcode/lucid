@@ -3,7 +3,7 @@ import { FormatSchema, type Format } from "./types";
 
 export * from "./types";
 
-/** The five note formats of version 1. More arrive the same way: one entry here, one test run. */
+/** The three note formats that come with Lucid: general on purpose (a concept, a design, a comparison). More arrive the same way: one entry here, one test run. */
 const RAW_FORMATS: Format[] = [
   {
     id: "concept-note",
@@ -187,116 +187,6 @@ const RAW_FORMATS: Format[] = [
         heading: "Decision",
         hint: "What was chosen and why.",
         prefer: ["callout"],
-      },
-    ],
-    latex: { equationNumbers: false, diagramWidth: 0.85 },
-  },
-  {
-    id: "inference-math",
-    name: "Inference engineering note",
-    description:
-      "Math-heavy inference topics: KV cache sizing, FLOPs, memory bandwidth, quantization, batching, speculative decoding.",
-    keywords: [
-      "kv cache",
-      "kv",
-      "flops",
-      "memory bandwidth",
-      "quantization",
-      "quantisation",
-      "batching",
-      "speculative decoding",
-      "paged attention",
-      "attention",
-      "roofline",
-      "arithmetic intensity",
-      "decode",
-      "prefill",
-    ],
-    meta: ["source", "hardware"],
-    sections: [
-      {
-        key: "intuition",
-        heading: "Intuition",
-        hint: "The idea before the math.",
-        prefer: ["paragraph"],
-      },
-      {
-        key: "the-math",
-        heading: "The math",
-        hint: "Formulas, each followed by what its symbols mean.",
-        prefer: ["math", "bulletListItem"],
-      },
-      {
-        key: "numbers",
-        heading: "Numbers to remember",
-        hint: "Typical values, with units.",
-        prefer: ["table"],
-      },
-      {
-        key: "hardware",
-        heading: "Hardware implications",
-        hint: "What the numbers mean for the machine.",
-        prefer: ["bulletListItem", "diagram"],
-      },
-      { key: "pitfalls", heading: "Pitfalls", hint: "Easy mistakes.", prefer: ["callout"] },
-    ],
-    latex: { equationNumbers: true, diagramWidth: 0.85 },
-  },
-  {
-    id: "benchmark",
-    name: "Benchmark note",
-    description:
-      "Recording an experiment or benchmark (tokens per second across models, latency under load, write throughput): setup, method, results.",
-    keywords: [
-      "benchmark",
-      "experiment",
-      "measured",
-      "tok/s",
-      "tokens per second",
-      "latency under load",
-      "throughput test",
-      "hypothesis",
-      "p50",
-      "p99",
-      "results",
-    ],
-    meta: ["date", "hardware"],
-    sections: [
-      {
-        key: "goal",
-        heading: "Goal and hypothesis",
-        hint: "What is being tested and what was expected.",
-        prefer: ["paragraph"],
-      },
-      {
-        key: "setup",
-        heading: "Setup",
-        hint: "Hardware, software, versions, parameters.",
-        prefer: ["table"],
-      },
-      {
-        key: "method",
-        heading: "Method",
-        hint: "What was done, in order.",
-        prefer: ["numberedListItem"],
-      },
-      {
-        key: "results",
-        heading: "Results",
-        hint: "The numbers as measured, nothing else.",
-        prefer: ["table", "chart"],
-      },
-      {
-        key: "observations",
-        heading: "Observations",
-        hint: "What the numbers show.",
-        prefer: ["bulletListItem", "callout"],
-      },
-      {
-        key: "next",
-        heading: "Next experiments",
-        hint: "What to try next.",
-        prefer: ["checkListItem"],
       },
     ],
     latex: { equationNumbers: false, diagramWidth: 0.85 },
