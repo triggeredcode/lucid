@@ -24,7 +24,7 @@ Two things to know:
 
 ## Using Lucid by voice, or with one hand
 
-Lucid began because I couldn't type well with one hand (see [the README](../README.md#why-i-made-it)), so this is what works by
+Lucid began because for a while I couldn't type comfortably (see [the README](../README.md#why-i-made-it)), so this is what works by
 voice today:
 
 - **Notes without pressing Enter.** A pasted dictation is sent by itself about half a second after the last piece arrives.

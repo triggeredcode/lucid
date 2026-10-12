@@ -33,9 +33,8 @@
 
 ## Why I made it
 
-I'm the author. My right hand, the one I write and type with, was fractured in a small accident, and typing with my left hand was
-slow and tiring. I couldn't work, but I still wanted to use the time to keep learning, so I went back to system design and other
-concepts I wanted to revise. Taking notes was the hard part.
+I'm the author. For a while I couldn't type comfortably. I wasn't working, but I still wanted to use the time to keep learning,
+so I went back to system design and other concepts I wanted to revise. Taking notes was the hard part.
 
 There are good open-source tools that turn voice into text, and others that draw diagrams. I couldn't find one project where I
 could just speak and get something *structured*: sections, a list of options with the rejected ones crossed out, a table, a
