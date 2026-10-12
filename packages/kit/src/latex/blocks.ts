@@ -31,6 +31,9 @@ export interface LatexContext {
   figureWidths?: Readonly<Record<string, number>>;
   /** The natural height of each figure in points, by block id: with it a small figure is not enlarged into a tall one. */
   figureHeights?: Readonly<Record<string, number>>;
+  /** About how big the text area is in points (default: 345 by 592, the house style on Letter paper). */
+  textWidth?: number;
+  textHeight?: number;
 }
 
 /** How far the shallowest heading in the blocks is below level 1 (0 when there is a level 1 or no heading). */
@@ -223,7 +226,9 @@ function figure(block: Block, ctx: LatexContext): string {
   // A big one (wider than the text, about 345 pt, or taller than 40% of the 592 pt text height) cannot always sit exactly here:
   // it may float to the top of the next page, and the text that follows fills the page it leaves, instead of a page that
   // holds only a heading and a gap.
-  const big = (natural !== undefined && natural > 340) || (naturalHeight ?? 0) > 237;
+  const big =
+    (natural !== undefined && natural > (ctx.textWidth ?? 345) - 5) ||
+    (naturalHeight ?? 0) > 0.4 * (ctx.textHeight ?? 592);
   const place = big ? "htbp" : "H";
   return [
     `\\begin{figure}[${place}]\\centering`,
