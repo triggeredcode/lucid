@@ -36,7 +36,7 @@ export const LUCID_STY = String.raw`\NeedsTeXFormat{LaTeX2e}
 \newcommand{\lucidstruck}[1]{\textcolor{black!55}{\sout{#1}}}
 \newcommand{\lucidchosen}[1]{\textbf{#1}~\ding{51}}
 \setlist{itemsep=2pt,topsep=4pt}
-% A tall figure may take most of a page, at the top with text under it; a page of only figures is for the very full ones.
-\renewcommand{\topfraction}{0.85}\renewcommand{\textfraction}{0.1}\renewcommand{\floatpagefraction}{0.9}
+% A tall figure may take most of a page: at the top with text under it, or, when it fills 80% of a page or more, a page of its own.
+\renewcommand{\topfraction}{0.85}\renewcommand{\textfraction}{0.1}\renewcommand{\floatpagefraction}{0.8}
 \endinput
 `;

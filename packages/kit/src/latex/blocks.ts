@@ -205,7 +205,7 @@ function figure(block: Block, ctx: LatexContext): string {
   // would be a page tall) and at most 1.3 times the text (a big one reaches into the margins), centred.
   const include =
     natural === undefined
-      ? `\\includegraphics[width=${share}\\linewidth,height=0.65\\textheight,keepaspectratio]{${file}}`
+      ? `\\includegraphics[width=${share}\\linewidth,height=0.85\\textheight,keepaspectratio]{${file}}`
       : [
           `\\setlength{\\lucidfigw}{${natural.toFixed(1)}pt}%`,
           `\\ifdim\\lucidfigw<${share === "" ? "1" : share}\\linewidth\\setlength{\\lucidfigw}{${share === "" ? "1" : share}\\linewidth}\\fi%`,
@@ -218,7 +218,7 @@ function figure(block: Block, ctx: LatexContext): string {
               ]
             : []),
           "\\ifdim\\lucidfigw>1.3\\linewidth\\setlength{\\lucidfigw}{1.3\\linewidth}\\fi%",
-          `\\makebox[\\linewidth][c]{\\includegraphics[width=\\lucidfigw,height=0.65\\textheight,keepaspectratio]{${file}}}`,
+          `\\makebox[\\linewidth][c]{\\includegraphics[width=\\lucidfigw,height=0.85\\textheight,keepaspectratio]{${file}}}`,
         ].join("\n");
   // A big one (wider than the text, about 345 pt, or taller than 40% of the 592 pt text height) cannot always sit exactly here:
   // it may float to the top of the next page, and the text that follows fills the page it leaves, instead of a page that

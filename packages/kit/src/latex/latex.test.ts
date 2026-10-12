@@ -195,7 +195,7 @@ describe("blocksToLatex", () => {
   it("writes a figure for a diagram when it was rendered, a placeholder otherwise", () => {
     const d = fx("diagram", "fx-diagram-1");
     expect(latex([d], { [d.id]: "figures/fx-diagram-1.pdf" })).toBe(
-      "\\begin{figure}[H]\\centering\n\\includegraphics[width=\\linewidth,height=0.65\\textheight,keepaspectratio]{figures/fx-diagram-1.pdf}\n\\caption{Request flow}\n\\end{figure}",
+      "\\begin{figure}[H]\\centering\n\\includegraphics[width=\\linewidth,height=0.85\\textheight,keepaspectratio]{figures/fx-diagram-1.pdf}\n\\caption{Request flow}\n\\end{figure}",
     );
     expect(latex([d])).toContain("Not available yet");
   });
@@ -253,7 +253,7 @@ describe("blocksToLatex", () => {
       "\\ifdim\\lucidfigw>1.3\\linewidth\\setlength{\\lucidfigw}{1.3\\linewidth}\\fi%",
     );
     expect(out).toContain(
-      "\\makebox[\\linewidth][c]{\\includegraphics[width=\\lucidfigw,height=0.65\\textheight,keepaspectratio]{figures/fx-diagram-1.pdf}}",
+      "\\makebox[\\linewidth][c]{\\includegraphics[width=\\lucidfigw,height=0.85\\textheight,keepaspectratio]{figures/fx-diagram-1.pdf}}",
     );
     // A big one may float (the text after it then fills the page); a small one stays exactly where it is written.
     expect(out).toContain("\\begin{figure}[htbp]\\centering");
