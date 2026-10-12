@@ -33,15 +33,12 @@
 For a while I couldn't type comfortably, so I built Lucid for myself: a productivity and accessibility tool for taking notes and
 learning system design by voice, or with one hand.
 
-I learn by thinking out loud, and I want to see it as I say it: the diagram when I explain a system, the notes taking shape when I
-revise, and a way to cut what I got wrong and say it again. There are good open-source tools that turn voice into text, and others
-that draw diagrams, but I couldn't find one project where I could simply speak and get something *structured*, entirely on my own
-computer. I like minimal themes, so I built the one I wanted, for myself first.
+I learn by thinking out loud and want to see it as I say it: the diagram when I explain a system, the notes taking shape, and a
+way to cut what I got wrong. I couldn't find one open-source project that turns speech into something *structured*, so I built it.
 
-This is the first version, and it doesn't listen by itself. You dictate with an app that pastes text, like
-[Wispr Flow](https://wisprflow.ai), [OpenWhispr](https://github.com/OpenWhispr/openwhispr) or
-[VoiceNative](https://github.com/triggeredcode/voicenative) (my own open-source voice-to-text for macOS), and Lucid turns what
-lands in the box into the page. A fully local voice pipeline will take me some time to get right; you can start with those.
+This first version doesn't listen by itself. You dictate with an app that pastes text, like [Wispr Flow](https://wisprflow.ai),
+[OpenWhispr](https://github.com/OpenWhispr/openwhispr) or [VoiceNative](https://github.com/triggeredcode/voicenative) (my own,
+for macOS), and Lucid turns what lands in the box into the page.
 
 ## How it works
 
@@ -53,18 +50,16 @@ flowchart LR
   page --> history["The history keeps what you said,<br/>what was understood, what changed"]
 ```
 
-The model runs on your own computer, because you talk a lot and change a lot, and a local model keeps that cheap: every call is
-free. It always has the page in front of it, so it does not only add text: it puts what you said under the right heading and builds the right kind of block. Every change is exactly one undo step, and your
-words are never lost.
+The model runs on your own computer, because you talk a lot and change a lot, and a local model keeps that cheap. It always has
+the page in front of it, so it puts what you said under the right heading and builds the right kind of block. Every change is one
+undo step, and your words are never lost.
 
-## The two parts I like most
+## Diagram mode: keywords, connections, editing
 
-### Diagram mode: keywords, connections, editing
-
-A diagram of ten parts is hard to say in one breath, so there is a guided builder with three phases. First the **keywords**: say
-the parts of the system. Then the **connections**: say how they connect, one at a time. Then **editing**: everything has a number,
-so a fix is one short sentence (*"connection 3 is reads and writes"*, *"rename 3 to Cache"*). Say *"done"* and the diagram goes
-onto your page. A database is drawn as a cylinder, a queue as a pipe, a CDN as a cloud, a load balancer as a hexagon.
+A diagram of ten parts is hard to say in one breath, so a guided builder has three phases: the **keywords** (the parts), the
+**connections** (how they link, one at a time) and **editing** (everything is numbered, so a fix is one sentence: *"rename 3 to
+Cache"*). Say *"done"* and the diagram goes onto your page. A database is drawn as a cylinder, a queue as a pipe, a CDN as a
+cloud.
 
 <table>
   <tr>
@@ -92,18 +87,16 @@ onto your page. A database is drawn as a cylinder, a queue as a pipe, a CDN as a
   </tr>
 </table>
 
-### Command mode: talk to the page
+## Command mode: talk to the page
 
-Because the model has the whole page in context, you can talk about it and it edits the page for you: *"add a cache in front of
-the database"*, *"cross out Memcached, we are choosing the local LRU"*, *"add a row for cost to this table"*, *"undo"*. Crossing
-out keeps the idea on the page, struck through, so you can still see what you decided against. Hold the right ⌥ key and
-everything you say is one command, which you can do with one hand.
+The model has the whole page in context, so you can talk about it: *"add a cache in front of the database"*, *"cross out
+Memcached, we are choosing the local LRU"*, *"add a row for cost to this table"*, *"undo"*. A crossed-out idea stays on the page,
+struck through. Hold the right ⌥ key and everything you say is one command, which works with one hand.
 
 ## History, edit mode and how well it works
 
-The history keeps what you said, what the model understood and what it changed, so you can always see why a page looks the way
-it does, take back any single change (not just the last one), or edit what you said and send it again. When the model gets
-something wrong there is **Edit mode**: you just type in the page.
+The history keeps what you said and what changed, so you can see why a page looks the way it does, take back any single change,
+or edit what you said and send it again. When the model gets something wrong, **Edit mode** lets you type in the page.
 
 <p align="center">
   <picture>
@@ -112,18 +105,16 @@ something wrong there is **Edit mode**: you just type in the page.
   </picture>
 </p>
 
-I test the model against my own set of cases with the real model ([docs/evals.md](docs/evals.md)) and hold it to a bar of 90%.
-In my latest run it got 98 of 99 cases right. To get the most from it: say things in short pieces, use diagram mode for diagrams
-and command mode to change the page, and look at the history whenever something surprises you.
+I score the model on my own set of cases ([docs/evals.md](docs/evals.md)) with a bar of 90%; the latest run got 98 of 99. To get
+the most from it, say things in short pieces, use diagram mode for diagrams and command mode to change the page.
 
 ## Keep your notes
 
-- **PDF**, typeset on your computer, with real diagrams. Settings → **PDF look** sets the paper, the type, the margins and an
-  accent colour, and you can edit the template itself.
-- **A whole note**, with its history, to back up or move to another computer, and **Markdown**.
-- **Three note formats** to start from (a concept note, a system design, a comparison) or a blank page; formats are plain data, so
-  one of your own is one more entry. [See them](docs/formats.md).
-- **The page has its own light and dark**, apart from the app's, so a dark app can show a light page, like paper.
+- **PDF**, typeset on your computer with real diagrams; Settings → **PDF look** sets paper, type, margins and accent colour, and you
+  can edit the template.
+- **A whole note**, with its history, to back up or move, and **Markdown**.
+- **Three note formats** (concept note, system design, comparison) or a blank page; formats are plain data. [See them](docs/formats.md).
+- **The page has its own light and dark**, apart from the app's.
 
 <table>
   <tr>
@@ -145,21 +136,15 @@ and command mode to change the page, and look at the history whenever something 
   <tr>
     <td colspan="2" align="center">
       <img alt="A light app with a dark page" src="docs/images/readme/page-look-dark-page.png" width="700" />
-      <br /><sub><b>The page has a look of its own: a dark page in a light app (and, at the top of this page, a light page in a dark app)</b></sub>
+      <br /><sub><b>A dark page in a light app (the first picture is the other way round)</b></sub>
     </td>
   </tr>
 </table>
 
 ## Built-in MCP server
 
-Lucid has a built-in MCP server, so an AI agent such as Claude Code can read your pages and add to them. Everything an agent does
-is one undo step and shows up in the history as the agent's. The tools and the set-up are in [docs/mcp.md](docs/mcp.md).
-
-## Where it might go
-
-Ideas, not promises: smaller, faster local models (5B to 8B, maybe Gemma) or cloud models through Ollama for a more live mode,
-models fine-tuned for notes, and other subjects than system design. Voice stays in its own project, VoiceNative, and I may
-integrate the two without merging them.
+An AI agent such as Claude Code can read your pages and add to them. Each change is one undo step and shows in the history as the
+agent's. Tools and set-up: [docs/mcp.md](docs/mcp.md).
 
 ## Install
 
@@ -211,12 +196,6 @@ pnpm install
 node scripts/fetch-tectonic.mjs   # the PDF engine, checked against a pinned SHA-256
 pnpm dev
 ```
-
-## Privacy
-
-Lucid has no account, no analytics and no cloud service. Your notes are files on your disk (`~/Lucid`, one JSON file per page),
-and the language model runs on your computer. The only time Lucid's own PDF engine uses the internet is the one-time download
-of typesetting files. A dictation app is a separate app with its own privacy terms; Lucid only sees the text it pastes.
 
 ## Licence
 
