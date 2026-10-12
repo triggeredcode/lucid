@@ -52,6 +52,11 @@ async function session() {
     const win = BrowserWindow.getAllWindows()[0];
     return win.getBounds().height - win.getContentBounds().height;
   });
+  // Where the app puts the traffic lights when it draws under the title bar (null for a normal title bar).
+  extra.lights = await app.evaluate(({ BrowserWindow }) => {
+    const win = BrowserWindow.getAllWindows()[0];
+    return typeof win.getWindowButtonPosition === "function" ? win.getWindowButtonPosition() : null;
+  });
   try {
     const lm = await page.evaluate(async () => (await window.lucid.lm.status()).state);
     if (lm !== "ready")

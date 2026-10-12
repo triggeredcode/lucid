@@ -791,7 +791,17 @@ for (let i = 1; i < map.length; i++) {
 }
 // Chapter labels last until the next one starts (or the outro).
 chapters.sort((a, b) => a.t0 - b.t0);
+const ACCENTS = [
+  "var(--coral)",
+  "var(--indigo)",
+  "var(--teal)",
+  "var(--amber)",
+  "var(--rose)",
+  "var(--indigo)",
+  "var(--coral)",
+];
 chapters.forEach((c, i) => {
+  c.c = ACCENTS[i % ACCENTS.length];
   c.t1 = (chapters[i + 1]?.t0 ?? scenes.agents.t1) - 0.05;
 });
 // A pill or ring that was given no end lasts to the end of its scene; none are open-ended here.
@@ -823,7 +833,7 @@ const timeline = {
   width: 1920,
   height: 1080,
   duration: Math.ceil(total * FPS) / FPS,
-  chrome: { titleBar: TB, ...(TB === 0 ? { lights: { x: 20, y: 18 } } : {}) },
+  chrome: { titleBar: TB, ...(TB === 0 ? { lights: cap.lights ?? { x: 20, y: 18 } } : {}) },
   captionBottom: 34,
   source: { base: "/capture/", frames: cap.frames, viewport: cap.viewport },
   map,

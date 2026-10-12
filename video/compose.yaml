@@ -1,7 +1,7 @@
 # The render stage in a container. It reads what the host made (the capture and the narration, in .cache) and writes the
 # video into out/. LM Studio, the voice server and the Electron app are NOT here: they need the Mac's GPU and screen.
 #
-#   docker compose run --rm render                    # plan + render the whole video  -> out/lucid-intro.mp4
+#   docker compose run --rm render                    # plan + render the video and the poster -> out/
 #   docker compose run --rm render node render/render.mjs --poster
 #   docker compose run --rm render node render/render.mjs --still 12.5 out/still.png
 services:
@@ -17,4 +17,9 @@ services:
       RENDER_WORKERS: "${RENDER_WORKERS:-3}"
     # Two pages per CPU core is plenty; Chromium needs room for its shared memory.
     shm_size: "2gb"
-    command: ["sh", "-c", "node render/plan.mjs && node render/render.mjs"]
+    command:
+      [
+        "sh",
+        "-c",
+        "node render/plan.mjs && node render/render.mjs && node render/render.mjs --poster",
+      ]

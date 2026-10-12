@@ -193,6 +193,7 @@ function build() {
   for (const ch of T.chapters ?? []) {
     const root = h("div", "", el.top);
     root.id = "chapter";
+    root.style.setProperty("--c", ch.c ?? "var(--ink)");
     const n = h("span", "n", root);
     n.textContent = String(ch.n).padStart(2, "0");
     const text = h("span", "", root);
@@ -554,6 +555,7 @@ async function seek(t) {
     }
     root.style.display = "flex";
     root.style.opacity = a.toFixed(3);
+    root.style.transform = `translateX(${((a - 1) * 18).toFixed(2)}px)`;
     fill.style.width = `${(clamp((t - ch.t0) / (ch.t1 - ch.t0)) * 100).toFixed(1)}%`;
   }
 }

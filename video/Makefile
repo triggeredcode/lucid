@@ -24,15 +24,16 @@ capture:
 plan:
 	node render/plan.mjs
 
-render: plan
+render:
 	docker compose build render
-	docker compose run --rm render sh -c "node render/plan.mjs && node render/render.mjs && node render/render.mjs --poster"
+	docker compose run --rm render
 
 render-host: plan
 	node render/render.mjs
 	node render/render.mjs --poster
 
 poster:
+	docker compose build render
 	docker compose run --rm render sh -c "node render/plan.mjs && node render/render.mjs --poster"
 
 poster-host: plan

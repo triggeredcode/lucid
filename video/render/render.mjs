@@ -13,6 +13,7 @@ import {
   existsSync,
   mkdirSync,
   readFileSync,
+  rmSync,
   statSync,
   writeFileSync,
 } from "node:fs";
@@ -277,6 +278,7 @@ try {
         ],
         { stdio: "inherit" },
       );
+      rmSync(videoOnly, { force: true });
       console.log(`video: ${final}`);
     }
   }
