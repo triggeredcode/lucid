@@ -1,7 +1,7 @@
 # Note formats
 
 A **note format** is the skeleton of a page: its sections, a hint for each saying what belongs there, and which blocks suit it.
-Start a page from one with **New from a format…**; Lucid suggests one from what you say, and you always choose. A page of a
+Start a page from one with **New from a format…**; Lucid suggests one from what you say, and you always choose. Or take the **Blank page** and write what you like: the formats are general on purpose (a concept, a design, a comparison), not one for every subject. A page of a
 format starts as its section headings, and what you dictate goes under the right one. Sections left empty are not printed.
 
 | Format | For | Sections |
@@ -9,8 +9,6 @@ format starts as its section headings, and what you dictate goes under the right
 | **Concept note** | one computer-science or system-design idea | Definition · Intuition · How it works · Example · Pitfalls and gotchas · Related concepts |
 | **System design** | designing a system end to end | Requirements · Capacity estimates · API · High-level design · Data model · Deep dives · Trade-offs and decisions · Open questions |
 | **Comparison** | choosing between technologies | Context · Options · Comparison · Pros and cons · Decision |
-| **Inference engineering** | KV cache, FLOPs, bandwidth, batching | Intuition · The math · Numbers to remember · Hardware implications · Pitfalls |
-| **Benchmark** | recording an experiment | Goal and hypothesis · Setup · Method · Results · Observations · Next experiments |
 
 ## What the PDFs look like
 
@@ -27,14 +25,6 @@ Each picture is the PDF of a sample note, made with the real app ([how](format-s
 **Comparison**
 
 ![A comparison note as a PDF](format-samples/format-comparison.png)
-
-**Inference engineering**
-
-![An inference engineering note as a PDF](format-samples/format-inference-math.png)
-
-**Benchmark**
-
-![A benchmark note as a PDF with a table and a chart](format-samples/format-benchmark.png)
 
 ## Open to other fields
 

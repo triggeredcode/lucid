@@ -191,6 +191,24 @@ try {
   for (const scheme of ["light", "dark"]) {
     await page.emulateMedia({ colorScheme: scheme });
     await page.waitForTimeout(600);
+    if (scheme === "light") {
+      // Where two things of the top bar are, in the pixels of the pictures (the guide puts numbered markers on them).
+      const anchors = await page.evaluate(() => {
+        const scale = 1800 / window.innerWidth;
+        const box = (selector) => {
+          const r = document.querySelector(selector)?.getBoundingClientRect();
+          return r
+            ? { x: r.x * scale, y: r.y * scale, w: r.width * scale, h: r.height * scale }
+            : null;
+        };
+        return {
+          height: window.innerHeight * scale,
+          pill: box(".lm-pill"),
+          look: box(".page-look"),
+        };
+      });
+      console.log(`anchors ${JSON.stringify(anchors)}`);
+    }
     await resized(await shoot(), scheme === "light" ? "lucid-light.png" : "lucid-dark.png");
 
     // The diagram builder, half way through a diagram.
@@ -215,6 +233,15 @@ try {
     );
     await page.getByRole("button", { name: "Cancel" }).click();
     await page.waitForTimeout(500);
+    // The New page dialog, as the guide shows it.
+    await page.getByRole("button", { name: "New from a format…" }).click();
+    await page.locator(".np-dialog").waitFor();
+    await page.waitForTimeout(500);
+    await page.locator(".np-dialog").screenshot({
+      path: join(out, scheme === "light" ? "new-page.png" : "new-page-dark.png"),
+    });
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(300);
     if (scheme === "light") {
       // Block 4 opened in the margin.
       await page.locator(".block-no").nth(3).click();
