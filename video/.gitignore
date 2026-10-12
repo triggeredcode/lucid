@@ -1,0 +1,9 @@
+# Everything the pipeline produces stays out of git: the voice audio, the screen captures, the video.
+node_modules/
+.cache/
+out/
+*.wav
+*.mp4
+*.png
+*.jpg
+!assets/**

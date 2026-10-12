@@ -1,0 +1,30 @@
+{
+  "title": "Designing a URL shortener",
+  "steps": [
+    {
+      "id": "d1",
+      "mode": "input",
+      "text": "A URL shortener turns a long link into a short code. It must create a short link, redirect fast, and handle about a hundred million new links a month."
+    },
+    {
+      "id": "d2",
+      "mode": "input",
+      "text": "Compare three ways to make the code in a table. A base 62 counter is easy to guess but never collides. A random code is hard to guess but needs a collision check. A hash of the URL is hard to guess and also needs a collision check."
+    },
+    {
+      "id": "d3",
+      "mode": "input",
+      "text": "The browser calls a load balancer. The load balancer sends requests to the app servers. The app servers read and write the database."
+    },
+    {
+      "id": "d4",
+      "mode": "command",
+      "text": "Add a cache in front of the database."
+    }
+  ],
+  "agent": {
+    "name": "agent",
+    "lmd": "## Pitfalls\n- A sequential counter makes codes easy to guess.\n- A random code needs a collision check when it is saved."
+  },
+  "formatAbout": "Notes on how a chat service is designed"
+}
