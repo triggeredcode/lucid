@@ -1,0 +1,495 @@
+/* The stage: one 1920 x 1080 page that is a pure function of time. No CSS animations or transitions anywhere: every
+   frame is set from stage.js, so a render is the same every time. Type is iA Writer Mono, as in the app. */
+@font-face {
+  font-family: "iA Writer Mono";
+  font-weight: 400;
+  font-style: normal;
+  src: url("/fonts/ia-writer-mono-latin-400-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "iA Writer Mono";
+  font-weight: 700;
+  font-style: normal;
+  src: url("/fonts/ia-writer-mono-latin-700-normal.woff2") format("woff2");
+}
+
+:root {
+  --ink: #1d1d1b;
+  --ink-soft: #5d5b57;
+  --paper: #fbfaf7;
+  --line: rgb(29 29 27 / 10%);
+  --indigo: #5b5bd6;
+  --coral: #e8603c;
+  --teal: #1f9d8b;
+  --amber: #d79a14;
+  --rose: #d6457e;
+  --mono: "iA Writer Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  animation: none !important;
+  transition: none !important;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #f4f1ec;
+  font-family: var(--mono);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+#stage {
+  position: relative;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  background: #f4f1ec;
+}
+#stage.poster {
+  width: 1280px;
+  height: 640px;
+}
+
+#bg {
+  position: absolute;
+  inset: -80px;
+}
+
+.layer {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The app window. It is 1600 x 900 CSS pixels of the real app (plus a title bar when the app has one). */
+.card {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow:
+    0 2px 4px rgb(40 30 80 / 8%),
+    0 24px 48px -12px rgb(40 30 90 / 28%),
+    0 60px 120px -30px rgb(40 30 90 / 32%);
+  outline: 1px solid rgb(30 20 60 / 10%);
+}
+.card .clip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 14px;
+}
+.card .titlebar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  background: #f3f2f0;
+  border-bottom: 1px solid rgb(0 0 0 / 7%);
+}
+.card .screen {
+  position: absolute;
+  left: 0;
+  width: 1600px;
+  height: 900px;
+  overflow: hidden;
+}
+.card .screen img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1600px;
+  height: 900px;
+  display: block;
+}
+.lights {
+  position: absolute;
+  display: flex;
+  gap: 8px;
+}
+.lights i {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.lights i:nth-child(1) {
+  background: #ff5f57;
+  box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 14%);
+}
+.lights i:nth-child(2) {
+  background: #febc2e;
+  box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 14%);
+}
+.lights i:nth-child(3) {
+  background: #28c840;
+  box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 14%);
+}
+
+.over {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1600px;
+  height: 900px;
+  pointer-events: none;
+}
+.ring {
+  position: absolute;
+  border: 3px solid var(--c);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--c) 7%, transparent);
+  transform-origin: 50% 50%;
+}
+.ring .tag {
+  position: absolute;
+  left: -3px;
+  bottom: calc(100% + 8px);
+  white-space: nowrap;
+  padding: 5px 11px 6px;
+  border-radius: 999px;
+  background: var(--c);
+  color: #fff;
+  font-weight: 700;
+  font-size: 17px;
+  line-height: 1.1;
+  box-shadow: 0 6px 16px -4px color-mix(in srgb, var(--c) 60%, transparent);
+}
+.ring .tag.below {
+  bottom: auto;
+  top: calc(100% + 8px);
+}
+.ring .tag.right {
+  left: auto;
+  right: -3px;
+}
+.ring .tag.east {
+  bottom: auto;
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+}
+.cursor {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 26px;
+  height: 26px;
+  margin: -2px 0 0 -3px;
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 28%));
+}
+.ripple {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border-radius: 50%;
+  border: 3px solid rgb(30 30 28 / 55%);
+}
+
+/* Pills: small labels, on the screen or on the window. */
+.pill {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+  padding: 9px 18px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.1;
+  transform-origin: 50% 50%;
+}
+.pill.light {
+  background: rgb(255 255 255 / 92%);
+  color: var(--ink);
+  box-shadow:
+    0 1px 2px rgb(40 30 80 / 10%),
+    0 12px 28px -8px rgb(40 30 90 / 28%);
+}
+.pill.dark {
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 0 12px 28px -8px rgb(20 20 40 / 45%);
+}
+.pill.accent {
+  background: var(--c);
+  color: #fff;
+  box-shadow: 0 12px 28px -8px color-mix(in srgb, var(--c) 60%, transparent);
+}
+.pill .dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--c, var(--ink));
+  flex: none;
+}
+.pill.small {
+  font-size: 17px;
+  padding: 7px 14px 8px;
+}
+.pill .sub {
+  font-weight: 400;
+  opacity: 0.72;
+}
+
+/* Hero: the title card. */
+#hero {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1920px;
+  height: 1080px;
+}
+#hero .mark {
+  position: absolute;
+  width: 128px;
+  height: 128px;
+  left: 896px;
+  top: 300px;
+  transform-origin: 50% 50%;
+  filter: drop-shadow(0 18px 30px rgb(40 30 90 / 26%));
+}
+#hero .word {
+  position: absolute;
+  left: 0;
+  width: 1920px;
+  top: 452px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 148px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+#hero .word span {
+  display: inline-block;
+}
+#hero .tagline {
+  position: absolute;
+  left: 0;
+  width: 1920px;
+  top: 640px;
+  text-align: center;
+  font-size: 38px;
+  line-height: 1.3;
+  color: var(--ink-soft);
+}
+#hero .tagline2 {
+  position: absolute;
+  left: 0;
+  width: 1920px;
+  top: 712px;
+  text-align: center;
+  font-size: 26px;
+  color: var(--ink-soft);
+}
+#hero .url {
+  position: absolute;
+  left: 0;
+  width: 1920px;
+  top: 790px;
+  display: flex;
+  justify-content: center;
+}
+#hero .url .pill {
+  position: static;
+  font-size: 30px;
+  padding: 14px 28px 16px;
+}
+
+/* Panels: the terminal, the paper and the data card. */
+.panel {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 50% 50%;
+}
+.term {
+  width: 780px;
+  height: 640px;
+  border-radius: 16px;
+  background: #1b1a19;
+  color: #ece8e1;
+  box-shadow:
+    0 2px 4px rgb(20 10 40 / 14%),
+    0 40px 80px -20px rgb(30 20 70 / 45%);
+  overflow: hidden;
+}
+.term .bar {
+  height: 44px;
+  background: #272624;
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  gap: 8px;
+  font-size: 16px;
+  color: #a9a49b;
+}
+.term .bar i {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #4a4845;
+}
+.term .bar b {
+  margin-left: 12px;
+  font-weight: 400;
+}
+.term .body {
+  padding: 22px 26px;
+  font-size: 19px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.term .cmd {
+  color: #ece8e1;
+}
+.term .cmd .name {
+  color: #ffb199;
+  font-weight: 700;
+}
+.term .cmd .p {
+  color: #7fd6c2;
+}
+.term .out {
+  color: #aaa59b;
+  padding-left: 22px;
+}
+.term .gap {
+  height: 10px;
+}
+.paper {
+  width: 640px;
+  height: 790px;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow:
+    0 2px 4px rgb(20 10 40 / 10%),
+    0 40px 80px -20px rgb(30 20 70 / 40%);
+  overflow: hidden;
+}
+.paper img {
+  /* the top of the page, enlarged, so that the title, the list and the table can be read */
+  width: 134%;
+  margin-left: -17%;
+  display: block;
+}
+.datacard {
+  width: 780px;
+  border-radius: 16px;
+  background: #fffefb;
+  box-shadow:
+    0 2px 4px rgb(20 10 40 / 10%),
+    0 40px 80px -20px rgb(30 20 70 / 38%);
+  padding: 22px 28px 26px;
+  font-size: 21px;
+  line-height: 1.55;
+  white-space: pre;
+}
+.datacard .file {
+  font-size: 15px;
+  color: var(--ink-soft);
+  margin-bottom: 10px;
+}
+.datacard .k {
+  color: #7a6a58;
+}
+.datacard .s {
+  color: #1f7a6d;
+}
+.datacard .n {
+  color: #b24a2b;
+}
+.datacard .ghost {
+  border: 2px dashed var(--indigo);
+  border-radius: 10px;
+  margin: 14px -12px 0;
+  padding: 8px 12px 6px;
+  background: rgb(91 91 214 / 6%);
+}
+
+/* Captions and the chapter label sit under the window, on the gradient. */
+#caption {
+  position: absolute;
+  left: 0;
+  width: 1920px;
+  display: flex;
+  justify-content: center;
+}
+#caption .box {
+  max-width: 1100px;
+  text-align: center;
+  font-size: 33px;
+  line-height: 1.38;
+  padding: 12px 30px 14px;
+  border-radius: 22px;
+  background: rgb(255 255 255 / 84%);
+  box-shadow:
+    0 1px 2px rgb(40 30 80 / 8%),
+    0 14px 32px -10px rgb(40 30 90 / 30%);
+  transform-origin: 50% 100%;
+}
+#caption .box.light {
+  background: transparent;
+  box-shadow: none;
+}
+#chapter {
+  position: absolute;
+  left: 56px;
+  bottom: 40px;
+  font-size: 20px;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+#chapter .n {
+  font-weight: 700;
+  color: var(--ink);
+}
+#chapter .bar {
+  width: 56px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--line);
+  overflow: hidden;
+}
+#chapter .bar i {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+}
+
+/* A waveform of the voice of the narrator on the title card. */
+#hero .wave {
+  position: absolute;
+  left: 0;
+  width: 1920px;
+  height: 140px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 9px;
+}
+#hero .wave i {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  background: var(--ink);
+  opacity: 0.82;
+}
