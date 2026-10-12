@@ -1,4 +1,4 @@
-# Dictating into Lucid
+# Dictating into Lucid, and using it by voice
 
 Lucid does no speech recognition. A dictation app turns your voice into text and pastes it, and Lucid's input box takes the
 paste. Any app that pastes (or types) into the focused window works; you do not need to pick one of these.
@@ -21,6 +21,33 @@ Two things to know:
   2 s, or never). Text that is typed key by key is not sent on its own: press Enter.
 - Lucid's own command key is the **right ⌥ key** (right Alt on Windows and Linux). Choose another key for your dictation app's
   push-to-talk (VoiceNative's is right Shift) so they do not meet.
+
+## Using Lucid by voice, or with one hand
+
+Lucid began because for a while I couldn't type comfortably (see [the README](../README.md#why-i-made-it)), so this is what works by
+voice today:
+
+- **Notes without pressing Enter.** A pasted dictation is sent by itself about half a second after the last piece arrives.
+  Settings → **Dictation** makes the pause 1 s or 2 s (slower speech), or turns it off so the words wait in the box until you
+  press Enter and you can read them first.
+- **Commands by voice.** In Command mode, say what to change: *"cross out Memcached, we are choosing the local LRU"*, *"add a
+  CDN in front of the web server"*, *"undo"*. Say *"command mode"*, *"input mode"* or *"edit mode"* to change mode.
+- **One key for one command.** Hold the **right ⌥ key** (right Alt on Windows and Linux) and everything you dictate while it is
+  held is one command. It is a single key, which you can reach with one hand.
+- **Diagrams and tables without a mouse.** Say *"diagram mode"*, then the components, then the connections (*"client to
+  server"*), then fix them by number (*"rename 3 to Cache"*). *"Done"* inserts it. Tables work the same way.
+- **Pointing by number.** Every block has a number in the margin; say *"in block 3, add a row for cost"*.
+- **Everything can be taken back.** Every change by the model is one undo step, and the history lists each change, so a
+  misheard word never costs more than one *"undo"*.
+- **Shortcuts for one hand.** ⌘1 to ⌘5 switch the modes and open the builders, ⌘/ switches between Input and Command, Esc and ⌘L
+  go back to the input box, and ⌘+, ⌘− and ⌘0 zoom the page. The full list is in the [guide](guide.html#keys). Choose a
+  push-to-talk key for your dictation app that you can press with one hand, and not the right ⌥.
+
+What it does not do yet: it does not listen by itself (it needs a dictation app); speech mistakes (a name, a tool) are kept as
+heard, and Settings → **Words to expect** keeps the names you list as you wrote them; the model is usually right, not always, and
+Edit mode is for the rest. The buttons and fields have names a screen reader can read and the app is tested through them, but I
+have not used it with a screen reader for real work and it has not been audited: if you do, please
+[tell me what happens](https://github.com/triggeredcode/lucid/issues/new/choose).
 
 ## Try it with your voice (a check-list)
 

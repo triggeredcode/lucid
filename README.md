@@ -31,14 +31,35 @@
   </picture>
 </p>
 
-## Why
+## Why I made it
 
-- **Speech becomes structure, not a wall of text.** Dictation apps give you the words. Lucid gives you the document: an outline
-  of sections, a list of options with the rejected ones crossed out, a table that compares them, a diagram of how the parts
-  connect.
-- **Hands-free, or one-handed.** Lucid began when its author broke their right hand and still wanted to take notes while learning
-  system design. Notes, commands (*"cross out Memcached"*, *"add a CDN in front of the web server"*, *"undo"*) and even diagrams
-  can be spoken. [More on accessibility](docs/accessibility.md).
+I'm the author. For a while I couldn't type comfortably. I wasn't working, but I still wanted to use the time to keep learning,
+so I went back to system design and other concepts I wanted to revise. Taking notes was the hard part.
+
+There are good open-source tools that turn voice into text, and others that draw diagrams. I couldn't find one project where I
+could just speak and get something *structured*: sections, a list of options with the rejected ones crossed out, a table, a
+diagram. I like minimal themes, so I built the one I wanted, for myself first.
+
+This is the first version, and it doesn't listen by itself. You dictate with an app that pastes text, like
+[Wispr Flow](https://wisprflow.ai), [OpenWhispr](https://github.com/OpenWhispr/openwhispr) or
+[VoiceNative](https://github.com/triggeredcode/voicenative) (my own open-source voice-to-text for macOS), and Lucid turns what
+lands in the box into the page. A fully local voice pipeline will take me some time to get right; you can start with those.
+
+The hardest part was the drawing: a diagram engine and a table engine good enough to build from speech. Command mode edits the
+page by talking to it, and the history keeps what you said, what the model understood and what it changed, so you can always see
+why a page looks the way it does. The model runs on your own computer. I hold it to a bar of 90% on my own evaluation
+([docs/evals.md](docs/evals.md)), and Edit mode and undo are for the rest.
+
+Where it might go, in no particular order: a faster, more live mode with smaller local models (5B to 8B, maybe Gemma) or with
+cloud models through Ollama; fine-tuned models; and fields other than system design. Voice stays in its own project,
+VoiceNative, and I may integrate the two without merging them. These are ideas, not promises.
+
+## What you get
+
+- **Speech becomes structure, not a wall of text.** Dictation gives you the words. Lucid gives you the document: an outline of
+  sections, a list of options with the rejected ones crossed out, a table that compares them, a diagram of how the parts connect.
+- **By voice or by keyboard.** Notes, commands (*"cross out Memcached"*, *"add a CDN in front of the web server"*, *"undo"*),
+  diagrams and tables can all be spoken. See [dictation](docs/dictation.md) for the apps and for using Lucid with one hand.
 - **Made for system design, open to other fields.** The note formats are plain data: a concept note, a system design, a
   comparison, an inference-maths note, a benchmark, and one more entry for anything else. [See them](docs/formats.md).
 - **You stay in charge.** Every change by the model is one undo step, any earlier change can be reverted on its own, and your
@@ -78,8 +99,7 @@ To dictate, use any app that pastes text: [Wispr Flow](https://wisprflow.ai),
 | [User guide](docs/guide.html) | the whole app on one page (also in the app: Help → Lucid Guide) |
 | [What Lucid does](docs/features.md) | typed blocks, three modes, diagrams and tables by voice, history, export and the PDF look |
 | [Note formats](docs/formats.md) | the five formats, with the PDF of a sample of each |
-| [Dictation](docs/dictation.md) | which apps to speak with, and a ten-minute check-list |
-| [Accessibility](docs/accessibility.md) | why Lucid exists, and using it by voice or with one hand |
+| [Dictation](docs/dictation.md) | which apps to speak with, using Lucid by voice or with one hand, and a ten-minute check-list |
 | [For AI agents](docs/mcp.md) | the MCP tools and how to connect Claude Code |
 | [Installing](docs/install.md) | steps for each system, checksums, troubleshooting |
 | [Architecture](docs/architecture.md) · [Evals](docs/evals.md) | how it fits together; how the model is scored |
