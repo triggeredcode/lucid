@@ -41,6 +41,57 @@ function savedPage(home) {
   return JSON.parse(readFileSync(join(home, file), "utf8"));
 }
 
+/**
+ * The diagram builder: every phrase is delivered like a dictation, Lucid reads it by its own grammar (no model), and the
+ * builder draws the parts with their numbers. "done" puts the diagram into the page as one step.
+ */
+async function diagramByVoice(page, rec, step, extra) {
+  const box = 'textarea[aria-label="Dictate or type your notes"]';
+  rec.mark("builder.begin");
+  for (const [i, phrase] of step.phrases.entries()) {
+    const id = `b${i + 1}`;
+    await paste(page, phrase);
+    rec.mark(`${id}.pasted`);
+    // Lucid sends it by itself after a short pause: the box empties.
+    await page.waitForFunction((sel) => document.querySelector(sel)?.value === "", box, {
+      timeout: 15_000,
+    });
+    rec.mark(`${id}.sent`);
+    await sleep(i === 0 ? 1100 : 900);
+    const said = await page
+      .getByRole("region", { name: "Diagram builder" })
+      .getByRole("status")
+      .innerText({ timeout: 1500 })
+      .catch(() => "");
+    rec.mark(`${id}.settled`, { rects: await rects(page), said: said.replace(/\s+/g, " ").trim() });
+    if (id === "b1" && !(await page.getByRole("region", { name: "Diagram builder" }).isVisible()))
+      throw new Retake("the diagram builder did not open");
+  }
+  await page
+    .locator('.page-editor [data-content-type="diagram"]')
+    .first()
+    .waitFor({ timeout: 30_000 });
+  await sleep(900);
+  rec.mark("builder.inserted", { rects: await rects(page) });
+  await scrollToBlock(page, '.page-editor [data-content-type="diagram"]', 1100, 12);
+  await sleep(700);
+  // The fix by number ("connection 3 is reads and writes") must be in the drawing that went into the page.
+  await page
+    .waitForFunction(
+      () =>
+        /reads and writes/i.test(
+          document.querySelector('.page-editor [data-content-type="diagram"]')?.textContent ?? "",
+        ),
+      null,
+      { timeout: 20_000 },
+    )
+    .catch(() => {
+      throw new Retake("the builder's fix by number did not land");
+    });
+  rec.mark("builder.done", { rects: await rects(page) });
+  extra.steps.push({ id: step.id, phrases: step.phrases.length });
+}
+
 async function session() {
   const { app, page, home } = await launchApp();
   const rec = new Recorder(page, OUT);
@@ -92,6 +143,10 @@ async function session() {
       if (step.mode === "command") await page.keyboard.press(`${key}+2`);
       else await page.keyboard.press(`${key}+1`);
       await sleep(500);
+      if (step.mode === "diagram") {
+        await diagramByVoice(page, rec, step, extra);
+        continue;
+      }
       rec.mark(`${step.id}.mode`, { mode: step.mode });
       await paste(page, step.text);
       rec.mark(`${step.id}.pasted`);
@@ -100,7 +155,7 @@ async function session() {
       const end = rec.mark(`${step.id}.done`, { state: done.state, modelMs: done.modelMs });
       const said = await barText(page);
       await sleep(1300);
-      if (step.id === "d3" || step.id === "d4")
+      if (step.id === "d4")
         await scrollToBlock(page, '.page-editor [data-content-type="diagram"]', 1100, 12);
       else await scrollEditor(page, 0, 600);
       await sleep(700);

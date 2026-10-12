@@ -182,7 +182,12 @@ const previous = existsSync(join(OUT, "manifest.json"))
 const results = new Map(previous.sentences.map((s) => [s.id, s]));
 const best = new Map();
 
-let pending = wanted.filter((s) => !(results.get(s.id)?.accepted === true && s.id !== only));
+// A sentence that was accepted before is kept, unless its text changed since.
+const upToDate = (s) => {
+  const r = results.get(s.id);
+  return r?.accepted === true && r.text === s.text && (r.say ?? null) === (s.say ?? null);
+};
+let pending = wanted.filter((s) => !(upToDate(s) && s.id !== only));
 for (let round = 1; round <= ROUNDS && pending.length > 0; round++) {
   console.log(`round ${round}: ${pending.length} sentence(s)`);
   const made = [];

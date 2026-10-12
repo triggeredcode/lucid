@@ -185,6 +185,12 @@ export async function rects(page) {
       status: first(".dictation [role=status]"),
       undo: first(".dictation [role=status] button"),
       modes: first('[role=group][aria-label="Mode"]'),
+      builder: first('[aria-label="Diagram builder"]'),
+      builderTabs: first('[aria-label="Diagram builder"] [role=tablist]'),
+      numbers: first('[aria-label="Diagram builder"] [aria-label="Numbers"]'),
+      drawing: first('[aria-label="Diagram builder"] .wb-svg'),
+      builderStatus: first('[aria-label="Diagram builder"] [role=status]'),
+      topbar: first("header.topbar"),
     };
   });
 }

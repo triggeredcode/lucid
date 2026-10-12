@@ -10,15 +10,24 @@
       "id": "hook",
       "chapter": null,
       "sentences": [
-        { "id": "hook-1", "text": "I broke my right hand, and typing notes got slow." },
-        { "id": "hook-2", "text": "So I built Lucid, a note editor I can use by voice." }
+        {
+          "id": "hook-1",
+          "text": "I broke my right hand, and typing notes got slow."
+        },
+        {
+          "id": "hook-2",
+          "text": "So I built Lucid, where my voice becomes structured notes, even with one hand."
+        }
       ]
     },
     {
       "id": "speak",
       "chapter": "Say it, or type it",
       "sentences": [
-        { "id": "speak-1", "text": "I say a thought, or I type it." },
+        {
+          "id": "speak-1",
+          "text": "I say a thought, or I type it."
+        },
         {
           "id": "speak-2",
           "text": "Any dictation app that pastes text will do: Wispr Flow, OpenWhispr, or my own VoiceNative.",
@@ -34,14 +43,28 @@
           "id": "structure-1",
           "text": "A model on my own Mac arranges it into a page: a heading, and a list."
         },
-        { "id": "structure-2", "text": "Ask for a comparison, and it builds a table." }
+        {
+          "id": "structure-2",
+          "text": "Ask for a comparison, and it builds a table."
+        }
       ]
     },
     {
       "id": "diagram",
-      "chapter": "Diagrams from words",
+      "chapter": "Diagrams by voice",
       "sentences": [
-        { "id": "diagram-1", "text": "Say how the parts connect, and it draws the diagram." }
+        {
+          "id": "diagram-1",
+          "text": "For a diagram, I say the parts, then how they connect."
+        },
+        {
+          "id": "diagram-2",
+          "text": "Everything has a number, so a fix is one short sentence."
+        },
+        {
+          "id": "diagram-3",
+          "text": "Then I say done, and the diagram is on my page."
+        }
       ]
     },
     {
@@ -52,7 +75,10 @@
           "id": "command-1",
           "text": "Then Command mode. I say: add a cache in front of the database."
         },
-        { "id": "command-2", "text": "The diagram changes, and it is one undo step." }
+        {
+          "id": "command-2",
+          "text": "The diagram changes, and it is one undo step."
+        }
       ]
     },
     {
@@ -88,14 +114,20 @@
           "text": "Lucid is also an MCP server, so an agent can read the page and add to it.",
           "say": "Lucid is also an M C P server, so an agent can read the page and add to it."
         },
-        { "id": "agents-2", "text": "Every agent change shows up in the history." }
+        {
+          "id": "agents-2",
+          "text": "Every agent change shows up in the history."
+        }
       ]
     },
     {
       "id": "outro",
       "chapter": null,
       "sentences": [
-        { "id": "outro-1", "text": "Everything runs on your own computer." },
+        {
+          "id": "outro-1",
+          "text": "Everything runs on your own computer, so it stays private."
+        },
         {
           "id": "outro-2",
           "text": "Lucid is free and open source, on GitHub, under triggeredcode, slash lucid.",

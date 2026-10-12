@@ -12,9 +12,19 @@
       "text": "Compare three ways to make the code in a table. A base 62 counter is easy to guess but never collides. A random code is hard to guess but needs a collision check. A hash of the URL is hard to guess and also needs a collision check."
     },
     {
-      "id": "d3",
-      "mode": "input",
-      "text": "The browser calls a load balancer. The load balancer sends requests to the app servers. The app servers read and write the database."
+      "id": "builder",
+      "mode": "diagram",
+      "phrases": [
+        "diagram mode",
+        "browser, load balancer, app servers, database",
+        "connections",
+        "browser to load balancer",
+        "load balancer to app servers",
+        "app servers to database",
+        "edit",
+        "connection 3 is reads and writes",
+        "done"
+      ]
     },
     {
       "id": "d4",
