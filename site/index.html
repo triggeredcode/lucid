@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Lucid: a structured document, built while you think</title>
+    <title>Lucid: voice to structured notes and diagrams</title>
     <meta
       name="description"
-      content="Say or type your thoughts and Lucid arranges them as headings, lists, tables and diagrams, then typesets a PDF. A local-first app for macOS, Windows and Linux: the language model runs on your own computer."
+      content="Talk, and Lucid builds the headings, lists, tables and diagrams while you think, then typesets a PDF. Made to work hands-free or one-handed. A local-first app for macOS, Windows and Linux: the language model runs on your own computer."
     />
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
@@ -15,10 +15,10 @@
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
     <link rel="canonical" href="https://triggeredcode.github.io/lucid/" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Lucid: a structured document, built while you think" />
+    <meta property="og:title" content="Lucid: voice to structured notes and diagrams" />
     <meta
       property="og:description"
-      content="Headings, lists, tables and diagrams from speech or typing, by a model on your own computer. For macOS, Windows and Linux. Free and open source."
+      content="Talk, and get headings, lists, tables and diagrams, by a model on your own computer. Hands-free or one-handed. For macOS, Windows and Linux. Free and open source."
     />
     <meta property="og:url" content="https://triggeredcode.github.io/lucid/" />
     <meta property="og:image" content="https://triggeredcode.github.io/lucid/og.png" />
@@ -75,10 +75,11 @@
       <div class="hero" id="top">
         <div class="wrap">
           <p class="eyebrow"><i></i> Free and open source · local-first · macOS, Windows, Linux</p>
-          <h1>A structured document, built while you think.</h1>
+          <h1>Voice to structured notes and diagrams.</h1>
           <p class="lead">
-            Say or type your thoughts. Lucid arranges them as headings, lists, tables and diagrams,
-            and typesets them. The language model runs on your own computer, so nothing leaves it.
+            Talk, and Lucid builds the headings, lists, tables and diagrams while you think, then
+            typesets a PDF. Made to work hands-free or one-handed. The language model runs on your
+            own computer, so nothing leaves it.
           </p>
           <div class="cta">
             <a class="btn primary" href="#download" data-cta>
@@ -175,8 +176,47 @@
         </div>
       </section>
 
+      <section class="alt" id="access">
+        <div class="wrap">
+          <div class="head">
+            <p class="kicker">Why it exists</p>
+            <h2>Made so you can take notes without typing.</h2>
+            <p class="section-lead">
+              Lucid began when its author broke their right hand and still wanted to take notes
+              while learning system design. A dictation app gives you a wall of text; Lucid gives
+              you the structure.
+            </p>
+          </div>
+          <div class="facts">
+            <div class="fact reveal">
+              <h3>Speak the notes</h3>
+              <p>
+                Dictate with any app that pastes text. The notes are sent by themselves a moment
+                after you stop, so no Enter is needed.
+              </p>
+            </div>
+            <div class="fact reveal" style="--d: 0.08s">
+              <h3>Speak the changes</h3>
+              <p>
+                “Cross out Memcached.” “Add a CDN in front of the web server.” “Undo.” Hold one key
+                and everything you say is a command. Even diagrams can be said.
+              </p>
+            </div>
+            <div class="fact reveal" style="--d: 0.16s">
+              <h3>Always one step back</h3>
+              <p>
+                Every change by the model is one undo step, so a misheard word costs one “undo”.
+                <a href="https://github.com/triggeredcode/lucid/blob/main/docs/accessibility.md"
+                  >Read more</a
+                >.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- ============ blocks ============ -->
-      <section class="alt" id="blocks">
+      <section id="blocks">
         <div class="wrap">
           <div class="head">
             <p class="kicker">What a page is made of</p>
@@ -305,7 +345,7 @@
       </section>
 
       <!-- ============ how it works ============ -->
-      <section id="how">
+      <section class="alt" id="how">
         <div class="wrap">
           <div class="head">
             <p class="kicker">How it works</p>
@@ -455,7 +495,7 @@
       </section>
 
       <!-- ============ formats ============ -->
-      <section class="alt" id="formats">
+      <section id="formats">
         <div class="wrap">
           <div class="head">
             <p class="kicker">Made for system design, open to other fields</p>
@@ -544,7 +584,7 @@
       </section>
 
       <!-- ============ download ============ -->
-      <section id="download">
+      <section class="alt" id="download">
         <div class="wrap">
           <div class="head">
             <p class="kicker">Download</p>
@@ -840,7 +880,7 @@ pnpm dev</code></pre>
       </section>
 
       <!-- ============ agents + privacy ============ -->
-      <section class="alt" id="agents">
+      <section id="agents">
         <div class="wrap">
           <div class="two">
             <div class="reveal">
@@ -898,11 +938,11 @@ pnpm dev</code></pre>
         </div>
       </section>
 
-      <section id="privacy">
+      <section class="alt" id="privacy">
         <div class="wrap">
           <div class="head">
             <p class="kicker">Privacy</p>
-            <h2>Your notes stay on your Mac.</h2>
+            <h2>Your notes stay on your computer.</h2>
           </div>
           <div class="facts">
             <div class="fact reveal">
@@ -928,7 +968,7 @@ pnpm dev</code></pre>
       </section>
 
       <!-- ============ faq ============ -->
-      <section class="alt" id="faq">
+      <section id="faq">
         <div class="wrap">
           <div class="head">
             <p class="kicker">Questions</p>
