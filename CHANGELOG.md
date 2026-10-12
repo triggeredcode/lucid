@@ -17,7 +17,7 @@ PDFs and dictation can be set up the way you like them, the Mac window is cleane
 ### Changed
 
 - **A clean top of the window on a Mac.** The grey title bar with the name in it is gone: the page's top row takes its place, with the three round buttons at its left. Windows and Linux keep their own window frame.
-- **A short README**, with the details in `docs/` (installing, what Lucid does, the note formats, accessibility, dictation), and a few words on why Lucid exists: so that notes can be taken by voice, or with one hand. The website says the same.
+- **A short README**, with the details in `docs/` (installing, what Lucid does, the note formats, dictation), and, in the README, why I made Lucid: so that notes can be taken by voice, or with one hand. The website says the same.
 - Tables in the PDF are set ragged right with a little more room between rows, and the bars of a chart use the same greys as on screen.
 - Dictation: the docs say that any app that pastes works, and list the free and open-source ones (OpenWhispr, VoiceNative) next to Wispr Flow.
 - The picture of each note format (`docs/format-samples`) is made with the real app, with real diagrams and every section filled.

@@ -92,8 +92,7 @@ plain files in `~/Lucid` (one JSON file per page).
 
 A **note format** is the skeleton of a page. See [formats](formats.md).
 
-## Agents, dictation, accessibility
+## Agents and dictation
 
-- [Dictation](dictation.md): which apps to speak with, and a ten-minute check-list.
-- [Accessibility](accessibility.md): why Lucid exists, and how to use it by voice or with one hand.
+- [Dictation](dictation.md): which apps to speak with, how to use Lucid by voice or with one hand, and a ten-minute check-list.
 - [For AI agents](mcp.md): Lucid is an MCP server.
