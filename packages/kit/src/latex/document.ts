@@ -4,6 +4,13 @@ import { escapeLatex } from "./escape";
 import { inlineToLatex } from "./inline";
 import { inlineToPlain } from "../text";
 import { META_LABEL, type Format } from "../formats/types";
+import {
+  classOptions,
+  preambleLines,
+  resolveStyle,
+  textSize,
+  type ResolvedPdfStyle,
+} from "./style";
 
 export interface DocumentInput {
   title: string;
@@ -19,6 +26,8 @@ export interface DocumentInput {
   figureWidths?: Readonly<Record<string, number>> | undefined;
   /** The natural height in points of each figure that was rendered, by block id. */
   figureHeights?: Readonly<Record<string, number>> | undefined;
+  /** How the PDF looks (paper, text size, typeface, margins, accent, numbering, date); the house style when absent. */
+  style?: Partial<ResolvedPdfStyle> | undefined;
 }
 
 export interface RenderedDocument {
@@ -75,6 +84,8 @@ export function renderDocument(
   input: DocumentInput,
   rendered: Readonly<Record<string, string>> = {},
 ): RenderedDocument {
+  const style = input.style ? { ...resolveStyle({}, "US"), ...input.style } : undefined;
+  const size = style ? textSize(style) : undefined;
   const kept = withoutTitleHeading(input.doc.blocks, input.title);
   const blocks = input.format ? withoutEmptySections(kept) : kept;
   const figures = collectFigures(blocks);
@@ -84,6 +95,7 @@ export function renderDocument(
     figures: known,
     ...(input.figureWidths ? { figureWidths: input.figureWidths } : {}),
     ...(input.figureHeights ? { figureHeights: input.figureHeights } : {}),
+    ...(size ? { textWidth: size.width, textHeight: size.height } : {}),
     headingOffset: headingOffsetOf(blocks),
     ...(input.format
       ? {
@@ -96,13 +108,15 @@ export function renderDocument(
     .map((field) => ({ field, value: (input.info?.[field] ?? "").trim() }))
     .filter((m) => m.value.length > 0)
     .map((m) => `\\lucidmeta{${META_LABEL[m.field]}}{${escapeLatex(m.value)}}`);
+  const titleText = `\\underline{${escapeLatex(input.title.trim() || "Untitled")}}`;
   const tex = [
-    "\\documentclass{article}",
+    style ? `\\documentclass[${classOptions(style)}]{article}` : "\\documentclass{article}",
     "\\usepackage{lucid}",
+    ...(style ? preambleLines(style) : []),
     `\\renewcommand{\\lucidfooterright}{${escapeLatex(input.footerRight ?? "")}}`,
-    `\\title{\\underline{${escapeLatex(input.title.trim() || "Untitled")}}}`,
+    `\\title{${style && style.accent !== "none" ? `\\textcolor{lucidaccent}{${titleText}}` : titleText}}`,
     `\\author{${escapeLatex(input.author ?? "")}}`,
-    "\\date{\\today}",
+    style && !style.showDate ? "\\date{}" : "\\date{\\today}",
     "\\begin{document}",
     "\\maketitle",
     ...meta,

@@ -95,7 +95,7 @@ export function NewPageDialog({ onCreate, onClose }: Props) {
             ref={field}
             rows={2}
             value={about}
-            placeholder="notes on how paged attention saves KV memory…"
+            placeholder="notes on how consistent hashing works…"
             onChange={(e) => {
               setAbout(e.target.value);
             }}
@@ -124,33 +124,46 @@ export function NewPageDialog({ onCreate, onClose }: Props) {
           </span>
         </div>
 
-        <div className="np-formats" role="radiogroup" aria-label="Format">
-          {[
-            { id: BLANK, name: "Blank page", description: "Start empty and write what you like." },
-            ...FORMATS,
-          ].map((f) => (
-            <label key={f.id} className="np-format" data-selected={choice === f.id}>
-              <input
-                type="radio"
-                name="format"
-                value={f.id}
-                checked={choice === f.id}
-                onChange={() => {
-                  touchedChoice.current = true;
-                  setChoice(f.id);
-                }}
-              />
-              <span className="np-name">{f.name}</span>
-              <span className="np-desc">{f.description}</span>
-              {f.id !== BLANK && (
+        <div role="radiogroup" aria-label="Format">
+          <div className="np-formats">
+            {FORMATS.map((f) => (
+              <label key={f.id} className="np-format" data-selected={choice === f.id}>
+                <input
+                  type="radio"
+                  name="format"
+                  value={f.id}
+                  checked={choice === f.id}
+                  onChange={() => {
+                    touchedChoice.current = true;
+                    setChoice(f.id);
+                  }}
+                />
+                <span className="np-name">{f.name}</span>
+                <span className="np-desc">{f.description}</span>
                 <span className="np-sections">
                   {getFormat(f.id)
                     ?.sections.map((s) => s.heading)
                     .join(" · ")}
                 </span>
-              )}
+              </label>
+            ))}
+          </div>
+          <div className="np-blank-row">
+            <label className="np-blank" data-selected={choice === BLANK}>
+              <input
+                type="radio"
+                name="format"
+                value={BLANK}
+                checked={choice === BLANK}
+                onChange={() => {
+                  touchedChoice.current = true;
+                  setChoice(BLANK);
+                }}
+              />
+              Blank page
             </label>
-          ))}
+            <span className="np-blank-hint">or start empty and write what you like</span>
+          </div>
         </div>
 
         <label className="np-title">

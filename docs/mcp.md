@@ -21,7 +21,7 @@ pages, and whatever an agent does is done in the editor you are looking at.
 | `read_document` | A page in full as Lucid Markdown (LMD). |
 | `insert_notes` | Add notes written in LMD at the end, after or before a block, as more items or rows, or in a section. They become typed blocks. |
 | `apply_ops` | Targeted edits with the op language (`graph.insert_between`, `table.add_row`, `set_status` struck or chosen, `replace`, `move`...). All ops apply together or none. |
-| `list_formats` | The note formats (concept note, system design, comparison, inference engineering, benchmark): what each is for, its sections with hints, the fields under the title. |
+| `list_formats` | The note formats (concept note, system design, comparison): what each is for, its sections with hints, the fields under the title. |
 | `create_document` | A new page, blank or of a format. A format page starts as its section headings; add notes under them with `insert_notes` (`position: "section:Setup"`). |
 | `export_pdf` | Typesets a page as a PDF in the house style (diagrams, tables, formulas, the page's format) and saves it in `<library>/exports/`; returns the path (and any warning, such as diagrams left out because a tool is missing). The page is not changed. Takes seconds, up to a minute for a big page. |
 | `describe_kit` | The block types, the LMD language and the op language. Read it once. |
@@ -52,7 +52,7 @@ claude mcp add lucid -e ELECTRON_RUN_AS_NODE=1 -- /opt/Lucid/lucid /opt/Lucid/re
 ```
 
 An AppImage mounts itself at a different place each time it runs, so it has no fixed path for this: use the `.deb`, or unpack
-the AppImage once (`./Lucid-<version>-linux-x64.AppImage --appimage-extract`) and use the `lucid` and `resources/lucid-mcp.mjs`
+the AppImage once (`./Lucid-<version>-linux-x86_64.AppImage --appimage-extract`) and use the `lucid` and `resources/lucid-mcp.mjs`
 inside the `squashfs-root` folder.
 
 Then ask Claude Code, for example: *"Read my open Lucid page and add a Pitfalls section."*

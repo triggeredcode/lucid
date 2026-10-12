@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import { minWidthFor, type Layout } from "../preview/fit";
 import { renderFitted } from "../preview/mermaid";
 import { useWidth } from "../preview/useWidth";
-import { useResolvedTheme } from "../theme/appearance";
+import { useResolvedPageLook } from "../theme/appearance";
 import { isDiagramDraft, type BuilderState } from "./useBuilder";
 import { WorkbenchFrame } from "./WorkbenchFrame";
 
@@ -44,7 +44,7 @@ const PHASES: { phase: Phase; label: string; hint: string }[] = [
 function Canvas({ draft }: { draft: DiagramDraft }) {
   const [layout, setLayout] = useState<Layout | undefined>();
   const [failed, setFailed] = useState(false);
-  const look = useResolvedTheme();
+  const look = useResolvedPageLook();
   const fit = useRef<HTMLDivElement>(null);
   const width = useWidth(fit);
   const source = useMemo(

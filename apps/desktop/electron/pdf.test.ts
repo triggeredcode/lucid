@@ -2,7 +2,7 @@ import { chmod, mkdtemp, readdir, readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { getFormat, registry } from "@lucid/kit";
+import { DEFAULT_PDF_STYLE, LUCID_STY, getFormat, registry } from "@lucid/kit";
 import { describe, expect, it } from "vitest";
 import type { LucidDoc } from "@lucid/core";
 import {
@@ -312,6 +312,80 @@ shellScripts("PdfCompiler with stand-in tools", () => {
     expect(next).toContain("\\author{Asha \\& Co}");
   });
 
+  it("sets the page in the look chosen in Settings, and the next PDF in a changed one", async () => {
+    const t = await script("exit 1");
+    const { c, workRoot } = await compiler(t);
+    await c.compile(req("page-look", "text"));
+    // No look was ever set: the house style, as it always was.
+    expect(await readFile(join(workRoot, "page-look", "main.tex"), "utf8")).toContain(
+      "\\documentclass{article}",
+    );
+    c.setStyle({
+      author: "Asha",
+      footerRight: "Notes",
+      style: { ...DEFAULT_PDF_STYLE, paper: "a4", fontSize: 12, accent: "teal", font: "palatino" },
+    });
+    await c.compile(req("page-look", "text"));
+    const tex = await readFile(join(workRoot, "page-look", "main.tex"), "utf8");
+    expect(tex).toContain("\\documentclass[a4paper,12pt]{article}");
+    expect(tex).toContain("\\setmainfont{texgyrepagella}");
+    expect(tex).toContain("lucidaccent");
+  });
+
+  it("decides the paper from the country when the look says auto", async () => {
+    const t = await script("exit 1");
+    const make = async (country: string) => {
+      const { c, workRoot } = await compiler(t, stubConvert, {
+        style: DEFAULT_PDF_STYLE,
+        country,
+      });
+      await c.compile(req(`page-${country}`, "text"));
+      return readFile(join(workRoot, `page-${country}`, "main.tex"), "utf8");
+    };
+    expect(await make("US")).toContain("\\documentclass[letterpaper]{article}");
+    expect(await make("IN")).toContain("\\documentclass[a4paper]{article}");
+  });
+
+  it("typesets with the person's own template, and with the built-in one when theirs does not work", async () => {
+    // A stand-in engine that fails on a template with BROKEN in it, as LaTeX would on a mistake in the file.
+    const t = await script(
+      'if grep -q BROKEN lucid.sty; then echo "error: lucid.sty:3: Undefined control sequence" >&2; exit 1; fi\nprintf "%%PDF-1.4 fake" > main.pdf',
+    );
+    let mine: string | undefined = "% my template\n\\ProvidesPackage{lucid}";
+    const { c, workRoot } = await compiler(t, stubConvert, {
+      readTemplate: () => Promise.resolve(mine),
+    });
+
+    // Theirs works: it is the file the engine reads, and nothing is said about it.
+    const ok = await c.compile(req("page-tpl"));
+    expect(ok.ok).toBe(true);
+    expect(await readFile(join(workRoot, "page-tpl", "lucid.sty"), "utf8")).toBe(mine);
+    if (ok.ok) expect(ok.warnings).toEqual([]);
+
+    // Theirs has a mistake: the PDF is made with the built-in one, and the person is told why.
+    mine = "% BROKEN";
+    const fallback = await c.compile(req("page-tpl"));
+    expect(fallback.ok).toBe(true);
+    if (fallback.ok) {
+      expect(fallback.warnings.join(" ")).toContain("Your PDF template did not work");
+      expect(fallback.warnings.join(" ")).toContain("built-in style");
+    }
+    expect(await readFile(join(workRoot, "page-tpl", "lucid.sty"), "utf8")).toBe(LUCID_STY);
+
+    // None: the one that comes with Lucid.
+    mine = undefined;
+    await c.compile(req("page-tpl"));
+    expect(await readFile(join(workRoot, "page-tpl", "lucid.sty"), "utf8")).toBe(LUCID_STY);
+  });
+
+  it("does not hide a failure that is the page's: the built-in template fails too", async () => {
+    const t = await script('echo "error: main.tex:7: Undefined control sequence" >&2\nexit 1');
+    const { c } = await compiler(t, stubConvert, { readTemplate: () => Promise.resolve("% mine") });
+    const r = await c.compile(req("page-tpl2"));
+    expect(r.ok).toBe(false);
+    expect(messageOf(r)).toContain("isn't understood");
+  });
+
   it("sets the page in its note format: the fields under the title, and no empty sections", async () => {
     const t = await script("exit 1");
     const { c, workRoot } = await compiler(t);
@@ -326,25 +400,25 @@ shellScripts("PdfCompiler with stand-in tools", () => {
       title: "Q",
       doc: {
         blocks: [
-          heading("a", "Goal and hypothesis"),
+          heading("a", "Context"),
           {
             id: "p",
             type: "paragraph",
             props: {},
-            content: [{ type: "text", text: "Does it?", styles: {} }],
+            content: [{ type: "text", text: "Which queue?", styles: {} }],
           },
-          heading("b", "Setup"),
+          heading("b", "Options"),
         ],
       },
       figures: {},
-      format: getFormat("benchmark"),
-      info: { hardware: "M4 Max", source: "ignored" },
+      format: getFormat("comparison"),
+      info: { date: "2026-10-12", hardware: "ignored" },
     });
     const tex = await readFile(join(workRoot, "page-7", "main.tex"), "utf8");
-    expect(tex).toContain("\\lucidmeta{Hardware}{M4 Max}");
+    expect(tex).toContain("\\lucidmeta{Date}{2026-10-12}");
     expect(tex).not.toContain("ignored");
-    expect(tex).toContain("{Goal and hypothesis}");
-    expect(tex).not.toContain("{Setup}");
+    expect(tex).toContain("{Context}");
+    expect(tex).not.toContain("{Options}");
   });
 
   it("writes main.tex, the style and one work folder per page", async () => {

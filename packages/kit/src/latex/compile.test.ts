@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { registry } from "../defaultRegistry";
 import { FORMATS, skeleton, type Format } from "../formats";
-import { LUCID_STY, renderDocument } from "./index";
+import { FONTS, LUCID_STY, renderDocument, type ResolvedPdfStyle } from "./index";
 
 // Integration: every block type's fixtures, with figures, compile to a real PDF with Tectonic (skipped when the tools are
 // not installed). This is what proves the LaTeX the model's content turns into is valid.
@@ -22,7 +22,13 @@ function compile(
   title: string,
   blocks: ReturnType<typeof registry.validateBlock>[],
   extraSty = "",
-  style: { format?: Format; info?: Record<string, string> } = {},
+  style: {
+    format?: Format;
+    info?: Record<string, string>;
+    figureWidths?: Record<string, number>;
+    figureHeights?: Record<string, number>;
+    style?: Partial<ResolvedPdfStyle>;
+  } = {},
 ): { pdf: string; text: string } {
   const dir = mkdtempSync(join(tmpdir(), "lucid-tex-"));
   mkdirSync(join(dir, "figures"));
@@ -35,7 +41,9 @@ function compile(
   });
   const rendered: Record<string, string> = {};
   for (const f of first.figures) {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="120" xml:space="preserve"><rect width="400" height="120" fill="white" stroke="black"/><text x="20" y="65" font-size="18" font-family="Helvetica">${f.kind} ${f.blockId}</text></svg>`;
+    const w = style.figureWidths?.[f.blockId] ?? 400;
+    const h = style.figureHeights?.[f.blockId] ?? 120;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${String(w)}" height="${String(h)}" xml:space="preserve"><rect width="${String(w)}" height="${String(h)}" fill="white" stroke="black"/><text x="20" y="65" font-size="18" font-family="Helvetica">${f.kind} ${f.blockId}</text></svg>`;
     writeFileSync(join(dir, f.file.replace(".pdf", ".svg")), svg);
     execFileSync(RSVG, [
       "-f",
@@ -111,6 +119,126 @@ describe.skipIf(!have)("LaTeX compiles with Tectonic", () => {
   }, 300_000);
 });
 
+const PDFFONTS = "/opt/homebrew/bin/pdffonts";
+const haveFonts = have && existsSync(PDFFONTS);
+
+describe.skipIf(!haveFonts)("PDF style choices compile with Tectonic", () => {
+  const fixture = (type: "table") => {
+    const found = registry.get(type).fixtures[0];
+    if (!found) throw new Error(`no ${type} fixture`);
+    return found;
+  };
+  const blocks = () => {
+    return [
+      registry.validateBlock({
+        id: "h1",
+        type: "heading",
+        props: { level: 1 },
+        content: [{ type: "text", text: "Caching strategies", styles: {} }],
+      }),
+      registry.validateBlock({
+        id: "p1",
+        type: "paragraph",
+        props: {},
+        content: [
+          {
+            type: "text",
+            text: "Hot keys stay in memory so most reads never reach the database.",
+            styles: {},
+          },
+        ],
+      }),
+      registry.validateBlock(fixture("table")),
+    ];
+  };
+  const fontsOf = (pdf: string): string => execFileSync(PDFFONTS, [pdf], { encoding: "utf8" });
+  const FONT_FILES = {
+    "latin-modern": "LMRoman",
+    palatino: "TeXGyrePagella",
+    times: "TeXGyreTermes",
+    helvetica: "TeXGyreHeros",
+  } as const;
+
+  for (const font of FONTS) {
+    it(`${font}: the typeface is embedded in the PDF`, () => {
+      const { pdf } = compile("Fonts", blocks(), "", { style: { font } });
+      expect(fontsOf(pdf)).toContain(FONT_FILES[font]);
+    }, 300_000);
+  }
+
+  it("paper, text size, margins, accent and numbering all at once", () => {
+    const { pdf, text } = compile("Everything", blocks(), "", {
+      style: {
+        paper: "a4",
+        fontSize: 12,
+        font: "palatino",
+        margins: "narrow",
+        accent: "teal",
+        numberedHeadings: false,
+        showDate: false,
+      },
+    });
+    expect(text).toContain("Caching strategies");
+    // No section number in front of the heading, and no date.
+    expect(text).not.toMatch(/1\s+Caching strategies/);
+    expect(text).not.toMatch(
+      /(January|February|March|April|May|June|July|August|September|October|November|December) \d/,
+    );
+    const size = execFileSync("/opt/homebrew/bin/pdfinfo", [pdf], { encoding: "utf8" });
+    expect(size).toMatch(/Page size:\s+595\.\d+ x 841\.\d+ pts \(A4\)/);
+  }, 300_000);
+
+  it("the numbers and the date are there by default", () => {
+    const { text } = compile("Defaults", blocks(), "", { style: {} });
+    expect(text).toMatch(/1\s+Caching strategies/);
+    expect(text).toMatch(
+      /(January|February|March|April|May|June|July|August|September|October|November|December) \d/,
+    );
+  }, 300_000);
+});
+
+describe.skipIf(!have)("a tall diagram", () => {
+  it("never leaves an empty page behind (a diagram almost as tall as the page cannot share it with a heading)", () => {
+    const words = (n: number) => "Words that fill the first page of the note. ".repeat(n);
+    const para = (id: string, text: string) =>
+      registry.validateBlock({
+        id,
+        type: "paragraph",
+        props: {},
+        content: [{ type: "text", text, styles: {} }],
+      });
+    const heading = (id: string, text: string) =>
+      registry.validateBlock({
+        id,
+        type: "heading",
+        props: { level: 2 },
+        content: [{ type: "text", text, styles: {} }],
+      });
+    const fixture = registry.get("diagram").fixtures[0];
+    if (!fixture) throw new Error("no diagram fixture");
+    const diagram = registry.validateBlock({ ...fixture, id: "tall" });
+    const blocks = [
+      heading("h1", "Intuition"),
+      para("p1", words(60)),
+      heading("h2", "How it works"),
+      diagram,
+      para("p2", "The steps, one by one."),
+    ];
+    // 296 x 546 pt: what a five-box flowchart drawn top to bottom measures.
+    const { pdf } = compile("Tall", blocks, "", {
+      figureWidths: { tall: 296 },
+      figureHeights: { tall: 546 },
+    });
+    const pages = execFileSync(PDFTOTEXT, [pdf, "-"], { encoding: "utf8" }).split("\f");
+    pages.pop(); // the text after the last form feed
+    expect(pages.length).toBeGreaterThanOrEqual(2);
+    for (const [i, page] of pages.entries()) {
+      const body = page.replace(/Page \d+/, "").trim();
+      expect(body.length, `page ${String(i + 1)} is empty`).toBeGreaterThan(20);
+    }
+  }, 300_000);
+});
+
 /** A page of each note format with a few sections filled in and the rest left empty, as a person leaves them. */
 function filled(format: Format) {
   const para = (text: string) => ({
@@ -142,15 +270,6 @@ function filled(format: Format) {
       registry.validateBlock(para("Choosing a store for the session data.")),
       registry.validateBlock(fx("table", "fx-table-1")),
     ],
-    "inference-math": [
-      registry.validateBlock(para("The KV cache grows with every token.")),
-      registry.validateBlock(fx("math", "fx-math-1")),
-      registry.validateBlock(fx("table", "fx-table-1")),
-    ],
-    benchmark: [
-      registry.validateBlock(para("Does batching raise throughput without hurting p50 latency?")),
-      registry.validateBlock(fx("table", "fx-table-1")),
-    ],
   };
   // Fill sections 1, 3 and 5; leave the others as empty headings.
   const sections = [0, 2, 4];
@@ -175,10 +294,7 @@ describe.skipIf(!have)("every note format compiles with Tectonic", () => {
         date: "October 2026",
         hardware: "Apple M4 Max, 64 GB",
       };
-      const { text, pdf } = compile(`${format.name} sample`, blocks, "", { format, info });
-      // `LUCID_SAMPLES_DIR=docs/format-samples pnpm exec vitest run --project @lucid/kit compile` keeps the PDFs to look at.
-      const keep = process.env["LUCID_SAMPLES_DIR"];
-      if (keep) execFileSync("cp", [pdf, join(keep, `format-${format.id}.pdf`)]);
+      const { text } = compile(`${format.name} sample`, blocks, "", { format, info });
       expect(text).toContain(`${format.name} sample`);
       // The first section heading is printed, an unfilled one is not.
       expect(text).toContain(format.sections[0]?.heading ?? "?");

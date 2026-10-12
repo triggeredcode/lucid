@@ -5,9 +5,9 @@
 <h1 align="center">Lucid</h1>
 
 <p align="center">
-  <b>A structured document, built while you think.</b><br />
-  Say or type your thoughts. Lucid arranges them as headings, lists, tables and diagrams, and typesets them.<br />
-  A local-first note editor for macOS, Windows and Linux: the language model runs on your own computer.
+  <b>Voice to structured notes and diagrams.</b><br />
+  Talk, and Lucid builds the headings, lists, tables and diagrams while you think, then typesets a PDF.<br />
+  Made to work hands-free or one-handed, and local-first: the language model runs on your own computer.
 </p>
 
 <p align="center">
@@ -25,206 +25,169 @@
 </p>
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/images/lucid-dark.png" />
-    <img alt="Lucid: a page of notes with a diagram, the list of changes on the right and the input box at the bottom" src="docs/images/lucid-light.png" width="900" />
-  </picture>
+  <img alt="Lucid in a dark app with a light page: a page of notes with a diagram, the list of changes on the right and the input box at the bottom" src="docs/images/readme/page-look-light-page.png" width="900" />
 </p>
 
-## The idea
+## Why I made it
 
-Engineers think in structure. A system design is an outline of sections and sub-sections, a list of options with the rejected
-ones crossed out, a table that compares them and a diagram of how the parts connect. Lucid builds exactly that document while
-you think out loud, so you never stop to format. It was made for system-design notes, and it is open to any subject that
-fits the same shapes: the [note formats](#made-for-system-design-open-to-other-fields) are plain data you can change or extend.
+For a while I couldn't type comfortably, so I built Lucid for myself: a productivity and accessibility tool for taking notes and
+learning system design by voice, or with one hand.
+
+I learn by thinking out loud and want to see it as I say it: the diagram when I explain a system, the notes taking shape, and a
+way to cut what I got wrong. I couldn't find one open-source project that turns speech into something *structured*, so I built it.
+
+This first version doesn't listen by itself. You dictate with an app that pastes text, like [Wispr Flow](https://wisprflow.ai),
+[OpenWhispr](https://github.com/OpenWhispr/openwhispr) or [VoiceNative](https://github.com/triggeredcode/voicenative) (my own,
+for macOS), and Lucid turns what lands in the box into the page.
+
+## How it works
 
 ```mermaid
 flowchart LR
-  say["You say or type<br/>'Options are Redis and Memcached…'"] --> model["A local model<br/>(LM Studio)"]
-  model --> page
-  subgraph page["A Lucid page"]
-    direction TB
-    H["Heading<br/>## High-level design"] --> SH["Subheading<br/>### Data model"]
-    H --> D["Diagram<br/>components and connections"]
-    SH --> L["List<br/>options, rejected ones crossed out"]
-    SH --> T["Table<br/>option against option"]
-  end
-  page --> out["PDF · Markdown<br/>.lucid file · AI agents"]
+  you["You, by voice or keyboard"] --> box["The input box"]
+  box --> model["A local model in LM Studio<br/>(for example Qwen 3.8)<br/>sees the page and its history"]
+  model --> page["Blocks on your page:<br/>headings, lists, tables, diagrams"]
+  page --> history["The history keeps what you said,<br/>what was understood, what changed"]
 ```
 
-Everything on a page is a **typed block**. The model only chooses which block fits what you said and fills it in; Lucid draws
-and typesets it, so the result looks the same every time.
+The model runs on your own computer, because you talk a lot and change a lot, and a local model keeps that cheap. It always has
+the page in front of it, so it puts what you said under the right heading and builds the right kind of block. Every change is one
+undo step, and your words are never lost.
 
-| Block | What it holds | How it is drawn |
-|---|---|---|
-| **Heading, subheading** | the outline: title, sections, sub-sections | numbered sections in the PDF |
-| **List** | options, steps, trade-offs; bullets, numbered steps and checklists, each item on its own so one can be crossed out | bullets, struck-through when rejected |
-| **Table** | a comparison: properties by options | a typeset table |
-| **Diagram** | how parts connect: architecture, request flow, sequence, entities | drawn from components and connections, a database as a cylinder, a queue as a pipe |
-| **Callout** | the key takeaway, a decision, a trade-off, a warning, an open question | a highlighted box |
-| **Formula** | back-of-the-envelope maths (KV-cache size, FLOPs, bandwidth) | typeset LaTeX maths |
-| **Chart** | numbers you dictated: bars or lines | a labelled chart |
-| **Code** | an API request, a query, a shell command | a code listing |
+## Diagram mode: keywords, connections, editing
 
-What stays true whatever you say:
+A diagram of ten parts is hard to say in one breath, so a guided builder has three phases: the **keywords** (the parts), the
+**connections** (how they link, one at a time) and **editing** (everything is numbered, so a fix is one sentence: *"rename 3 to
+Cache"*). Say *"done"* and the diagram goes onto your page. A database is drawn as a cylinder, a queue as a pipe, a CDN as a
+cloud.
 
-- **The model never writes LaTeX or drawing code.** It fills blocks; a fixed house style does the typography.
-- **You stay in charge.** Every change by the model is exactly one undo step, any earlier change can be reverted on its own,
-  and your words are never lost: if the model cannot use them, they are kept as written.
-- **One view.** The page, one input box under it, an optional history panel. It scales to a full-screen window.
-- **Voice or keyboard.** Dictate with [Wispr Flow](https://wisprflow.ai) (optional) or just type. Lucid takes the text from
-  there.
-- **A toolbox for AI agents.** An MCP server lets Claude Code, or a model in LM Studio's chat, read and edit the same blocks.
+<table>
+  <tr>
+    <td width="33%" align="center">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/images/readme/builder-keywords-dark.png" />
+        <img alt="Diagram mode, phase 1: the keywords, the parts of the system, numbered" src="docs/images/readme/builder-keywords.png" />
+      </picture>
+      <br /><sub><b>1. Keywords</b></sub>
+    </td>
+    <td width="33%" align="center">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/images/readme/builder-connections-dark.png" />
+        <img alt="Diagram mode, phase 2: the connections between the parts, numbered" src="docs/images/readme/builder-connections.png" />
+      </picture>
+      <br /><sub><b>2. Connections</b></sub>
+    </td>
+    <td width="33%" align="center">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/images/readme/builder-edit-dark.png" />
+        <img alt="Diagram mode, phase 3: editing by number" src="docs/images/readme/builder-edit.png" />
+      </picture>
+      <br /><sub><b>3. Editing</b></sub>
+    </td>
+  </tr>
+</table>
+
+## Command mode: talk to the page
+
+The model has the whole page in context, so you can talk about it: *"add a cache in front of the database"*, *"cross out
+Memcached, we are choosing the local LRU"*, *"add a row for cost to this table"*, *"undo"*. A crossed-out idea stays on the page,
+struck through. Hold the right ⌥ key and everything you say is one command, which works with one hand.
+
+## History, edit mode and how well it works
+
+The history keeps what you said and what changed, so you can see why a page looks the way it does, take back any single change,
+or edit what you said and send it again. When the model gets something wrong, **Edit mode** lets you type in the page.
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/readme/block-numbers-dark.png" />
+    <img alt="Block numbers in the page margin; block 4, a diagram, lists its numbered parts and connections" src="docs/images/readme/block-numbers.png" width="820" />
+  </picture>
+</p>
+
+I score the model on my own set of cases ([docs/evals.md](docs/evals.md)) with a bar of 90%; the latest run got 98 of 99. To get
+the most from it, say things in short pieces, use diagram mode for diagrams and command mode to change the page.
+
+## Keep your notes
+
+- **PDF**, typeset on your computer with real diagrams; Settings → **PDF look** sets paper, type, margins and accent colour, and you
+  can edit the template.
+- **A whole note**, with its history, to back up or move, and **Markdown**.
+- **Three note formats** (concept note, system design, comparison) or a blank page; formats are plain data. [See them](docs/formats.md).
+- **The page has its own light and dark**, apart from the app's.
+
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/images/readme/new-page-dark.png" />
+        <img alt="The New page dialog: three note formats and a small Blank page button" src="docs/images/readme/new-page.png" />
+      </picture>
+      <br /><sub><b>Start from a format, or a blank page</b></sub>
+    </td>
+    <td width="50%" align="center">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="docs/images/readme/export-note-dark.png" />
+        <img alt="The Export note dialog" src="docs/images/readme/export-note.png" />
+      </picture>
+      <br /><sub><b>Export a whole note, with its history</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" align="center">
+      <img alt="A light app with a dark page" src="docs/images/readme/page-look-dark-page.png" width="700" />
+      <br /><sub><b>A dark page in a light app (the first picture is the other way round)</b></sub>
+    </td>
+  </tr>
+</table>
+
+## Built-in MCP server
+
+An AI agent such as Claude Code can read your pages and add to them. Each change is one undo step and shows in the history as the
+agent's. Tools and set-up: [docs/mcp.md](docs/mcp.md).
 
 ## Install
 
-Lucid runs on **macOS** (Apple Silicon, macOS 13 or newer), **Windows** (Windows 10 or newer, 64-bit) and **Linux** (64-bit).
-The [website](https://triggeredcode.github.io/lucid/#download) offers the right download for your computer; they are all on the
-[latest release](https://github.com/triggeredcode/lucid/releases/latest):
+| System | Download |
+|---|---|
+| **macOS** (Apple Silicon, macOS 13+) | `Lucid-<version>-mac-arm64.dmg` |
+| **Windows** (10+, 64-bit) | `Lucid-<version>-win-x64.exe` |
+| **Linux** (64-bit) | `Lucid-<version>-linux-amd64.deb` or `Lucid-<version>-linux-x86_64.AppImage` |
 
-| System | Download | Notes |
-|---|---|---|
-| **macOS** | `Lucid-<version>-mac-arm64.dmg` (or `.zip`) | Apple Silicon, macOS 13 or newer |
-| **Windows** | `Lucid-<version>-win-x64.exe` installer (or the portable `.zip`) | Windows 10 or newer, 64-bit |
-| **Linux** | `Lucid-<version>-linux-amd64.deb`, or `Lucid-<version>-linux-x64.AppImage` | 64-bit; the `.deb` is for Debian and Ubuntu |
-
-1. **Install it.**
-   - **macOS:** open the `.dmg` and drag **Lucid** to **Applications**. macOS will say it cannot check the app for malicious
-     software, because Lucid is a free open-source app that is not notarized by Apple. Allow it once: on macOS 15 and newer,
-     open **System Settings → Privacy & Security**, scroll to the message about Lucid and click **Open Anyway**; on macOS 13 and
-     14, right-click Lucid in Applications, choose **Open**, then **Open** again. Or in Terminal:
-     `xattr -dr com.apple.quarantine /Applications/Lucid.app`
-   - **Windows:** run the installer. It installs Lucid for you (no administrator needed) and starts it. Lucid is not signed,
-     so Windows SmartScreen may say "Windows protected your PC": click **More info**, then **Run anyway**. To remove it:
-     Settings → Apps → Lucid.
-   - **Linux:** `sudo apt install ./Lucid-<version>-linux-amd64.deb` (then start **Lucid** from the menu, or `lucid`), or with the
-     AppImage: `chmod +x Lucid-<version>-linux-x64.AppImage && ./Lucid-<version>-linux-x64.AppImage`. On Ubuntu 24.04 and newer an
-     AppImage can stop with a sandbox message: use the `.deb`, or start the AppImage with `--no-sandbox`.
-2. Install [LM Studio](https://lmstudio.ai) (it runs on all three systems), download the model **`qwen/qwen3.8-27b`**, and
-   start its local server (Developer tab). Lucid's pill at the top says what is missing and can load the model for you.
-
-Each release lists SHA-256 checksums (`SHA256SUMS`). To check a download, run `shasum -a 256 --ignore-missing -c SHA256SUMS` in
-the folder with both files (macOS, Linux), or `Get-FileHash .\Lucid-<version>-win-x64.exe -Algorithm SHA256` in PowerShell and
-compare. The source is here; you can [build the app yourself](#build-from-source).
-
-**Good to know**
-
-- Nothing else needs installing: the PDF engine ([Tectonic](https://tectonic-typesetting.github.io)) and the diagram
-  drawing come with the app, on every system.
-- **The first PDF needs the internet, once.** Tectonic downloads its typesetting files the first time it runs (several hundred
-  small ones, about five minutes). Lucid does it in the background after the first start and shows the progress next to
-  *Download PDF*. After that PDFs take a second or two and work offline.
-- Every build is tested on GitHub's own macOS, Windows and Ubuntu machines before a release (it starts, makes a PDF with a
-  diagram, and connects an AI agent). The Mac version has had the most everyday use: please
-  [report](https://github.com/triggeredcode/lucid/issues/new/choose) what is off on Windows or Linux.
-- Lucid is evaluated with `qwen/qwen3.8-27b` only. Another model can be named in Settings, but expect more misses. A 27B
-  model needs a lot of memory; Lucid was developed on a Mac with 48 GB.
-- On Windows and Linux the shortcuts use **Ctrl** where this page says ⌘ (⌘1 is Ctrl+1), and **Alt** where it says ⌥.
+Get them from the [latest release](https://github.com/triggeredcode/lucid/releases/latest) or the
+[website](https://triggeredcode.github.io/lucid/#download), which picks the right one for your computer. The apps are free and
+not signed, so macOS and Windows ask once before opening them; the steps, the checksums and the model set-up are in
+[docs/install.md](docs/install.md). You also need [LM Studio](https://lmstudio.ai) with the model `qwen/qwen3.8-27b`.
 
 ## Quick start
 
-1. Click **New page**, or **New from a format…** to start from one of five note formats.
+1. Click **New page**, or **New from a format…** to start from one of three note formats, or from a blank page.
 2. Type or dictate notes in the box at the bottom: *"A cache hit costs microseconds, a miss costs a database round trip.
    Options are Redis, Memcached and a local LRU."* They appear on the page, structured, a few seconds later.
 3. Switch to **Command** (⌘2) and talk about the page: *"Cross out Memcached, we are choosing the local LRU."*
-   *"Add a row for cost to this table."*
-4. **Download PDF** when it looks right. **Edit** (⌘3) is there for the few things the model gets wrong.
+4. **Download PDF** when it looks right.
 
-The full walkthrough is the user guide: **Help → Lucid Guide** in the app, or [`docs/guide.html`](docs/guide.html).
+To dictate, use any app that pastes text: [Wispr Flow](https://wisprflow.ai),
+[OpenWhispr](https://github.com/OpenWhispr/openwhispr) (free, open source) or
+[VoiceNative](https://github.com/triggeredcode/voicenative) (free, macOS). See [docs/dictation.md](docs/dictation.md).
 
-## What it does
+## Learn more
 
-### Three modes, one box
+| | |
+|---|---|
+| [User guide](docs/guide.html) | the whole app on one page (also in the app: Help → Lucid Guide) |
+| [What Lucid does](docs/features.md) | typed blocks, three modes, diagrams and tables by voice, history, export and the PDF look |
+| [Note formats](docs/formats.md) | the three formats, with the PDF of a sample of each |
+| [Dictation](docs/dictation.md) | which apps to speak with, using Lucid by voice or with one hand, and a ten-minute check-list |
+| [For AI agents](docs/mcp.md) | the MCP tools and how to connect Claude Code |
+| [Installing](docs/install.md) | steps for each system, checksums, troubleshooting |
+| [Architecture](docs/architecture.md) · [Evals](docs/evals.md) | how it fits together; how the model is scored |
 
-| Mode | Your words are | Switch |
-|---|---|---|
-| **Input** | notes, written into the page and structured | ⌘1 |
-| **Command** | instructions about the page: "add a CDN in front of the web server", "undo" | ⌘2, or hold the right ⌥ key for one command |
-| **Edit** | typing in the page itself | ⌘3 |
+## Contributing
 
-⌘4 opens the diagram builder and ⌘5 the table builder. Changes that would throw something away wait for a yes; when Lucid
-is unsure which thing you mean, it asks.
-
-### Diagrams and tables by voice
-
-A diagram of ten parts is hard to say in one breath, so there is a guided builder: say the **components**, then the
-**connections** ("client to server"), then fix them **by number** ("rename 3 to Cache", "reverse 2"). A database is drawn as a
-cylinder, a queue as a pipe, a CDN as a cloud, a load balancer as a hexagon. Big diagrams stay readable in the page and in the
-PDF.
-
-<p align="center">
-  <img alt="The diagram builder: numbered components and connections beside the drawing" src="docs/images/diagram-builder.png" width="820" />
-</p>
-
-### Say which block you mean
-
-Every block has a light number in the margin (B1, B2, …). Click one to see its parts, then say *"in block 3, add a row for
-cost"* or *"cross out item 2 of block 6"*. The numbers can be hidden in Settings.
-
-<p align="center">
-  <img alt="Block numbers in the page margin; block 4, a diagram, lists its numbered parts and connections" src="docs/images/block-numbers.png" width="820" />
-</p>
-
-### History you can trust
-
-The panel on the right lists what you said and every change to the page: by Lucid, by a builder, by an AI agent, or a revert.
-**Show** scrolls to what a change touched. **Revert** takes back *one earlier* change, not just the last, and leaves later
-changes to other blocks alone.
-
-### Export
-
-Dictation is placed under the section it belongs to ("the options are Kafka and SQS" goes under *Options*). Export as:
-
-- **PDF**, typeset with Tectonic in a fixed house style (numbered sections, real tables and figures, formulas);
-- **Markdown** (diagrams as Mermaid blocks);
-- **A `.lucid` file**, the whole note with its history, to back up, move to another computer or share.
-
-<p align="center">
-  <img alt="A page of the exported PDF: a numbered section, a diagram and a footer" src="docs/images/pdf-page.png" width="420" />
-</p>
-
-Light and dark themes, three typefaces, and a zoom for the page (⌘+, ⌘−, ⌘0) are in the app. Pages are plain files in
-`~/Lucid` (one JSON file per page).
-
-## Made for system design, open to other fields
-
-A **note format** is the skeleton of a page: its sections, a hint for each saying what belongs there, and which blocks suit it.
-Start a page from one with **New from a format…**; Lucid suggests one from what you say, and you always choose.
-
-| Format | For | Sections |
-|---|---|---|
-| **Concept note** | one computer-science or system-design idea | Definition · Intuition · How it works · Example · Pitfalls and gotchas · Related concepts |
-| **System design** | designing a system end to end | Requirements · Capacity estimates · API · High-level design · Data model · Deep dives · Trade-offs and decisions · Open questions |
-| **Comparison** | choosing between technologies | Context · Options · Comparison · Pros and cons · Decision |
-| **Inference engineering** | KV cache, FLOPs, bandwidth, batching | Intuition · The math · Numbers to remember · Hardware implications · Pitfalls |
-| **Benchmark** | recording an experiment | Goal and hypothesis · Setup · Method · Results · Observations · Next experiments |
-
-The formats lean towards engineering because that is what Lucid was made for, but nothing else in Lucid does. A format is a
-small data entry in [`packages/kit/src/formats/index.ts`](packages/kit/src/formats/index.ts): an id, a description, keywords
-for the suggestion, the sections and the blocks that suit them. A lab notebook, a reading log or a study plan is one more
-entry. New block types (one folder each) work the same way. See [`CONTRIBUTING.md`](CONTRIBUTING.md).
-
-## For AI agents
-
-Lucid is also an MCP server. With the app running, Claude Code can read and edit your pages:
-
-```bash
-claude mcp add lucid -e ELECTRON_RUN_AS_NODE=1 -- /Applications/Lucid.app/Contents/MacOS/Lucid /Applications/Lucid.app/Contents/Resources/lucid-mcp.mjs
-```
-
-Every agent change is one undo step and appears in the history as the agent's. The tools, the LM Studio set-up and what can go
-wrong are in [`docs/mcp.md`](docs/mcp.md).
-
-## Privacy
-
-Lucid has no account, no analytics and no cloud service. Your notes are files on your disk, and the language model runs in
-LM Studio on your computer. The only time Lucid's own PDF engine uses the internet is the one-time download of typesetting
-files described above. If you dictate with Wispr Flow, that is a separate app with its own privacy terms; Lucid only sees the
-text it pastes.
-
-## Build from source
-
-You need macOS (Apple Silicon), Windows or Linux (x64), Node 22.12 or newer, and [pnpm](https://pnpm.io) 9.
+Issues and pull requests are welcome. Set-up, the commands, the rules the code keeps, and how to add a note format or a block
+type are in [CONTRIBUTING.md](CONTRIBUTING.md); security problems go through [SECURITY.md](SECURITY.md). Changes are listed in
+the [changelog](CHANGELOG.md).
 
 ```bash
 git clone https://github.com/triggeredcode/lucid.git
@@ -234,50 +197,9 @@ node scripts/fetch-tectonic.mjs   # the PDF engine, checked against a pinned SHA
 pnpm dev
 ```
 
-| Command | |
-|---|---|
-| `pnpm test` | unit tests (all packages) |
-| `pnpm e2e` | Electron end-to-end tests with a fake LM Studio, in a maximized window (written and run on a Mac) |
-| `pnpm run ci` | typecheck, lint, formatting and unit tests |
-| `pnpm eval` | 74 cases (and their variants) against the real model in LM Studio; see [`docs/evals.md`](docs/evals.md) |
-| `pnpm dist` | builds the installers for the system it runs on into `apps/desktop/release/`: a `.dmg` and `.zip` (macOS), an installer and `.zip` (Windows), an `.AppImage` and `.deb` (Linux) |
-| `pnpm e2e:packaged` | runs the end-to-end tests against the built app, on any of the three systems (after `pnpm dist:dir`) |
-
-The repository is a pnpm workspace:
-
-| | |
-|---|---|
-| `packages/core` | pure TypeScript: the document model, the op language, the guided builders, persistence. No DOM, no network. |
-| `packages/kit` | the block kit: block types, note formats, Markdown and LaTeX output, diagram layout |
-| `packages/llm` | the LM Studio client and the prompts |
-| `packages/mcp` | the MCP server for agents |
-| `packages/evals` | the eval cases and runner |
-| `packages/mock-lmstudio` | a scripted LM Studio for tests |
-| `apps/desktop` | the Electron app (React and [BlockNote](https://www.blocknotejs.org)) |
-
-Unit, integration and end-to-end tests never need LM Studio: they use the scripted server. More in
-[`CONTRIBUTING.md`](CONTRIBUTING.md) and [`docs/architecture.md`](docs/architecture.md).
-
-## Troubleshooting
-
-| You see | Do |
-|---|---|
-| *LM Studio isn't running* | Start LM Studio and its local server, then click **Check again**. |
-| *No model loaded* | Click **Load …** in the pill, or `lms load qwen/qwen3.8-27b --context-length 32768 --parallel 1 -y`. |
-| A request takes 10 to 25 seconds | Normal for a 27B model on a laptop; the first request after a change is the slowest. |
-| *Getting the PDF engine ready…* | Normal on the first start: wait, it counts the files. A PDF you ask for meanwhile waits for it. |
-| Words were kept as *unprocessed* | The model could not use them; they are kept as written. Say them again, or fix them in Edit mode. |
-| Dictation does nothing | Is Lucid the focused window? A paste goes to the input box wherever the focus is in the window. |
-
-More in the guide. Something else? [Open an issue](https://github.com/triggeredcode/lucid/issues/new/choose).
-
-## Contributing and security
-
-Issues and pull requests are welcome; read [`CONTRIBUTING.md`](CONTRIBUTING.md) first. Report security problems privately, as
-described in [`SECURITY.md`](SECURITY.md). Changes are listed in [`CHANGELOG.md`](CHANGELOG.md).
-
 ## Licence
 
-[MIT](LICENSE). Lucid is built on open-source software; see [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md). Special thanks
-to [BlockNote](https://www.blocknotejs.org), [Mermaid](https://mermaid.js.org), [Tectonic](https://tectonic-typesetting.github.io),
-[Electron](https://www.electronjs.org) and [iA Writer Mono](https://github.com/iaolo/iA-Fonts).
+[MIT](LICENSE). Lucid is built on open-source software; the list of what it bundles and their licences comes with the app
+(Help, Licences of the Software Lucid Uses). Special thanks to [BlockNote](https://www.blocknotejs.org),
+[Mermaid](https://mermaid.js.org), [Tectonic](https://tectonic-typesetting.github.io), [Electron](https://www.electronjs.org)
+and [iA Writer Mono](https://github.com/iaolo/iA-Fonts).

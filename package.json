@@ -1,6 +1,6 @@
 {
   "name": "lucid",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "A structured document built while you think: headings, lists, tables and diagrams from speech or typing, with a local model. A toolbox for AI agents.",
   "type": "module",
@@ -23,7 +23,6 @@
     "ci": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
     "mcp:build": "pnpm --filter @lucid/mcp bundle",
     "notices": "node scripts/notices.mjs",
-    "notices:check": "node scripts/notices.mjs --check",
     "eval": "node packages/evals/scripts/eval.mjs",
     "dist": "pnpm --filter @lucid/desktop dist",
     "e2e:packaged": "pnpm --filter @lucid/desktop e2e:packaged",

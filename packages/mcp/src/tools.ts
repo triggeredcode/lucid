@@ -254,7 +254,7 @@ export const TOOLS: ToolDef[] = [
     name: "list_formats",
     title: "List the note formats",
     description:
-      "The note formats a page can have (concept note, system design, comparison, inference engineering, benchmark): what each is for, its sections with what belongs in each, and the fields shown under the title in the PDF. Use the id in create_document.",
+      "The note formats a page can have (concept note, system design, comparison): what each is for, its sections with what belongs in each, and the fields shown under the title in the PDF. Use the id in create_document.",
     input: {},
     readOnly: true,
     run() {

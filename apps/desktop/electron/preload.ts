@@ -72,6 +72,12 @@ const api: LucidApi = {
       };
     },
   },
+  template: {
+    get: () => ipcRenderer.invoke(IPC.templateGet) as ReturnType<LucidApi["template"]["get"]>,
+    save: (text) =>
+      ipcRenderer.invoke(IPC.templateSave, text) as ReturnType<LucidApi["template"]["save"]>,
+    reset: () => ipcRenderer.invoke(IPC.templateReset) as ReturnType<LucidApi["template"]["reset"]>,
+  },
   settings: {
     get: () => ipcRenderer.invoke(IPC.settingsGet) as ReturnType<LucidApi["settings"]["get"]>,
     save: (input) =>

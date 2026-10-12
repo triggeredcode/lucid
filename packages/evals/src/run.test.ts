@@ -169,9 +169,9 @@ describe("runTrial, advisor and format pages", () => {
     ]);
     expect(good).toMatchObject({ pass: true, outcome: "advice" });
     const bad = await trial(pick, [
-      reply(JSON.stringify({ formatId: "benchmark", title: "x", reason: "y" })),
+      reply(JSON.stringify({ formatId: "system-design", title: "x", reason: "y" })),
     ]);
-    expect(bad.failures).toEqual(["expected the format comparison, got benchmark"]);
+    expect(bad.failures).toEqual(["expected the format comparison, got system-design"]);
   });
 
   it("tells the Input lane the page's format, and judges where the notes landed", async () => {

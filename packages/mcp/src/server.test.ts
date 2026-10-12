@@ -204,9 +204,10 @@ describe("apply_ops", () => {
 describe("note formats", () => {
   it("lists the formats with their sections, hints and the fields under the title", async () => {
     const { text } = await (await connect(setup())).call("list_formats");
-    for (const id of ["concept-note", "system-design", "comparison", "inference-math", "benchmark"])
+    for (const id of ["concept-note", "system-design", "comparison"])
       expect(text).toContain(`${id}: `);
-    expect(text).toContain("fields under the title: Date, Hardware");
+    expect(text).not.toContain("benchmark");
+    expect(text).toContain("fields under the title: Source, Date");
     expect(text).toContain(
       "  - Options: The candidates; cross out what is dropped. Suits: bulletListItem.",
     );

@@ -6,7 +6,7 @@ the same way.
 
 ```mermaid
 flowchart TD
-  say["Speech (Wispr Flow) or typing"] --> box["Input box"]
+  say["Speech (any dictation app) or typing"] --> box["Input box"]
   box --> input["Input mode<br/>notes → blocks"]
   box --> command["Command mode<br/>instructions → ops"]
   box --> guided["Guided builders<br/>diagram and table grammar"]

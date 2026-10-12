@@ -8,7 +8,8 @@
  *
  * Everything below reads the tokens in the first two blocks, so a theme is one block of variables.
  */
-:root {
+:root,
+[data-page-look="light"] {
   color-scheme: light;
   --bg: #ffffff;
   --bg-2: #f9f8f7;
@@ -39,6 +40,11 @@
   --shadow-pop:
     0 0 0 1px rgb(15 15 15 / 7%), 0 3px 6px rgb(15 15 15 / 10%), 0 12px 32px rgb(15 15 15 / 14%);
   --backdrop: rgb(15 15 15 / 40%);
+}
+
+:root {
+  /* The height of the top row (the page's top bar, and the sidebar's brand row on a Mac); electron/chrome.ts has the same rule. */
+  --bar-h: clamp(56px, calc(32px + 1.6vw), 72px);
 
   --font-mono: "iA Writer Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --font-sans:
@@ -51,7 +57,8 @@
   color: var(--ink);
 }
 
-:root[data-theme="dark"] {
+:root[data-theme="dark"],
+[data-page-look="dark"] {
   color-scheme: dark;
   --bg: #191919;
   --bg-2: #202020;
@@ -343,6 +350,30 @@ select:focus-visible,
   flex: none;
   color: var(--ink);
 }
+/*
+ * A Mac: the window has no title bar of its own, so the top row of the page (the sidebar's brand row, the page's top bar)
+ * takes its place. The three round buttons sit at its left (electron/chrome.ts puts them in the middle of its height), so the
+ * brand starts after them, and with the pages hidden the top bar does too. The empty parts of both rows move the window.
+ */
+.is-mac .sidebar {
+  padding-top: 0;
+}
+.is-mac .brand {
+  height: var(--bar-h);
+  padding: 0 8px 0 74px;
+  margin-bottom: 8px;
+}
+.is-mac .app[data-sidebar="closed"] .topbar {
+  padding-left: max(var(--gutter), 84px);
+}
+.is-mac .brand,
+.is-mac .topbar {
+  -webkit-app-region: drag;
+}
+.is-mac .brand > *,
+.is-mac .topbar > * {
+  -webkit-app-region: no-drag;
+}
 .new-page,
 .new-from,
 .sidebar-settings {
@@ -564,7 +595,6 @@ select:focus-visible,
   --text: clamp(15px, calc(9px + 0.5vw), 21px);
   --page-width: clamp(660px, 58vw, 1100px);
   --gutter: clamp(16px, 3vw, 56px);
-  --bar-h: clamp(56px, calc(32px + 1.6vw), 72px);
   flex: 1;
   min-height: 0;
   display: grid;
@@ -728,6 +758,26 @@ select:focus-visible,
 }
 .zoom-chip {
   font-variant-numeric: tabular-nums;
+}
+/* The switch for the page's own light and dark, in the top bar: three small icon buttons. */
+/* Where the bar is short of room (History open in the default window) the button goes: Settings has the same choice. */
+@container topbar (max-width: 800px) {
+  .topbar .page-look {
+    display: none;
+  }
+}
+.page-look {
+  flex: none;
+  align-self: center;
+  width: 32px;
+  height: 32px;
+  color: var(--ink-2);
+}
+
+/* A page with a look of its own (not the app's) is painted in it: the tokens above are set on the element, this makes it show. */
+[data-page-look] {
+  background: var(--bg);
+  color: var(--ink);
 }
 .editor-scroll {
   flex: 1;
@@ -1645,6 +1695,7 @@ select:focus-visible,
 }
 .settings input,
 .settings textarea,
+.template textarea,
 .np-about textarea,
 .np-title input,
 .fp-fields input {
@@ -1658,6 +1709,7 @@ select:focus-visible,
 }
 .settings input:focus,
 .settings textarea:focus,
+.template textarea:focus,
 .np-about textarea:focus,
 .np-title input:focus,
 .fp-fields input:focus {
@@ -1691,6 +1743,50 @@ select:focus-visible,
 }
 .setting-row > span {
   font-weight: 700;
+}
+/* The PDF template window, over Settings. */
+.modal.template {
+  width: min(820px, 100%);
+}
+.template-about {
+  margin: 8px 0 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.template textarea {
+  display: block;
+  min-height: 50vh;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre;
+  overflow: auto;
+  resize: vertical;
+}
+.modal.template footer .spacer {
+  flex: 1;
+}
+.template-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink-3);
+  font-weight: 400;
+}
+.setting-row .segmented {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.segmented .swatch-button {
+  width: 24px;
+  padding: 0;
+  justify-content: center;
+}
+.swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
 }
 .segmented button[data-font="mono"] {
   font-family: var(--font-mono);
@@ -1806,6 +1902,46 @@ select:focus-visible,
 .np-format input {
   position: absolute;
   opacity: 0;
+}
+/* The blank page is a small button under the formats, not a card: it is the plain choice, the formats are the specific ones. */
+.np-blank-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+.np-blank {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.np-blank:hover {
+  background: var(--hover);
+}
+.np-blank[data-selected="true"] {
+  border-color: var(--ink);
+  background: var(--bg-2);
+  box-shadow: 0 0 0 1px var(--ink);
+  font-weight: 700;
+}
+.np-blank input {
+  position: absolute;
+  opacity: 0;
+}
+.np-blank:has(input:focus-visible),
+.np-format:has(input:focus-visible) {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.np-blank-hint {
+  color: var(--ink-3);
+  font-size: 12px;
 }
 .np-name {
   font-weight: 700;

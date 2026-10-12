@@ -2,7 +2,14 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { basename, join } from "node:path";
-import { LUCID_STY, registry, renderDocument, type Format } from "@lucid/kit";
+import {
+  LUCID_STY,
+  registry,
+  renderDocument,
+  resolveStyle,
+  type Format,
+  type PdfStyle,
+} from "@lucid/kit";
 import type { LucidDoc } from "@lucid/core";
 import type { PdfProgress } from "./ipc/types";
 
@@ -38,6 +45,12 @@ export interface PdfOptions {
   convertSvg: (svg: string) => Promise<Uint8Array>;
   author: string;
   footerRight: string;
+  /** How PDFs look (paper, text size, typeface, margins, accent, numbering, date); the house style when absent. */
+  style?: PdfStyle;
+  /** The country of the computer, for the paper when the style says "auto" (Letter in North America, A4 elsewhere). */
+  country?: string | undefined;
+  /** The person's own PDF template (`lucid.sty`), asked for at every PDF; nothing means the one that comes with Lucid. */
+  readTemplate?: () => Promise<string | undefined>;
   /** The longest a single engine run may take in all (default 30 minutes: a first start downloads for about six). */
   timeoutMs?: number;
   /** The longest the engine may print nothing before it is taken to be stuck (default 90 s). */
@@ -272,10 +285,16 @@ export class PdfCompiler {
     }
   }
 
-  /** The author and footer of PDFs made from now on (the Settings window changed them). */
-  setStyle(style: { author: string; footerRight: string }): void {
+  /** The author, footer and look of PDFs made from now on (the Settings window changed them). */
+  setStyle(style: { author: string; footerRight: string; style?: PdfStyle }): void {
     this.options.author = style.author;
     this.options.footerRight = style.footerRight;
+    if (style.style) this.options.style = style.style;
+  }
+
+  /** The look of the next PDF, with the paper decided; none when no look was ever set (the house style as it was). */
+  private look(): ReturnType<typeof resolveStyle> | undefined {
+    return this.options.style ? resolveStyle(this.options.style, this.options.country) : undefined;
   }
 
   async compile(req: CompileRequest): Promise<CompileResult> {
@@ -335,6 +354,7 @@ export class PdfCompiler {
         info: req.info,
         figureWidths,
         figureHeights,
+        style: this.look(),
       });
       const rendered: Record<string, string> = {};
       const warnings: string[] = [];
@@ -372,19 +392,38 @@ export class PdfCompiler {
           info: req.info,
           figureWidths,
           figureHeights,
+          style: this.look(),
         },
         rendered,
       );
-      await writeFile(join(dir, "lucid.sty"), LUCID_STY, "utf8");
+      const custom = await this.options.readTemplate?.();
+      await writeFile(join(dir, "lucid.sty"), custom ?? LUCID_STY, "utf8");
       await writeFile(join(dir, "main.tex"), tex, "utf8");
-      const result = await run(
-        this.options.tectonicPath,
-        ["-X", "compile", "main.tex", "--outdir", ".", "--keep-logs"],
-        dir,
-        running,
-        counting,
-      );
-      if (running.cancelled) return { ok: false, cancelled: true };
+      const typeset = () =>
+        run(
+          this.options.tectonicPath,
+          ["-X", "compile", "main.tex", "--outdir", ".", "--keep-logs"],
+          dir,
+          running,
+          counting,
+        );
+      // A function, not the field: another call may set it while the engine runs.
+      const stopped = (): boolean => running.cancelled;
+      let result = await typeset();
+      if (stopped()) return { ok: false, cancelled: true };
+      if (result.code !== 0 && custom !== undefined) {
+        // The person's template may be the problem: try again with the one that comes with Lucid, and say so.
+        const why = explainLatexError(result.out);
+        await writeFile(join(dir, "lucid.sty"), LUCID_STY, "utf8");
+        const again = await typeset();
+        if (stopped()) return { ok: false, cancelled: true };
+        if (again.code === 0) {
+          result = again;
+          warnings.push(
+            `Your PDF template did not work (${why}), so this PDF has the built-in style. Fix it, or reset it, in Settings under PDF look.`,
+          );
+        } else result = again;
+      }
       if (result.code !== 0)
         return { ok: false, message: explainLatexError(result.out), log: result.out };
       const pdf = await readFile(join(dir, "main.pdf"));

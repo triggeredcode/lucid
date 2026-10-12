@@ -30,9 +30,13 @@ export const LUCID_STY = String.raw`\NeedsTeXFormat{LaTeX2e}
 \newtcolorbox{lucidcallout}[2]{colback=#1!6,colframe=#1!60!black,boxrule=0.4pt,arc=1pt,left=4pt,right=4pt,
   top=2pt,bottom=2pt,title={\small\bfseries #2},coltitle=black,colbacktitle=#1!15,breakable}
 \newlength{\lucidfigw}
+% Table text is set ragged right: in narrow columns, justified words are pulled far apart.
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 \newcommand{\lucidmeta}[2]{\noindent\textbf{#1:} #2\par}
 \newcommand{\lucidstruck}[1]{\textcolor{black!55}{\sout{#1}}}
 \newcommand{\lucidchosen}[1]{\textbf{#1}~\ding{51}}
 \setlist{itemsep=2pt,topsep=4pt}
+% A tall figure may take most of a page: at the top with text under it, or, when it fills 80% of a page or more, a page of its own.
+\renewcommand{\topfraction}{0.85}\renewcommand{\textfraction}{0.1}\renewcommand{\floatpagefraction}{0.8}
 \endinput
 `;

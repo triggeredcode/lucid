@@ -204,14 +204,14 @@ describe("AppBackend", () => {
       const { backend, files, a, compiled } = setup();
       files.set(a.id, {
         ...a,
-        meta: { vocabulary: [], format: "benchmark", info: { model: "Q" } },
+        meta: { vocabulary: [], format: "comparison", info: { source: "Q" } },
       });
       await backend.exportPdf(a.id);
       expect(compiled[0]).toMatchObject({
         pageId: `agent-${a.id}`,
         title: "Closed page",
-        format: { id: "benchmark" },
-        info: { model: "Q" },
+        format: { id: "comparison" },
+        info: { source: "Q" },
       });
     });
 

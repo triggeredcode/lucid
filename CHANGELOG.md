@@ -3,6 +3,32 @@
 All notable changes to Lucid are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and Lucid uses [semantic versioning](https://semver.org).
 
+## [Unreleased]
+
+## [0.3.0] - 2026-10-12
+
+PDFs and dictation can be set up the way you like them, the Mac window is cleaner, and the documents are shorter and easier to find your way in.
+
+### Added
+
+- **The look of the PDF is yours to set** (Settings, "PDF look"): paper (Auto picks Letter or A4 by where the computer is), text size, typeface (Latin Modern, Palatino, Times or Helvetica), margins, an accent colour for the title and headings, numbered or plain headings, and the date under the title. The defaults are the look PDFs always had. **Edit template…** opens `lucid.sty`, the file that sets the house style, so everything else can be changed too; if it has a mistake the PDF is made with the built-in one and says so.
+- **The page has its own light and dark**, apart from the app's (a small button in the top bar that goes through like the app, light and dark, and the same three choices in Settings): a dark app can show a light page, as paper, and a light app a dark one. The diagrams follow the page.
+- **Dictation timing** (Settings, "Dictation"): how long a paste waits before it is sent by itself: 0.5 s as before, 1 s, 2 s, or never (the words wait in the box until Enter).
+
+### Changed
+
+- **Three note formats, nothing too specialized.** The inference engineering and benchmark formats are gone: Lucid comes with a concept note, a system design note and a comparison, and **New page** has a small **Blank page** button instead of a big card. A page that an earlier version made in one of the two opens as a plain page, with everything in it; formats of your own are still one entry of data.
+- **A clean top of the window on a Mac.** The grey title bar with the name in it is gone: the page's top row takes its place, with the three round buttons at its left. Windows and Linux keep their own window frame.
+- **A short README**, with the details in `docs/` (installing, what Lucid does, the note formats, dictation), and, in the README, why I made Lucid: so that notes can be taken by voice, or with one hand. The website says the same.
+- Tables in the PDF are set ragged right with a little more room between rows, and the bars of a chart use the same greys as on screen.
+- Dictation: the docs say that any app that pastes works, and list the free and open-source ones (OpenWhispr, VoiceNative) next to Wispr Flow.
+- The picture of each note format (`docs/format-samples`) is made with the real app, with real diagrams and every section filled.
+- The list of bundled licences is made when the app is packaged and comes with the app (Help, Licences of the Software Lucid Uses); it is no longer kept in the repository.
+
+### Fixed
+
+- A diagram almost as tall as the page no longer leaves an empty page in the PDF.
+
 ## [0.2.0] - 2026-10-12
 
 Lucid now runs on Windows and Linux as well as the Mac, has clearer panels and a new look for the list of pages, and has a website.
@@ -60,5 +86,7 @@ The first public release.
 - The first PDF on a computer downloads Tectonic's typesetting files (about five minutes, once).
 - Only `qwen/qwen3.8-27b` has been evaluated. A request takes 10 to 25 seconds on a laptop.
 
+[Unreleased]: https://github.com/triggeredcode/lucid/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/triggeredcode/lucid/releases/tag/v0.3.0
 [0.2.0]: https://github.com/triggeredcode/lucid/releases/tag/v0.2.0
 [0.1.0]: https://github.com/triggeredcode/lucid/releases/tag/v0.1.0

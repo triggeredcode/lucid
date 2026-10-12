@@ -1,21 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_FORMAT_ID, FORMATS, FormatSchema, getFormat, pickFormat, skeleton } from "./index";
 
-describe("the five formats", () => {
-  it("are the five formats, each valid, with unique ids and section keys", () => {
-    expect(FORMATS.map((f) => f.id)).toEqual([
-      "concept-note",
-      "system-design",
-      "comparison",
-      "inference-math",
-      "benchmark",
-    ]);
+describe("the three formats", () => {
+  it("are the three formats, each valid, with unique ids and section keys", () => {
+    expect(FORMATS.map((f) => f.id)).toEqual(["concept-note", "system-design", "comparison"]);
     for (const f of FORMATS) {
       expect(() => FormatSchema.parse(f), f.id).not.toThrow();
       expect(new Set(f.sections.map((s) => s.key)).size, f.id).toBe(f.sections.length);
       expect(f.description.length, f.id).toBeLessThanOrEqual(200);
     }
-    expect(new Set(FORMATS.map((f) => f.name)).size).toBe(5);
+    expect(new Set(FORMATS.map((f) => f.name)).size).toBe(3);
   });
 
   it("have their sections, in order", () => {
@@ -26,21 +20,24 @@ describe("the five formats", () => {
       "Pros and cons",
       "Decision",
     ]);
-    expect(getFormat("benchmark")?.sections.map((s) => s.key)).toEqual([
-      "goal",
-      "setup",
-      "method",
-      "results",
-      "observations",
-      "next",
+    expect(getFormat("concept-note")?.sections.map((s) => s.key)).toEqual([
+      "definition",
+      "intuition",
+      "how-it-works",
+      "example",
+      "pitfalls",
+      "related",
     ]);
     expect(getFormat("system-design")?.sections).toHaveLength(8);
   });
 
-  it("number formulas only in the inference format and keep the rest plain", () => {
-    expect(FORMATS.filter((f) => f.latex.equationNumbers).map((f) => f.id)).toEqual([
-      "inference-math",
-    ]);
+  it("keep formulas plain: no built-in format numbers them (a format of one's own may)", () => {
+    expect(FORMATS.filter((f) => f.latex.equationNumbers)).toEqual([]);
+  });
+
+  it("do not know the two specialized formats that earlier versions had; a page that has one is a plain page", () => {
+    expect(getFormat("inference-math")).toBeUndefined();
+    expect(getFormat("benchmark")).toBeUndefined();
   });
 
   it("start a page with one empty heading per section", () => {
@@ -65,16 +62,12 @@ describe("the five formats", () => {
 
 describe("pickFormat (the fallback when the model cannot choose)", () => {
   const picks: [string, string][] = [
-    ["notes on how paged attention saves KV memory", "inference-math"],
-    ["benchmarking qwen vs gemma tok/s on my mac", "benchmark"],
     ["SQL vs NoSQL", "comparison"],
     ["design a URL shortener", "system-design"],
     ["consistent hashing", "concept-note"],
     ["how does raft elect a leader", "concept-note"],
-    ["speculative decoding and batching math", "inference-math"],
     ["choose between Kafka and SQS", "comparison"],
-    ["measured p99 latency under load", "benchmark"],
-    ["KV cache sizing and memory bandwidth", "inference-math"],
+    ["the difference between a mutex and a semaphore", "comparison"],
   ];
   for (const [text, id] of picks) {
     it(`"${text}" is ${id}`, () => {

@@ -7,16 +7,24 @@ import { useSyncExternalStore } from "react";
 export type ThemeChoice = "light" | "dark" | "system";
 export type Typeface = "mono" | "sans" | "serif";
 export type Resolved = "light" | "dark";
+/**
+ * The look of the page itself (the document, its diagrams and tables), apart from the app around it: "auto" is the app's own,
+ * so a dark app can show a light page, as paper, and a light app a dark page.
+ */
+export type PageLookChoice = "auto" | "light" | "dark";
 
 export interface Appearance {
   theme: ThemeChoice;
   font: Typeface;
+  pageLook: PageLookChoice;
 }
 
 const THEME_KEY = "lucid.theme";
 const FONT_KEY = "lucid.font";
+const PAGE_LOOK_KEY = "lucid.pageLook";
 const THEMES: readonly ThemeChoice[] = ["light", "dark", "system"];
 const FONTS: readonly Typeface[] = ["mono", "sans", "serif"];
+const PAGE_LOOKS: readonly PageLookChoice[] = ["auto", "light", "dark"];
 
 const pick = <T extends string>(allowed: readonly T[], value: string | null, fallback: T): T =>
   allowed.find((a) => a === value) ?? fallback;
@@ -24,6 +32,13 @@ const pick = <T extends string>(allowed: readonly T[], value: string | null, fal
 export const parseTheme = (value: string | null): ThemeChoice => pick(THEMES, value, "system");
 /** A saved typeface, or mono (the app's own) when there is none or it is not one of ours. */
 export const parseFont = (value: string | null): Typeface => pick(FONTS, value, "mono");
+/** A saved page look, or the app's own when there is none or it is not one of ours. */
+export const parsePageLook = (value: string | null): PageLookChoice =>
+  pick(PAGE_LOOKS, value, "auto");
+
+/** The look the page is shown in: its own choice, or the app's when it follows the app. */
+export const resolvePageLook = (choice: PageLookChoice, app: Resolved): Resolved =>
+  choice === "auto" ? app : choice;
 
 function read(key: string): string | null {
   try {
@@ -49,7 +64,7 @@ const media = (): MediaQueryList | undefined =>
     ? window.matchMedia("(prefers-color-scheme: dark)")
     : undefined;
 
-let state: Appearance = { theme: "system", font: "mono" };
+let state: Appearance = { theme: "system", font: "mono", pageLook: "auto" };
 let resolved: Resolved = "light";
 const listeners = new Set<() => void>();
 
@@ -64,7 +79,11 @@ function apply(): void {
 
 /** Reads the saved choice, applies it, and follows the system while the choice is "system". Call once, before drawing. */
 export function initAppearance(): void {
-  state = { theme: parseTheme(read(THEME_KEY)), font: parseFont(read(FONT_KEY)) };
+  state = {
+    theme: parseTheme(read(THEME_KEY)),
+    font: parseFont(read(FONT_KEY)),
+    pageLook: parsePageLook(read(PAGE_LOOK_KEY)),
+  };
   media()?.addEventListener("change", () => {
     if (state.theme === "system") apply();
   });
@@ -80,6 +99,12 @@ export function setTheme(theme: ThemeChoice): void {
 export function setFont(font: Typeface): void {
   state = { ...state, font };
   write(FONT_KEY, font);
+  apply();
+}
+
+export function setPageLook(pageLook: PageLookChoice): void {
+  state = { ...state, pageLook };
+  write(PAGE_LOOK_KEY, pageLook);
   apply();
 }
 
@@ -100,4 +125,14 @@ export const useAppearance = (): Appearance =>
       return () => listeners.delete(cb);
     },
     () => state,
+  );
+
+/** The look of the page now, light or dark: what its diagrams and its editor are drawn in. */
+export const useResolvedPageLook = (): Resolved =>
+  useSyncExternalStore(
+    (cb) => {
+      listeners.add(cb);
+      return () => listeners.delete(cb);
+    },
+    () => resolvePageLook(state.pageLook, resolved),
   );

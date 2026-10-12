@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Lucid: a structured document, built while you think</title>
+    <title>Lucid: voice to structured notes and diagrams</title>
     <meta
       name="description"
-      content="Say or type your thoughts and Lucid arranges them as headings, lists, tables and diagrams, then typesets a PDF. A local-first app for macOS, Windows and Linux: the language model runs on your own computer."
+      content="Talk, and Lucid builds the headings, lists, tables and diagrams while you think, then typesets a PDF. Made to work hands-free or one-handed. A local-first app for macOS, Windows and Linux: the language model runs on your own computer."
     />
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
@@ -15,10 +15,10 @@
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
     <link rel="canonical" href="https://triggeredcode.github.io/lucid/" />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Lucid: a structured document, built while you think" />
+    <meta property="og:title" content="Lucid: voice to structured notes and diagrams" />
     <meta
       property="og:description"
-      content="Headings, lists, tables and diagrams from speech or typing, by a model on your own computer. For macOS, Windows and Linux. Free and open source."
+      content="Talk, and get headings, lists, tables and diagrams, by a model on your own computer. Hands-free or one-handed. For macOS, Windows and Linux. Free and open source."
     />
     <meta property="og:url" content="https://triggeredcode.github.io/lucid/" />
     <meta property="og:image" content="https://triggeredcode.github.io/lucid/og.png" />
@@ -75,10 +75,11 @@
       <div class="hero" id="top">
         <div class="wrap">
           <p class="eyebrow"><i></i> Free and open source · local-first · macOS, Windows, Linux</p>
-          <h1>A structured document, built while you think.</h1>
+          <h1>Voice to structured notes and diagrams.</h1>
           <p class="lead">
-            Say or type your thoughts. Lucid arranges them as headings, lists, tables and diagrams,
-            and typesets them. The language model runs on your own computer, so nothing leaves it.
+            Talk, and Lucid builds the headings, lists, tables and diagrams while you think, then
+            typesets a PDF. Made to work hands-free or one-handed. The language model runs on your
+            own computer, so nothing leaves it.
           </p>
           <div class="cta">
             <a class="btn primary" href="#download" data-cta>
@@ -175,8 +176,47 @@
         </div>
       </section>
 
+      <section class="alt" id="access">
+        <div class="wrap">
+          <div class="head">
+            <p class="kicker">Why it exists</p>
+            <h2>Made so you can take notes without typing.</h2>
+            <p class="section-lead">
+              For a while I couldn't type comfortably, so I built Lucid for myself, as a
+              productivity and accessibility tool. A dictation app gives you a wall of text, and
+              Lucid gives you the structure.
+            </p>
+          </div>
+          <div class="facts">
+            <div class="fact reveal">
+              <h3>Speak the notes</h3>
+              <p>
+                Dictate with any app that pastes text. The notes are sent by themselves a moment
+                after you stop, so no Enter is needed.
+              </p>
+            </div>
+            <div class="fact reveal" style="--d: 0.08s">
+              <h3>Speak the changes</h3>
+              <p>
+                “Cross out Memcached.” “Add a CDN in front of the web server.” “Undo.” Hold one key
+                and everything you say is a command. Even diagrams can be said.
+              </p>
+            </div>
+            <div class="fact reveal" style="--d: 0.16s">
+              <h3>Always one step back</h3>
+              <p>
+                Every change by the model is one undo step, so a misheard word costs one “undo”.
+                <a href="https://github.com/triggeredcode/lucid/blob/main/README.md#why-i-made-it"
+                  >Read the story</a
+                >.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- ============ blocks ============ -->
-      <section class="alt" id="blocks">
+      <section id="blocks">
         <div class="wrap">
           <div class="head">
             <p class="kicker">What a page is made of</p>
@@ -305,7 +345,7 @@
       </section>
 
       <!-- ============ how it works ============ -->
-      <section id="how">
+      <section class="alt" id="how">
         <div class="wrap">
           <div class="head">
             <p class="kicker">How it works</p>
@@ -315,8 +355,9 @@
             <li class="reveal">
               <h3>Say or type</h3>
               <p>
-                One input box. Dictate with Wispr Flow on macOS or Windows (optional), or just type.
-                Your words are never lost: if the model cannot use them, they are kept as written.
+                One input box. Dictate with any app that pastes text (Wispr Flow, OpenWhispr,
+                VoiceNative), or just type. Your words are never lost: if the model cannot use them,
+                they are kept as written.
               </p>
             </li>
             <li class="reveal" style="--d: 0.08s">
@@ -454,7 +495,7 @@
       </section>
 
       <!-- ============ formats ============ -->
-      <section class="alt" id="formats">
+      <section id="formats">
         <div class="wrap">
           <div class="head">
             <p class="kicker">Made for system design, open to other fields</p>
@@ -502,29 +543,6 @@
                 <li>Decision</li>
               </ol>
             </article>
-            <article class="format reveal">
-              <h3>Inference engineering</h3>
-              <p>KV cache, FLOPs, bandwidth, batching.</p>
-              <ol>
-                <li>Intuition</li>
-                <li>The math</li>
-                <li>Numbers to remember</li>
-                <li>Hardware implications</li>
-                <li>Pitfalls</li>
-              </ol>
-            </article>
-            <article class="format reveal" style="--d: 0.05s">
-              <h3>Benchmark</h3>
-              <p>Recording an experiment.</p>
-              <ol>
-                <li>Goal and hypothesis</li>
-                <li>Setup</li>
-                <li>Method</li>
-                <li>Results</li>
-                <li>Observations</li>
-                <li>Next experiments</li>
-              </ol>
-            </article>
             <article class="format own reveal" style="--d: 0.1s">
               <h3>Your own</h3>
               <p>
@@ -543,7 +561,7 @@
       </section>
 
       <!-- ============ download ============ -->
-      <section id="download">
+      <section class="alt" id="download">
         <div class="wrap">
           <div class="head">
             <p class="kicker">Download</p>
@@ -768,11 +786,11 @@
                   </div>
                   <p><b>Any distribution</b>, from the .AppImage:</p>
                   <div class="code">
-                    <pre><code>chmod +x Lucid-*-linux-x64.AppImage
-./Lucid-*-linux-x64.AppImage</code></pre>
+                    <pre><code>chmod +x Lucid-*-linux-x86_64.AppImage
+./Lucid-*-linux-x86_64.AppImage</code></pre>
                     <button
                       type="button"
-                      data-copy="chmod +x Lucid-*-linux-x64.AppImage &amp;&amp; ./Lucid-*-linux-x64.AppImage"
+                      data-copy="chmod +x Lucid-*-linux-x86_64.AppImage &amp;&amp; ./Lucid-*-linux-x86_64.AppImage"
                       data-copy-appimage
                     >
                       Copy
@@ -838,8 +856,8 @@ pnpm dev</code></pre>
         </div>
       </section>
 
-      <!-- ============ agents + privacy ============ -->
-      <section class="alt" id="agents">
+      <!-- ============ agents ============ -->
+      <section id="agents">
         <div class="wrap">
           <div class="two">
             <div class="reveal">
@@ -897,37 +915,8 @@ pnpm dev</code></pre>
         </div>
       </section>
 
-      <section id="privacy">
-        <div class="wrap">
-          <div class="head">
-            <p class="kicker">Privacy</p>
-            <h2>Your notes stay on your Mac.</h2>
-          </div>
-          <div class="facts">
-            <div class="fact reveal">
-              <h3>No account, no analytics</h3>
-              <p>Lucid has no server and sends nothing about you anywhere.</p>
-            </div>
-            <div class="fact reveal" style="--d: 0.08s">
-              <h3>A model you run</h3>
-              <p>
-                The language model runs in LM Studio on your computer. Settings refuses an address
-                that is not local.
-              </p>
-            </div>
-            <div class="fact reveal" style="--d: 0.16s">
-              <h3>Plain files</h3>
-              <p>
-                Every page is one JSON file in <code>~/Lucid</code> that you can back up or move.
-                The code is MIT-licensed and open.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <!-- ============ faq ============ -->
-      <section class="alt" id="faq">
+      <section id="faq">
         <div class="wrap">
           <div class="head">
             <p class="kicker">Questions</p>
@@ -946,11 +935,12 @@ pnpm dev</code></pre>
               </div>
             </details>
             <details>
-              <summary>Do I need Wispr Flow?</summary>
+              <summary>Do I need a dictation app?</summary>
               <div class="details-body">
                 <p>
-                  No. Dictation is optional: Wispr Flow pastes your words and Lucid takes the paste.
-                  You can just type. Wispr Flow is a separate app with its own privacy terms.
+                  No. Dictation is optional: a dictation app pastes your words and Lucid takes the
+                  paste. You can just type. Wispr Flow, OpenWhispr (free, open source) and
+                  VoiceNative (free, macOS) are separate apps.
                 </p>
               </div>
             </details>
@@ -1014,9 +1004,7 @@ pnpm dev</code></pre>
             <a href="https://github.com/triggeredcode/lucid/blob/main/SECURITY.md">Security</a>
           </li>
           <li>
-            <a href="https://github.com/triggeredcode/lucid/blob/main/THIRD_PARTY_NOTICES.md"
-              >Licences</a
-            >
+            <a href="https://github.com/triggeredcode/lucid/blob/main/LICENSE">Licences</a>
           </li>
         </ul>
       </div>

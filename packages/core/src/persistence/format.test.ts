@@ -54,12 +54,12 @@ describe("note format in the page file", () => {
   });
 
   it("keeps the format and the fields through JSON, and reads an older file that has neither", () => {
-    const f = createLucidFile({ format: "benchmark" });
-    f.meta.info = { hardware: "M4 Max", date: "2026-10-11" };
+    const f = createLucidFile({ format: "comparison" });
+    f.meta.info = { source: "Review", date: "2026-10-11" };
     const back = parseLucidFile(JSON.parse(JSON.stringify(f)));
     expect(back.meta).toMatchObject({
-      format: "benchmark",
-      info: { hardware: "M4 Max", date: "2026-10-11" },
+      format: "comparison",
+      info: { source: "Review", date: "2026-10-11" },
     });
     const old = JSON.parse(JSON.stringify(createLucidFile())) as { meta: Record<string, unknown> };
     old.meta = { vocabulary: ["vLLM"] };

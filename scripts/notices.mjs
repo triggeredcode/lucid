@@ -1,12 +1,14 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync, writeFileSync } from "node:fs";
+import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 /**
  * Writes THIRD_PARTY_NOTICES.md from the production dependencies pnpm installed: `node scripts/notices.mjs`.
- * `--check` fails when the file is out of date (run it after changing dependencies).
+ * The file comes with the packaged app (Help, Third-party notices), because the licenses of what is bundled ask for it; it is
+ * made when the app is packaged (`prepack`) and is not kept in the repository.
  */
-const OUT = fileURLToPath(new URL("../THIRD_PARTY_NOTICES.md", import.meta.url));
+const ROOT = fileURLToPath(new URL("..", import.meta.url));
+const OUT = `${ROOT}THIRD_PARTY_NOTICES.md`;
 
 // A license pnpm cannot read from a package, checked by hand against the package's own repository.
 const KNOWN = { khroma: "MIT" };
@@ -14,6 +16,9 @@ const KNOWN = { khroma: "MIT" };
 const raw = execFileSync("pnpm", ["licenses", "list", "--prod", "--json"], {
   encoding: "utf8",
   maxBuffer: 50_000_000,
+  cwd: ROOT,
+  // On Windows pnpm is a .cmd file, which only a shell can start.
+  shell: process.platform === "win32",
 });
 const byLicense = JSON.parse(raw);
 
@@ -58,20 +63,5 @@ for (const [lic, list] of groups) {
 }
 const text = `${lines.join("\n")}\n`;
 
-if (process.argv.includes("--check")) {
-  const current = (() => {
-    try {
-      return readFileSync(OUT, "utf8");
-    } catch {
-      return "";
-    }
-  })();
-  if (current !== text) {
-    console.error("THIRD_PARTY_NOTICES.md is out of date. Run: node scripts/notices.mjs");
-    process.exit(1);
-  }
-  console.log("THIRD_PARTY_NOTICES.md is up to date.");
-} else {
-  writeFileSync(OUT, text);
-  console.log(`wrote ${OUT} (${String(rows.length)} packages)`);
-}
+writeFileSync(OUT, text);
+console.log(`wrote ${OUT} (${String(rows.length)} packages)`);
