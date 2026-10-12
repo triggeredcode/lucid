@@ -9,18 +9,16 @@
   },
   "system-design": {
     "title": "Design a URL shortener",
-    "info": { "source": "Study group, week 3", "date": "October 2026" }
+    "info": {
+      "source": "Study group, week 3",
+      "date": "October 2026"
+    }
   },
   "comparison": {
     "title": "Kafka or SQS for order events",
-    "info": { "source": "Architecture review", "date": "October 2026" }
-  },
-  "inference-math": {
-    "title": "KV cache sizing",
-    "info": { "source": "Inference engineering notes", "hardware": "Apple M4 Max, 64 GB" }
-  },
-  "benchmark": {
-    "title": "Batch size and throughput",
-    "info": { "date": "October 2026", "hardware": "Apple M4 Max, 64 GB" }
+    "info": {
+      "source": "Architecture review",
+      "date": "October 2026"
+    }
   }
 }

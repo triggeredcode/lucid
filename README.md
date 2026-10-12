@@ -61,7 +61,7 @@ VoiceNative, and I may integrate the two without merging them. These are ideas, 
 - **By voice or by keyboard.** Notes, commands (*"cross out Memcached"*, *"add a CDN in front of the web server"*, *"undo"*),
   diagrams and tables can all be spoken. See [dictation](docs/dictation.md) for the apps and for using Lucid with one hand.
 - **Made for system design, open to other fields.** The note formats are plain data: a concept note, a system design, a
-  comparison, an inference-maths note, a benchmark, and one more entry for anything else. [See them](docs/formats.md).
+  comparison, a blank page, and one more entry for anything else. [See them](docs/formats.md).
 - **You stay in charge.** Every change by the model is one undo step, any earlier change can be reverted on its own, and your
   words are never lost.
 - **Local and private.** No account, no cloud service. The model runs in [LM Studio](https://lmstudio.ai) on your computer.
@@ -82,7 +82,7 @@ not signed, so macOS and Windows ask once before opening them; the steps, the ch
 
 ## Quick start
 
-1. Click **New page**, or **New from a format…** to start from one of five note formats.
+1. Click **New page**, or **New from a format…** to start from one of three note formats, or from a blank page.
 2. Type or dictate notes in the box at the bottom: *"A cache hit costs microseconds, a miss costs a database round trip.
    Options are Redis, Memcached and a local LRU."* They appear on the page, structured, a few seconds later.
 3. Switch to **Command** (⌘2) and talk about the page: *"Cross out Memcached, we are choosing the local LRU."*
@@ -98,7 +98,7 @@ To dictate, use any app that pastes text: [Wispr Flow](https://wisprflow.ai),
 |---|---|
 | [User guide](docs/guide.html) | the whole app on one page (also in the app: Help → Lucid Guide) |
 | [What Lucid does](docs/features.md) | typed blocks, three modes, diagrams and tables by voice, history, export and the PDF look |
-| [Note formats](docs/formats.md) | the five formats, with the PDF of a sample of each |
+| [Note formats](docs/formats.md) | the three formats, with the PDF of a sample of each |
 | [Dictation](docs/dictation.md) | which apps to speak with, using Lucid by voice or with one hand, and a ten-minute check-list |
 | [For AI agents](docs/mcp.md) | the MCP tools and how to connect Claude Code |
 | [Installing](docs/install.md) | steps for each system, checksums, troubleshooting |
