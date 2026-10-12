@@ -52,7 +52,7 @@ function serve() {
   const server = createServer((req, res) => {
     const url = new URL(req.url ?? "/", "http://x");
     let file;
-    if (url.pathname === "/timeline.json") file = join(CACHE, "render", "timeline.json");
+    if (url.pathname === "/timeline.json") file = timelinePath;
     else {
       for (const [prefix, dir] of ROUTES) {
         if (url.pathname.startsWith(prefix)) {
@@ -107,8 +107,11 @@ async function openStage(browser, base, size, query = "") {
 }
 
 mkdirSync(OUT, { recursive: true });
-const timelinePath = join(CACHE, "render", "timeline.json");
-if (!existsSync(timelinePath)) throw new Error("no timeline: run `npm run plan` first");
+const timelinePath = join(CACHE, "render", flag("gif") ? "timeline-gif.json" : "timeline.json");
+if (!existsSync(timelinePath))
+  throw new Error(
+    `no timeline (${timelinePath}): run \`node render/plan.mjs${flag("gif") ? " --gif" : ""}\` first`,
+  );
 const timeline = JSON.parse(readFileSync(timelinePath, "utf8"));
 const server = await serve();
 const base = `http://127.0.0.1:${server.address().port}`;
@@ -119,7 +122,67 @@ const browser = await chromium.launch({
 });
 
 try {
-  if (flag("poster")) {
+  if (flag("gif")) {
+    // The short looping demo: every frame to a PNG, then FFmpeg makes a palette for the whole clip and dithers with it.
+    const out =
+      value("gif") && !value("gif").startsWith("--") ? value("gif") : join(OUT, "lucid-demo.gif");
+    const fps = timeline.fps;
+    const count = Math.round(timeline.duration * fps);
+    const dir = join(CACHE, "render", "gif-frames");
+    rmSync(dir, { recursive: true, force: true });
+    mkdirSync(dir, { recursive: true });
+    const workers = Number(process.env.RENDER_WORKERS ?? 3);
+    const pages = await Promise.all(
+      Array.from({ length: workers }, () =>
+        openStage(browser, base, { width: 1920, height: 1080 }),
+      ),
+    );
+    let next = 0;
+    await Promise.all(
+      pages.map(async ({ page, shot }) => {
+        for (;;) {
+          const i = next++;
+          if (i >= count) return;
+          await page.evaluate((t) => window.stage.seek(t), i / fps);
+          writeFileSync(join(dir, `f${String(i).padStart(4, "0")}.png`), await shot());
+        }
+      }),
+    );
+    const width = Number(process.env.GIF_WIDTH ?? 900);
+    const limit = Number(process.env.GIF_MAX_MB ?? 7.5) * 1024 * 1024;
+    // Fewer colours and a coarser dither until it is small enough (a gradient background is expensive in a GIF).
+    const tries = [
+      [128, "bayer:bayer_scale=4"],
+      [96, "bayer:bayer_scale=5"],
+      [64, "bayer:bayer_scale=5"],
+      [48, "none"],
+    ];
+    for (const [colors, dither] of tries) {
+      execFileSync(
+        FFMPEG,
+        [
+          "-y",
+          "-hide_banner",
+          "-loglevel",
+          "error",
+          "-framerate",
+          String(fps),
+          "-i",
+          join(dir, "f%04d.png"),
+          "-vf",
+          `scale=${width}:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=${colors}:stats_mode=full[p];[b][p]paletteuse=dither=${dither}:diff_mode=rectangle`,
+          "-loop",
+          "0",
+          out,
+        ],
+        { stdio: "inherit" },
+      );
+      const size = statSync(out).size;
+      console.log(`gif: ${out}  ${(size / 1048576).toFixed(2)} MB, ${colors} colours`);
+      if (size <= limit) break;
+    }
+    rmSync(dir, { recursive: true, force: true });
+  } else if (flag("poster")) {
     const file =
       value("poster") && !value("poster").startsWith("--")
         ? value("poster")

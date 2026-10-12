@@ -12,7 +12,8 @@ import { readWav } from "./mix.mjs";
 const HERE = resolve(import.meta.dirname, "..");
 const CAP = join(HERE, ".cache", "capture");
 const OUT = join(HERE, ".cache", "render");
-const FPS = 30;
+const GIF = process.argv.includes("--gif"); // the short looping demo for the README instead of the video
+const FPS = GIF ? 15 : 30;
 const GAP = 0.28; // between two sentences of one scene
 
 const cap = JSON.parse(readFileSync(join(CAP, "manifest.json"), "utf8"));
@@ -99,8 +100,14 @@ const outOf = (src) => {
       return s.o0 + ((src - s.s0) / (s.s1 - s.s0)) * (s.o1 - s.o0);
   return null;
 };
-const ring = (t0, t1, rect, c, label, pos, pad) =>
+const ring = (t0, t1, rect, c, label, pos, pad) => {
+  // A rectangle the capture could not measure (the app changed its markup) means no ring, not a failed plan.
+  if (!rect) {
+    console.warn(`no rectangle for the ring "${label}": left out`);
+    return;
+  }
   rings.push({ t0, t1, ...box(rect), c, label, pos, pad });
+};
 const pill = (p) => pills.push({ tone: "light", space: "screen", ...p });
 
 /** Puts the sentences of a scene one after the other from time t; returns when the last one ends. */
@@ -136,13 +143,13 @@ function wordAt(id, query, edge = "t0") {
  * model works, the result appears. When the model took longer than the story has room for, its working time is shown
  * for a moment and then cut with a dissolve ("shortened"). `doneAt` is when the result should be visible.
  */
-function dictStep(id, { oPaste, holdFor, doneAt = null, maxWork = 6 }) {
+function dictStep(id, { oPaste, holdFor, doneAt = null, maxWork = 6, trans = 0.75, tail = 0.8 }) {
   const pasted = ms(`${id}.pasted`, 60);
   const sentAt = ms(`${id}.sent`);
   const done = ms(`${id}.done`);
   const oSend = oPaste + holdFor;
   seg(oPaste, oSend, pasted, pasted, { x: 0.22 });
-  const oWorking = oSend + 0.75;
+  const oWorking = oSend + trans;
   seg(oSend, oWorking, pasted, sentAt + 300);
   const realWork = (done - (sentAt + 300)) / 1000;
   const budget = doneAt === null ? maxWork : Math.max(0.5, doneAt - oWorking);
@@ -157,9 +164,9 @@ function dictStep(id, { oPaste, holdFor, doneAt = null, maxWork = 6 }) {
     shortened = true;
     const keep = Math.max(0.4, budget - 0.28);
     seg(oWorking, oWorking + keep, sentAt + 300, sentAt + 300 + keep * 1000);
-    seg(oWorking + keep, oWorking + keep + 0.8, done - 200, done + 550, { x: 0.28 });
+    seg(oWorking + keep, oWorking + keep + tail, done - 200, done + 550, { x: 0.28 });
     oDone = oWorking + keep + 0.28;
-    oEnd = oWorking + keep + 0.8;
+    oEnd = oWorking + keep + tail;
   }
   return {
     id,
@@ -192,592 +199,704 @@ function shortenedNote(step, bar) {
   });
 }
 
-// ================================================================ the story
-const bar0 = rects("page.ready").bar;
-let clock = 0;
+// ================================================================ the story of the video
+function videoStory() {
+  const bar0 = rects("page.ready").bar;
+  let clock = 0;
 
-// ---------------------------------------------------------------- hook: the title card
-{
-  const t0 = 0;
-  const end = say("hook", t0 + 1.1);
-  const lucid = wordAt("hook-2", "Lucid");
-  const hero = {
-    t0,
-    t1: end + 0.55,
-    fadeIn: 0.5,
-    fadeOut: 0.75,
-    markAt: 0.25,
-    wordAt: lucid - 0.08 - t0,
-    taglineAt: lucid + 0.85 - t0,
-    tagline2At: lucid + 1.65 - t0,
-    word: "Lucid",
-    tagline: "A structured document, built while you think.",
-    tagline2: "Voice or keyboard. Runs on your own Mac.",
-    // A waveform of the voice under the mark, until the name is said and the letters take its place.
-    wave: { t0: 0.7, t1: lucid - 0.12, top: 455 },
-  };
-  heroes.push(hero);
-  sound(0.25, "whoosh_short", 0.22);
-  sound(lucid - 0.08, "pop", 0.34);
-  sound(lucid + 0.85, "pop_low", 0.2);
-  scenes.hook = { t0, t1: end + 0.4 };
-  clock = end + 0.4;
-}
-
-// ---------------------------------------------------------------- speak: say it, or type it
-let step1;
-{
-  const t0 = clock;
-  const nEnd = say("speak", t0 + 2.2);
-  pose(t0 - 0.1, { s: 0.88, dy: 80, o: 0, e: "lin" });
-  pose(t0 + 1.0, { s: 1, dy: 0, o: 1, e: "out5" });
-  sound(t0 - 0.05, "whoosh", 0.34);
-
-  // The empty window, then the real click on "New page" and the title being typed.
-  hold(0, t0 + 1.0, ms("launch.idle"));
-  const clickFrom = ms("click.newpage", -1000);
-  const typedTo = ms("title.typed", 350);
-  const oPlay = t0 + 1.0;
-  const oTyped = play(oPlay, clickFrom, typedTo);
-  const oClick = outOf(ms("click.newpage"));
-  if (oClick !== null) sound(oClick, "click", 0.4);
-  const typing = [ms("title.typing"), ms("title.typed")];
-  const chars = dict.title.length;
-  for (let i = 0; i < chars; i++) {
-    const o = outOf(typing[0] + ((typing[1] - typing[0]) * (i + 0.5)) / chars);
-    if (o !== null) sound(o, ["tick", "tick2", "tick3"][i % 3], 0.16 + 0.05 * ((i * 7) % 3));
+  // ---------------------------------------------------------------- hook: the title card
+  {
+    const t0 = 0;
+    const end = say("hook", t0 + 1.1);
+    const lucid = wordAt("hook-2", "Lucid");
+    const hero = {
+      t0,
+      t1: end + 0.55,
+      fadeIn: 0.5,
+      fadeOut: 0.75,
+      markAt: 0.25,
+      wordAt: lucid - 0.08 - t0,
+      taglineAt: lucid + 0.85 - t0,
+      tagline2At: lucid + 1.65 - t0,
+      word: "Lucid",
+      tagline: "Voice to structured notes and diagrams.",
+      tagline2: "Hands-free or one-handed. Local and private.",
+      // A waveform of the voice under the mark, until the name is said and the letters take its place.
+      wave: { t0: 0.7, t1: lucid - 0.12, top: 455 },
+    };
+    heroes.push(hero);
+    sound(0.25, "whoosh_short", 0.22);
+    sound(lucid - 0.08, "pop", 0.34);
+    sound(lucid + 0.85, "pop_low", 0.2);
+    scenes.hook = { t0, t1: end + 0.4 };
+    clock = end + 0.4;
   }
-  chapters.push({
-    t0: t0 + 0.8,
-    t1: 0,
-    n: 1,
-    text: script.scenes.find((s) => s.id === "speak").chapter,
-  });
 
-  // The dictated words land in the input box (as a paste does), then the model works.
-  const oPaste = Math.max(oTyped + 0.05, sent["speak-2"].t0 - 0.2);
-  step1 = dictStep("d1", { oPaste, holdFor: 1.7, maxWork: 5.4 });
-  sound(oPaste, "thock", 0.4);
-  sound(step1.oSend, "pop_low", 0.2);
+  // ---------------------------------------------------------------- speak: say it, or type it
+  let step1;
+  {
+    const t0 = clock;
+    const nEnd = say("speak", t0 + 2.2);
+    pose(t0 - 0.1, { s: 0.88, dy: 80, o: 0, e: "lin" });
+    pose(t0 + 1.0, { s: 1, dy: 0, o: 1, e: "out5" });
+    sound(t0 - 0.05, "whoosh", 0.34);
 
-  camTo(oPaste - 0.9, oPaste - 0.1, 738, 690, 1.3);
-  pill({
-    t0: oPaste + 0.05,
-    t1: step1.oDone + 0.3,
-    space: "card",
-    x: bar0.x + bar0.w / 2,
-    y: bar0.y - 215,
-    tone: "dark",
-    text: "Pasted into the box by a dictation app",
-  });
-  const apps = [
-    ["Wispr", "Wispr Flow", "var(--coral)", -250],
-    ["OpenWhispr", "OpenWhispr", "var(--indigo)", 0],
-    ["VoiceNative", "VoiceNative", "var(--teal)", 250],
-  ];
-  for (const [query, label, c, dx] of apps) {
-    const at = wordAt("speak-2", query) - 0.05;
+    // The empty window, then the real click on "New page" and the title being typed.
+    hold(0, t0 + 1.0, ms("launch.idle"));
+    const clickFrom = ms("click.newpage", -1000);
+    const typedTo = ms("title.typed", 350);
+    const oPlay = t0 + 1.0;
+    const oTyped = play(oPlay, clickFrom, typedTo);
+    const oClick = outOf(ms("click.newpage"));
+    if (oClick !== null) sound(oClick, "click", 0.4);
+    const typing = [ms("title.typing"), ms("title.typed")];
+    const chars = dict.title.length;
+    for (let i = 0; i < chars; i++) {
+      const o = outOf(typing[0] + ((typing[1] - typing[0]) * (i + 0.5)) / chars);
+      if (o !== null) sound(o, ["tick", "tick2", "tick3"][i % 3], 0.16 + 0.05 * ((i * 7) % 3));
+    }
+    chapters.push({
+      t0: t0 + 0.8,
+      t1: 0,
+      n: 1,
+      text: script.scenes.find((s) => s.id === "speak").chapter,
+    });
+
+    // The dictated words land in the input box (as a paste does), then the model works.
+    const oPaste = Math.max(oTyped + 0.05, sent["speak-2"].t0 - 0.2);
+    step1 = dictStep("d1", { oPaste, holdFor: 1.7, maxWork: 5.4 });
+    sound(oPaste, "thock", 0.4);
+    sound(step1.oSend, "pop_low", 0.2);
+
+    camTo(oPaste - 0.9, oPaste - 0.1, 738, 690, 1.3);
     pill({
-      t0: at,
+      t0: oPaste + 0.05,
       t1: step1.oDone + 0.3,
       space: "card",
-      x: bar0.x + bar0.w / 2 + dx,
-      y: bar0.y - 150,
-      c,
-      dot: true,
-      text: label,
+      x: bar0.x + bar0.w / 2,
+      y: bar0.y - 215,
+      tone: "dark",
+      text: "Pasted into the box by a dictation app",
     });
-    sound(at + 0.02, "pop", 0.26, dx / 500);
-  }
-  sound(step1.oDone, "chime", 0.3);
-  bgMood.push({ t: t0 + 1, hue: 0 });
-  scenes.speak = { t0, t1: step1.oDone - 0.3 };
-  clock = step1.oDone - 0.3;
-}
-
-// ---------------------------------------------------------------- structure: heading, list, table
-let step2;
-{
-  const t0 = clock;
-  const nEnd = say("structure", step1.oDone + 0.1);
-  const r1 = rects("d1.settled");
-  const heading = r1.headings[0];
-  const list = union(r1.bullets);
-  // after d1: the blocks are there; the page stays still
-  camTo(step1.oDone, step1.oDone + 1.3, 700, 250, 1.28);
-  const oHeading = wordAt("structure-1", "heading") - 0.15;
-  const oList = wordAt("structure-1", "list") - 0.15;
-  const oLocal = wordAt("structure-1", "own") - 0.1;
-  ring(oLocal, oLocal + 2.2, r1.model, "var(--teal)", "Local model", "below", 7);
-  ring(oHeading, sent["structure-2"].t0 - 0.2, heading, "var(--indigo)", "Heading", "east");
-  ring(oList, sent["structure-2"].t0 - 0.2, list, "var(--coral)", "List", "east");
-
-  // The comparison: the words land, the table appears as it is said.
-  const oPaste = sent["structure-2"].t0 - 0.5;
-  camTo(oPaste - 1.0, oPaste - 0.1, 800, 500, 1.2);
-  step2 = dictStep("d2", { oPaste, holdFor: 0.9, doneAt: wordAt("structure-2", "table") - 0.05 });
-  shortenedNote(step2, bar0);
-  const table = rects("d2.settled").tables[0];
-  ring(step2.oDone + 0.2, step2.oDone + 4.5, table, "var(--teal)", "Table", "right");
-  camTo(step2.oDone + 0.1, step2.oDone + 1.2, 800, 440, 1.28);
-  sound(oPaste, "thock", 0.34);
-  sound(step2.oSend, "pop_low", 0.18);
-  sound(step2.oDone, "chime", 0.3);
-  chapters.push({
-    t0: step1.oDone,
-    t1: 0,
-    n: 2,
-    text: script.scenes.find((s) => s.id === "structure").chapter,
-  });
-  bgMood.push({ t: t0 + 1, hue: 10 });
-  const end = Math.max(step2.oDone + 2.3, nEnd + 0.9);
-  scenes.structure = { t0, t1: end };
-  clock = end;
-}
-
-// ---------------------------------------------------------------- diagram, from words
-let step3;
-{
-  const t0 = clock;
-  say("diagram", t0 + 1.25);
-  const oPaste = t0 + 0.25;
-  const doneAt = wordAt("diagram-1", "draws") + 0.05;
-  step3 = dictStep("d3", { oPaste, holdFor: 0.9, doneAt });
-  shortenedNote(step3, bar0);
-  // The real scroll down to the new diagram.
-  const settled = ms("d3.settled");
-  const o1 = play(step3.oEnd, step3.after, ms("d3.done", 1200), 2.0);
-  const o2 = play(o1, ms("d3.done", 1200), settled);
-  const r3 = rects("d3.settled");
-  const diagram = r3.diagrams[0];
-  const node = (re) => r3.nodes.find((n) => re.test(n.label));
-  const lb = node(/load balancer/i);
-  const db = node(/database|db/i);
-  camTo(oPaste - 0.5, oPaste + 0.3, 800, 500, 1.2);
-  camTo(o1, o1 + 1.2, diagram.x + diagram.w / 2, diagram.y + diagram.h / 2, 1.1);
-  if (lb) ring(o2 + 0.1, o2 + 3.2, lb, "var(--indigo)", "Load balancer: hexagon", "right", 8);
-  if (db) ring(o2 + 0.8, o2 + 3.2, db, "var(--coral)", "Database: cylinder", "right", 8);
-  chapters.push({
-    t0: t0 + 0.3,
-    t1: 0,
-    n: 3,
-    text: script.scenes.find((s) => s.id === "diagram").chapter,
-  });
-  sound(oPaste, "thock", 0.34);
-  sound(step3.oSend, "pop_low", 0.18);
-  sound(step3.oDone, "chime", 0.3);
-  bgMood.push({ t: t0 + 1, hue: -12 });
-  const end = o2 + 3.3;
-  scenes.diagram = { t0, t1: end };
-  clock = end;
-}
-
-// ---------------------------------------------------------------- command mode
-let step4;
-{
-  const t0 = clock;
-  const nEnd = say("command", t0 + 0.15);
-  // Command mode is switched on (Cmd+2), then the words land.
-  const oMode = Math.max(t0 + 0.05, wordAt("command-1", "Command") - 0.35);
-  const modeFrom = ms("d4.mode", -700);
-  const pastedAt = ms("d4.pasted", 60);
-  hold(Math.max(clock, t0), oMode, ms("d3.settled"));
-  const oAfterMode = play(oMode, modeFrom, pastedAt);
-  step4 = dictStep("d4", {
-    oPaste: oAfterMode,
-    holdFor: 0.85,
-    doneAt: wordAt("command-2", "changes") + 0.1,
-  });
-  shortenedNote(step4, bar0);
-  const o1 = play(step4.oEnd, step4.after, ms("d4.done", 1200), 2.0);
-  const o2 = play(o1, ms("d4.done", 1200), ms("d4.settled"));
-  const r4 = rects("d4.settled");
-  const cache = r4.nodes.find((n) => /cache/i.test(n.label));
-  camTo(t0, t0 + 1.0, 800, 500, 1.12);
-  camTo(step4.oDone, step4.oDone + 1.2, 800, 520, 1.1);
-  if (cache) ring(o2 + 0.1, o2 + 3.5, cache, "var(--indigo)", "New: the cache", "right", 8);
-  const undoRect = r4.undo ?? r4.status;
-  if (undoRect)
-    ring(
-      wordAt("command-2", "undo") - 0.1,
-      o2 + 3.5,
-      undoRect,
-      "var(--coral)",
-      "One undo step",
-      "east",
-      8,
-    );
-  chapters.push({
-    t0: t0 + 0.2,
-    t1: 0,
-    n: 4,
-    text: script.scenes.find((s) => s.id === "command").chapter,
-  });
-  sound(oMode + 0.3, "click", 0.28);
-  sound(oAfterMode, "thock", 0.34);
-  sound(step4.oSend, "pop_low", 0.18);
-  sound(step4.oDone, "chime", 0.3);
-  bgMood.push({ t: t0 + 1, hue: 14 });
-  const end = Math.max(o2 + 3.6, nEnd + 1.2);
-  scenes.command = { t0, t1: end };
-  clock = end;
-}
-
-// ---------------------------------------------------------------- pdf
-let pdfEnd;
-{
-  const t0 = clock;
-  const nEnd = say("pdf", t0 + 0.35);
-  const oClickWord = wordAt("pdf-1", "click");
-  const clickAt = ms("click.pdf");
-  const startSrc = ms("history.shown", 800);
-  const savedSrc = ms("pdf.saved", 800);
-  // Play the real scroll to the top, the mouse to the button, the click and "Making PDF..." at 1.15x so the click is near its word.
-  const lead = (clickAt - startSrc) / 1000 / 1.15;
-  const oStart = Math.max(t0, oClickWord - lead);
-  hold(t0, oStart, ms("d4.settled"));
-  const oEnd = play(oStart, startSrc, savedSrc, 1.0);
-  const oClick = outOf(clickAt);
-  if (oClick !== null) sound(oClick, "click", 0.42);
-  chapters.push({
-    t0: t0 + 0.2,
-    t1: 0,
-    n: 5,
-    text: script.scenes.find((s) => s.id === "pdf").chapter,
-  });
-  const rP = rects("pdf.saved");
-  camTo(t0, t0 + 1.0, 800, 450, 1.0);
-  camTo(oStart + 0.1, oStart + 1.0, 1000, 230, 1.15);
-  camTo(oEnd - 0.9, oEnd - 0.1, 800, 450, 1.0);
-  // The paper comes in; the window steps aside.
-  const oPaper = oEnd + 0.1;
-  pose(oPaper, { s: 1, dx: 0, dy: 0 }, "lin");
-  pose(oPaper + 0.95, { s: 0.7, dx: -420, dy: 40, o: 1, r: -0.6 }, "out5");
-  panels.push({
-    kind: "paper",
-    src: "/capture/pdf-page-1.png",
-    keys: [
-      { t: oPaper - 0.05, x: 2250, y: 640, s: 0.92, r: 7, o: 0 },
-      { t: oPaper + 0.1, x: 2250, y: 640, s: 0.92, r: 7, o: 1, e: "lin" },
-      { t: oPaper + 1.05, x: 1440, y: 500, s: 0.95, r: 1.4, o: 1, e: "out5" },
-      { t: oPaper + 4.0, x: 1440, y: 492, s: 0.97, r: 1.0, o: 1, e: "inOut" },
-    ],
-  });
-  pill({
-    t0: oPaper + 0.9,
-    t1: oPaper + 4.2,
-    x: 1440,
-    y: 72,
-    tone: "dark",
-    small: true,
-    text: "A real page of the PDF",
-  });
-  pill({
-    t0: oPaper + 1.5,
-    t1: oPaper + 4.2,
-    x: 1440,
-    y: 930,
-    small: true,
-    c: "var(--teal)",
-    dot: true,
-    text: "Typeset on this Mac",
-    sub: "Tectonic",
-  });
-  sound(oPaper, "whoosh", 0.34, 0.4);
-  sound(outOf(ms("pdf.saved")) ?? oEnd, "chime", 0.3);
-  bgMood.push({ t: t0 + 1, hue: -6 });
-  pdfEnd = Math.max(nEnd + 1.1, oPaper + 4.0);
-  scenes.pdf = { t0, t1: pdfEnd };
-  clock = pdfEnd;
-  void rP;
-}
-
-// ---------------------------------------------------------------- formats
-let formatsEnd;
-{
-  const t0 = clock;
-  const nEnd = say("formats", t0 + 0.55);
-  const fmt = mark("fmt.list");
-  const formats = fmt.formats; // Blank, Concept, System design, Comparison, Inference, Benchmark
-  const dlg = fmt.dialog;
-  // The paper leaves, the window comes back to the middle.
-  const oBack = t0 + 0.05;
-  pose(oBack, { s: 0.7, dx: -420, dy: 40, o: 1, r: -0.6 }, "lin");
-  pose(oBack + 0.9, { s: 1, dx: 0, dy: 0, o: 1, r: 0 }, "out5");
-  panels
-    .find((p) => p.kind === "paper")
-    .keys.push(
-      { t: oBack, x: 1440, y: 492, s: 0.97, r: 1.0, o: 1, e: "lin" },
-      { t: oBack + 0.8, x: 2300, y: 620, s: 0.9, r: 6, o: 0, e: "in" },
-    );
-  sound(oBack, "whoosh_back", 0.3, 0.3);
-
-  // Real: the cursor goes to "New from a format...", the dialog opens, the words are typed.
-  const from = ms("click.format", -1000);
-  const typedTo = ms("fmt.typed", 350);
-  hold(t0, oBack + 0.3, ms("click.format", -1100));
-  const oTyped = play(oBack + 0.3, from, typedTo, 1.0, { x: 0.3 });
-  const oClick = outOf(ms("click.format"));
-  if (oClick !== null) sound(oClick, "click", 0.4);
-  const tt = [ms("fmt.open", 400), ms("fmt.typed")];
-  const n = dict.formatAbout.length;
-  for (let i = 0; i < n; i++) {
-    const o = outOf(tt[0] + ((tt[1] - tt[0]) * (i + 0.5)) / n);
-    if (o !== null) sound(o, ["tick", "tick2", "tick3"][i % 3], 0.12 + 0.04 * ((i * 5) % 3));
-  }
-  // Enter: the quick suggestion shows at once; the model's answer comes a few seconds later (cut).
-  const asked = ms("fmt.asked");
-  const oAsked = play(oTyped, typedTo, asked + 900);
-  const suggested = ms("fmt.suggested", 350);
-  const oSuggested = play(oAsked, suggested, ms("fmt.list", 350), 1.0, { x: 0.28 });
-  camTo(oBack + 0.5, oBack + 1.6, 760, 380, 1.18);
-  chapters.push({
-    t0: t0 + 0.3,
-    t1: 0,
-    n: 6,
-    text: script.scenes.find((s) => s.id === "formats").chapter,
-  });
-
-  const concept = formats[1];
-  const sysd = formats[2];
-  const oConcept = wordAt("formats-1", "concept") - 0.1;
-  const oSystem = wordAt("formats-1", "system") - 0.1;
-  // the dialog is open by now
-  ring(
-    Math.max(oConcept, oTyped - 1.2),
-    sent["formats-2"].t0 - 0.2,
-    concept,
-    "var(--teal)",
-    "Concept note",
-    "below",
-  );
-  ring(
-    Math.max(oSystem, oTyped - 0.9),
-    sent["formats-2"].t0 - 0.2,
-    sysd,
-    "var(--indigo)",
-    "System design note",
-    "below",
-  );
-
-  // The mouse walks over the formats, then "Create page" gives the page its sections.
-  const hoverFrom = ms("fmt.list", 350);
-  const createClick = ms("click.create");
-  const createdAt = ms("fmt.created", 500);
-  const oHover = play(oSuggested, hoverFrom, createClick + 400, 1.6);
-  const oCreated = play(oHover, createClick + 400, createdAt, 1.0, { x: 0.3 });
-  const oClickCreate = outOf(createClick);
-  if (oClickCreate !== null) sound(oClickCreate, "click", 0.4);
-
-  // "plain data": the card with one real format entry slides in while that is said, and the window steps left. When the
-  // sentence is over the card leaves, the window comes back and the page is made: its sections are what a format gives.
-  const oData = wordAt("formats-2", "plain") - 0.4;
-  const oDataOut = sent["formats-2"].t1 + 0.35;
-  pose(oData, { s: 1, dx: 0, dy: 0 }, "lin");
-  pose(oData + 0.95, { s: 0.7, dx: -440, dy: 30, o: 1, r: -0.5 }, "out5");
-  pose(oDataOut, { s: 0.7, dx: -440, dy: 30, o: 1, r: -0.5 }, "lin");
-  pose(oDataOut + 0.9, { s: 1, dx: 0, dy: 0, o: 1, r: 0 }, "out5");
-  camTo(oData - 0.1, oData + 0.9, 800, 450, 1.0);
-  camTo(
-    Math.max(oDataOut + 0.5, oCreated - 0.9),
-    Math.max(oDataOut + 1.4, oCreated - 0.1),
-    700,
-    380,
-    1.2,
-  );
-  const lines = [
-    { html: `<span class="k">{</span>`, t: 0 },
-    { html: `  <span class="k">id:</span> <span class="s">"benchmark"</span>,`, t: 0.2 },
-    { html: `  <span class="k">name:</span> <span class="s">"Benchmark note"</span>,`, t: 0.4 },
-    {
-      html: `  <span class="k">description:</span> <span class="s">"Recording an experiment or benchmark…"</span>,`,
-      t: 0.6,
-    },
-    { html: `  <span class="k">sections:</span> [`, t: 0.8 },
-    {
-      html: `    { <span class="k">heading:</span> <span class="s">"Goal and hypothesis"</span>, <span class="k">prefer:</span> [<span class="s">"paragraph"</span>] },`,
-      t: 1.0,
-    },
-    {
-      html: `    { <span class="k">heading:</span> <span class="s">"Setup"</span>, <span class="k">prefer:</span> [<span class="s">"table"</span>] },`,
-      t: 1.2,
-    },
-    {
-      html: `    { <span class="k">heading:</span> <span class="s">"Results"</span>, <span class="k">prefer:</span> [<span class="s">"table"</span>, <span class="s">"chart"</span>] },`,
-      t: 1.4,
-    },
-    { html: `    …`, t: 1.6 },
-    { html: `  ],`, t: 1.7 },
-    { html: `},`, t: 1.8 },
-    {
-      html: `<span class="k">{ id:</span> <span class="s">"lab-notebook"</span><span class="k">,</span> …<span class="k"> }</span>   <span class="n">← one more entry</span>`,
-      t: wordAt("formats-2", "lab") - oData - 0.2,
-      ghost: true,
-    },
-  ];
-  for (const l of lines) l.t += oData + 0.3;
-  panels.push({
-    kind: "data",
-    file: "packages/kit/src/formats/index.ts",
-    lines,
-    keys: [
-      { t: oData, x: 2400, y: 500, s: 0.95, r: 5, o: 0 },
-      { t: oData + 0.05, x: 2400, y: 500, s: 0.95, r: 5, o: 1, e: "lin" },
-      { t: oData + 1.0, x: 1400, y: 470, s: 0.94, r: 0.8, o: 1, e: "out5" },
-      { t: oDataOut, x: 1400, y: 470, s: 0.94, r: 0.8, o: 1, e: "lin" },
-      { t: oDataOut + 0.7, x: 2400, y: 500, s: 0.95, r: 5, o: 0, e: "in" },
-    ],
-  });
-  sound(oData, "whoosh", 0.32, 0.4);
-  sound(oDataOut, "whoosh_back", 0.28, 0.3);
-  sound(wordAt("formats-2", "lab") - 0.1, "pop", 0.26, 0.4);
-  bgMood.push({ t: t0 + 1, hue: 22 });
-  formatsEnd = Math.max(nEnd + 1.4, oCreated + 1.2);
-  scenes.formats = { t0, t1: formatsEnd };
-  clock = formatsEnd;
-}
-
-// ---------------------------------------------------------------- agents, through MCP
-let agentsEnd;
-{
-  const t0 = clock;
-  const nEnd = say("agents", t0 + 0.55);
-  // The window goes right and shows the page before and after the agent; the terminal takes the left.
-  pose(t0, { s: 1, dx: 0, dy: 0, o: 1, r: 0 }, "lin");
-  pose(t0 + 1.0, { s: 0.8, dx: 300, dy: 20, o: 1, r: 0 }, "out5");
-  sound(t0, "whoosh", 0.3, 0.2);
-
-  // The mouse goes back to the first page in the sidebar (real), then the agent works on it.
-  const oBackClick = play(t0 + 0.1, ms("click.back", -1000), ms("page.back", 300), 1.4);
-  const beginSrc = ms("mcp.begin", -150);
-  const oListDocs = wordAt("agents-1", "agent") - 0.2;
-  const oOutline = wordAt("agents-1", "read") - 0.2;
-  const oInsert = wordAt("agents-1", "add", "t0") - 0.1;
-  const clickBack = outOf(ms("click.back"));
-  if (clickBack !== null) sound(clickBack, "click", 0.38);
-  const insertCall = ms("mcp.insert_notes.call");
-  // First the page as it was, then the real insert.
-  hold(oBackClick, oInsert, beginSrc);
-  const oShown = play(oInsert, insertCall - 100, ms("mcp.shown", 400));
-  const hist = rects("mcp.shown").historyItems[0];
-  ring(
-    wordAt("agents-2", "history") - 0.3,
-    oShown + 3.0,
-    hist,
-    "var(--coral)",
-    "From the agent",
-    "below",
-    6,
-  );
-  camTo(t0, t0 + 1.0, 800, 450, 1.0);
-
-  // the terminal: the real calls, typed as they happen
-  const calls = cap.mcp;
-  const short = (s, n = 58) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
-  const lines = [];
-  const firstLine = (text, n = 60) => short(text.split("\n")[0], n);
-  const at = { list_documents: oListDocs, get_outline: oOutline, insert_notes: oInsert };
-  for (const c of calls) {
-    const t = at[c.name];
-    const args =
-      c.name === "insert_notes" ? ` lmd: "${short(c.args.lmd.replace(/\n/g, "\\n"), 40)}"` : "";
-    lines.push({ kind: "cmd", t, text: `${c.name}${args}`, cps: 70 });
-    const out = c.result.split("\n").filter((l) => l.trim().length > 0);
-    if (c.name === "list_documents") {
-      lines.push({
-        kind: "out",
-        t: t + 0.5,
-        text: short(out[0].replace(/^[0-9a-f-]{36}\s+\S+\s+/, "page  "), 60),
-        cps: 80,
+    const apps = [
+      ["Wispr", "Wispr Flow", "var(--coral)", -250],
+      ["OpenWhispr", "OpenWhispr", "var(--indigo)", 0],
+      ["VoiceNative", "VoiceNative", "var(--teal)", 250],
+    ];
+    for (const [query, label, c, dx] of apps) {
+      const at = wordAt("speak-2", query) - 0.05;
+      pill({
+        t0: at,
+        t1: step1.oDone + 0.3,
+        space: "card",
+        x: bar0.x + bar0.w / 2 + dx,
+        y: bar0.y - 150,
+        c,
+        dot: true,
+        text: label,
       });
-    } else if (c.name === "get_outline") {
-      const show = out.slice(0, 6).map((l) => short(l, 62));
-      show.forEach((l, i) =>
-        lines.push({ kind: "out", t: t + 0.55 + i * 0.16, text: l, cps: 120 }),
-      );
-      lines.push({ kind: "out", t: t + 0.55 + show.length * 0.16, text: "…", cps: 10 });
-    } else {
-      lines.push({
-        kind: "out",
-        t: t + 0.6,
-        text: short(out[0].replace(/ New revision.*$/, ""), 62),
-        cps: 80,
-      });
+      sound(at + 0.02, "pop", 0.26, dx / 500);
     }
-    lines.push({ kind: "gap", t });
+    sound(step1.oDone, "chime", 0.3);
+    bgMood.push({ t: t0 + 1, hue: 0 });
+    scenes.speak = { t0, t1: step1.oDone - 0.3 };
+    clock = step1.oDone - 0.3;
   }
-  panels.push({
-    kind: "term",
-    title: "an MCP client calling Lucid",
-    lines,
-    keys: [
-      { t: t0 + 0.1, x: -420, y: 500, s: 0.95, r: -2, o: 0 },
-      { t: t0 + 0.15, x: -420, y: 500, s: 0.95, r: -2, o: 1, e: "lin" },
-      { t: t0 + 1.1, x: 395, y: 500, s: 0.93, r: -0.4, o: 1, e: "out5" },
-    ],
-  });
-  for (const l of lines) {
-    if (l.kind !== "cmd" && l.kind !== "out") continue;
-    const nChars = Math.min(l.text.length, 60);
-    for (let i = 0; i < nChars; i += 4)
-      sound(l.t + i / (l.cps ?? 60), "tick", 0.07 + 0.03 * ((i / 4) % 3), -0.5);
+
+  // ---------------------------------------------------------------- structure: heading, list, table
+  let step2;
+  {
+    const t0 = clock;
+    const nEnd = say("structure", step1.oDone + 0.1);
+    const r1 = rects("d1.settled");
+    const heading = r1.headings[0];
+    const list = union(r1.bullets);
+    // after d1: the blocks are there; the page stays still
+    camTo(step1.oDone, step1.oDone + 1.3, 700, 250, 1.28);
+    const oHeading = wordAt("structure-1", "heading") - 0.15;
+    const oList = wordAt("structure-1", "list") - 0.15;
+    const oLocal = wordAt("structure-1", "own") - 0.1;
+    ring(oLocal, oLocal + 2.2, r1.model, "var(--teal)", "Local model", "below", 7);
+    ring(oHeading, sent["structure-2"].t0 - 0.2, heading, "var(--indigo)", "Heading", "east");
+    ring(oList, sent["structure-2"].t0 - 0.2, list, "var(--coral)", "List", "east");
+
+    // The comparison: the words land, the table appears as it is said.
+    const oPaste = sent["structure-2"].t0 - 0.5;
+    camTo(oPaste - 1.0, oPaste - 0.1, 800, 500, 1.2);
+    step2 = dictStep("d2", { oPaste, holdFor: 0.9, doneAt: wordAt("structure-2", "table") - 0.05 });
+    shortenedNote(step2, bar0);
+    const table = rects("d2.settled").tables[0];
+    ring(step2.oDone + 0.2, step2.oDone + 2.3, table, "var(--teal)", "Table", "right");
+    camTo(step2.oDone + 0.1, step2.oDone + 1.2, 800, 440, 1.28);
+    sound(oPaste, "thock", 0.34);
+    sound(step2.oSend, "pop_low", 0.18);
+    sound(step2.oDone, "chime", 0.3);
+    chapters.push({
+      t0: step1.oDone,
+      t1: 0,
+      n: 2,
+      text: script.scenes.find((s) => s.id === "structure").chapter,
+    });
+    bgMood.push({ t: t0 + 1, hue: 10 });
+    const end = Math.max(step2.oDone + 2.3, nEnd + 0.9);
+    scenes.structure = { t0, t1: end };
+    clock = end;
   }
-  sound(outOf(insertCall) ?? oInsert, "pop", 0.26, -0.3);
-  sound(oInsert + 0.5, "chime", 0.3);
-  chapters.push({
-    t0: t0 + 0.3,
-    t1: 0,
-    n: 7,
-    text: script.scenes.find((s) => s.id === "agents").chapter,
-  });
-  bgMood.push({ t: t0 + 1, hue: -18 });
-  agentsEnd = Math.max(nEnd + 1.5, oShown + 3.2);
-  scenes.agents = { t0, t1: agentsEnd };
-  clock = agentsEnd;
+
+  // ---------------------------------------------------------------- the diagram builder, by voice
+  {
+    const t0 = clock;
+    const nEnd = say("diagram", t0 + 0.9);
+    const phrases = dict.steps.find((x) => x.mode === "diagram").phrases;
+    // For each phrase: how long the pasted words are held, and how long the builder's answer plays (the real answer is
+    // faster or slower than that; the source plays at the speed that fits).
+    const pace = [
+      [0.4, 0.8],
+      [0.8, 0.6],
+      [0.35, 0.55],
+      [0.3, 0.45],
+      [0.3, 0.45],
+      [0.3, 0.45],
+      [0.25, 0.4],
+      [0.8, 0.8],
+      [0.4, 1.2],
+    ];
+    let o = t0;
+    const when = {};
+    phrases.forEach((_, i) => {
+      const id = `b${i + 1}`;
+      const pasted = ms(`${id}.pasted`, 60);
+      const settled = ms(`${id}.settled`);
+      const [holdFor, playFor] = pace[i] ?? [0.3, 0.5];
+      seg(o, o + holdFor, pasted, pasted, i === 0 ? { x: 0.25 } : {});
+      seg(o + holdFor, o + holdFor + playFor, pasted, settled);
+      when[id] = { paste: o, send: o + holdFor, settled: o + holdFor + playFor };
+      sound(o, "thock", i < 2 ? 0.3 : 0.2);
+      o += holdFor + playFor;
+    });
+    // "done": the diagram goes into the page and the page scrolls to it (real time, a little faster).
+    const oInserted = play(o, ms("b9.settled"), ms("builder.done"), 1.5);
+    const r = rects("builder.done");
+    const rb = rects("b6.settled");
+    const diagram = r.diagrams[0];
+    camTo(t0, t0 + 1.2, 760, 380, 1.16);
+    camTo(
+      when.b9.send,
+      when.b9.send + 1.2,
+      diagram.x + diagram.w / 2,
+      diagram.y + diagram.h / 2,
+      1.08,
+    );
+    if (rb.numbers)
+      ring(
+        wordAt("diagram-2", "number") - 0.1,
+        when.b8.paste - 0.1,
+        rb.numbers,
+        "var(--indigo)",
+        "Every part has a number",
+        "below",
+        6,
+      );
+    ring(
+      oInserted + 0.15,
+      oInserted + 3.0,
+      diagram,
+      "var(--teal)",
+      "In the page, as one step",
+      "below",
+      10,
+    );
+    chapters.push({
+      t0: t0 + 0.4,
+      t1: 0,
+      n: 3,
+      text: script.scenes.find((x) => x.id === "diagram").chapter,
+    });
+    sound(oInserted - 1.4, "chime", 0.3);
+    bgMood.push({ t: t0 + 1, hue: -12 });
+    const end = Math.max(oInserted + 2.6, nEnd + 1.2);
+    scenes.diagram = { t0, t1: end };
+    clock = end;
+  }
+
+  // ---------------------------------------------------------------- command mode
+  let step4;
+  {
+    const t0 = clock;
+    const nEnd = say("command", t0 + 0.15);
+    // Command mode is switched on (Cmd+2), then the words land.
+    const oMode = Math.max(t0 + 0.05, wordAt("command-1", "Command") - 0.35);
+    const modeFrom = ms("d4.mode", -700);
+    const pastedAt = ms("d4.pasted", 60);
+    hold(Math.max(clock, t0), oMode, ms("builder.done"));
+    const oAfterMode = play(oMode, modeFrom, pastedAt);
+    step4 = dictStep("d4", {
+      oPaste: oAfterMode,
+      holdFor: 0.85,
+      doneAt: wordAt("command-2", "changes") + 0.1,
+    });
+    shortenedNote(step4, bar0);
+    const o1 = play(step4.oEnd, step4.after, ms("d4.done", 1200), 2.0);
+    const o2 = play(o1, ms("d4.done", 1200), ms("d4.settled"));
+    const r4 = rects("d4.settled");
+    const cache = r4.nodes.find((n) => /cache/i.test(n.label));
+    camTo(t0, t0 + 1.0, 800, 500, 1.12);
+    camTo(step4.oDone, step4.oDone + 1.2, 800, 520, 1.1);
+    if (cache) ring(o2 + 0.1, o2 + 3.5, cache, "var(--indigo)", "New: the cache", "right", 8);
+    const undoRect = r4.undo ?? r4.status;
+    if (undoRect)
+      ring(
+        wordAt("command-2", "undo") - 0.1,
+        o2 + 3.5,
+        undoRect,
+        "var(--coral)",
+        "One undo step",
+        "east",
+        8,
+      );
+    chapters.push({
+      t0: t0 + 0.2,
+      t1: 0,
+      n: 4,
+      text: script.scenes.find((s) => s.id === "command").chapter,
+    });
+    sound(oMode + 0.3, "click", 0.28);
+    sound(oAfterMode, "thock", 0.34);
+    sound(step4.oSend, "pop_low", 0.18);
+    sound(step4.oDone, "chime", 0.3);
+    bgMood.push({ t: t0 + 1, hue: 14 });
+    const end = Math.max(o2 + 3.6, nEnd + 1.2);
+    scenes.command = { t0, t1: end };
+    clock = end;
+  }
+
+  // ---------------------------------------------------------------- pdf
+  let pdfEnd;
+  {
+    const t0 = clock;
+    const nEnd = say("pdf", t0 + 0.35);
+    const oClickWord = wordAt("pdf-1", "click");
+    const clickAt = ms("click.pdf");
+    const startSrc = ms("history.shown", 800);
+    const savedSrc = ms("pdf.saved", 800);
+    // Play the real scroll to the top, the mouse to the button, the click and "Making PDF..." at 1.15x so the click is near its word.
+    const lead = (clickAt - startSrc) / 1000 / 1.15;
+    const oStart = Math.max(t0, oClickWord - lead);
+    hold(t0, oStart, ms("d4.settled"));
+    const oEnd = play(oStart, startSrc, savedSrc, 1.0);
+    const oClick = outOf(clickAt);
+    if (oClick !== null) sound(oClick, "click", 0.42);
+    chapters.push({
+      t0: t0 + 0.2,
+      t1: 0,
+      n: 5,
+      text: script.scenes.find((s) => s.id === "pdf").chapter,
+    });
+    const rP = rects("pdf.saved");
+    camTo(t0, t0 + 1.0, 800, 450, 1.0);
+    camTo(oStart + 0.1, oStart + 1.0, 1000, 230, 1.15);
+    camTo(oEnd - 0.9, oEnd - 0.1, 800, 450, 1.0);
+    // The paper comes in; the window steps aside.
+    const oPaper = oEnd + 0.1;
+    pose(oPaper, { s: 1, dx: 0, dy: 0 }, "lin");
+    pose(oPaper + 0.95, { s: 0.7, dx: -420, dy: 40, o: 1, r: -0.6 }, "out5");
+    panels.push({
+      kind: "paper",
+      src: "/capture/pdf-page-1.png",
+      keys: [
+        { t: oPaper - 0.05, x: 2250, y: 640, s: 0.92, r: 7, o: 0 },
+        { t: oPaper + 0.1, x: 2250, y: 640, s: 0.92, r: 7, o: 1, e: "lin" },
+        { t: oPaper + 1.05, x: 1440, y: 500, s: 0.95, r: 1.4, o: 1, e: "out5" },
+        { t: oPaper + 4.0, x: 1440, y: 492, s: 0.97, r: 1.0, o: 1, e: "inOut" },
+      ],
+    });
+    pill({
+      t0: oPaper + 0.9,
+      t1: oPaper + 4.2,
+      x: 1440,
+      y: 72,
+      tone: "dark",
+      small: true,
+      text: "A real page of the PDF",
+    });
+    pill({
+      t0: oPaper + 1.5,
+      t1: oPaper + 4.2,
+      x: 1440,
+      y: 930,
+      small: true,
+      c: "var(--teal)",
+      dot: true,
+      text: "Typeset on this computer",
+      sub: "Tectonic",
+    });
+    sound(oPaper, "whoosh", 0.34, 0.4);
+    sound(outOf(ms("pdf.saved")) ?? oEnd, "chime", 0.3);
+    bgMood.push({ t: t0 + 1, hue: -6 });
+    pdfEnd = Math.max(nEnd + 1.1, oPaper + 4.0);
+    scenes.pdf = { t0, t1: pdfEnd };
+    clock = pdfEnd;
+    void rP;
+  }
+
+  // ---------------------------------------------------------------- formats
+  let formatsEnd;
+  {
+    const t0 = clock;
+    const nEnd = say("formats", t0 + 0.55);
+    const fmt = mark("fmt.list");
+    const formats = fmt.formats; // Blank, Concept, System design, Comparison, Inference, Benchmark
+    const dlg = fmt.dialog;
+    // The paper leaves, the window comes back to the middle.
+    const oBack = t0 + 0.05;
+    pose(oBack, { s: 0.7, dx: -420, dy: 40, o: 1, r: -0.6 }, "lin");
+    pose(oBack + 0.9, { s: 1, dx: 0, dy: 0, o: 1, r: 0 }, "out5");
+    panels
+      .find((p) => p.kind === "paper")
+      .keys.push(
+        { t: oBack, x: 1440, y: 492, s: 0.97, r: 1.0, o: 1, e: "lin" },
+        { t: oBack + 0.8, x: 2300, y: 620, s: 0.9, r: 6, o: 0, e: "in" },
+      );
+    sound(oBack, "whoosh_back", 0.3, 0.3);
+
+    // Real: the cursor goes to "New from a format...", the dialog opens, the words are typed.
+    const from = ms("click.format", -1000);
+    const typedTo = ms("fmt.typed", 350);
+    hold(t0, oBack + 0.3, ms("click.format", -1100));
+    const oTyped = play(oBack + 0.3, from, typedTo, 1.0, { x: 0.3 });
+    const oClick = outOf(ms("click.format"));
+    if (oClick !== null) sound(oClick, "click", 0.4);
+    const tt = [ms("fmt.open", 400), ms("fmt.typed")];
+    const n = dict.formatAbout.length;
+    for (let i = 0; i < n; i++) {
+      const o = outOf(tt[0] + ((tt[1] - tt[0]) * (i + 0.5)) / n);
+      if (o !== null) sound(o, ["tick", "tick2", "tick3"][i % 3], 0.12 + 0.04 * ((i * 5) % 3));
+    }
+    // Enter: the quick suggestion shows at once; the model's answer comes a few seconds later (cut).
+    const asked = ms("fmt.asked");
+    const oAsked = play(oTyped, typedTo, asked + 900);
+    const suggested = ms("fmt.suggested", 350);
+    const oSuggested = play(oAsked, suggested, ms("fmt.list", 350), 1.0, { x: 0.28 });
+    camTo(oBack + 0.5, oBack + 1.6, 760, 380, 1.18);
+    chapters.push({
+      t0: t0 + 0.3,
+      t1: 0,
+      n: 6,
+      text: script.scenes.find((s) => s.id === "formats").chapter,
+    });
+
+    const concept = formats[1];
+    const sysd = formats[2];
+    const oConcept = wordAt("formats-1", "concept") - 0.1;
+    const oSystem = wordAt("formats-1", "system") - 0.1;
+    // the dialog is open by now
+    ring(
+      Math.max(oConcept, oTyped - 1.2),
+      sent["formats-2"].t0 - 0.2,
+      concept,
+      "var(--teal)",
+      "Concept note",
+      "below",
+    );
+    ring(
+      Math.max(oSystem, oTyped - 0.9),
+      sent["formats-2"].t0 - 0.2,
+      sysd,
+      "var(--indigo)",
+      "System design note",
+      "below",
+    );
+
+    // The mouse walks over the formats, then "Create page" gives the page its sections.
+    const hoverFrom = ms("fmt.list", 350);
+    const createClick = ms("click.create");
+    const createdAt = ms("fmt.created", 500);
+    const oHover = play(oSuggested, hoverFrom, createClick + 400, 1.6);
+    const oCreated = play(oHover, createClick + 400, createdAt, 1.0, { x: 0.3 });
+    const oClickCreate = outOf(createClick);
+    if (oClickCreate !== null) sound(oClickCreate, "click", 0.4);
+
+    // "plain data": the card with one real format entry slides in while that is said, and the window steps left. When the
+    // sentence is over the card leaves, the window comes back and the page is made: its sections are what a format gives.
+    const oData = wordAt("formats-2", "plain") - 0.4;
+    const oDataOut = sent["formats-2"].t1 + 0.35;
+    pose(oData, { s: 1, dx: 0, dy: 0 }, "lin");
+    pose(oData + 0.95, { s: 0.7, dx: -440, dy: 30, o: 1, r: -0.5 }, "out5");
+    pose(oDataOut, { s: 0.7, dx: -440, dy: 30, o: 1, r: -0.5 }, "lin");
+    pose(oDataOut + 0.9, { s: 1, dx: 0, dy: 0, o: 1, r: 0 }, "out5");
+    camTo(oData - 0.1, oData + 0.9, 800, 450, 1.0);
+    camTo(
+      Math.max(oDataOut + 0.5, oCreated - 0.9),
+      Math.max(oDataOut + 1.4, oCreated - 0.1),
+      700,
+      380,
+      1.2,
+    );
+    const lines = [
+      { html: `<span class="k">{</span>`, t: 0 },
+      { html: `  <span class="k">id:</span> <span class="s">"benchmark"</span>,`, t: 0.2 },
+      { html: `  <span class="k">name:</span> <span class="s">"Benchmark note"</span>,`, t: 0.4 },
+      {
+        html: `  <span class="k">description:</span> <span class="s">"Recording an experiment or benchmark…"</span>,`,
+        t: 0.6,
+      },
+      { html: `  <span class="k">sections:</span> [`, t: 0.8 },
+      {
+        html: `    { <span class="k">heading:</span> <span class="s">"Goal and hypothesis"</span>, <span class="k">prefer:</span> [<span class="s">"paragraph"</span>] },`,
+        t: 1.0,
+      },
+      {
+        html: `    { <span class="k">heading:</span> <span class="s">"Setup"</span>, <span class="k">prefer:</span> [<span class="s">"table"</span>] },`,
+        t: 1.2,
+      },
+      {
+        html: `    { <span class="k">heading:</span> <span class="s">"Results"</span>, <span class="k">prefer:</span> [<span class="s">"table"</span>, <span class="s">"chart"</span>] },`,
+        t: 1.4,
+      },
+      { html: `    …`, t: 1.6 },
+      { html: `  ],`, t: 1.7 },
+      { html: `},`, t: 1.8 },
+      {
+        html: `<span class="k">{ id:</span> <span class="s">"lab-notebook"</span><span class="k">,</span> …<span class="k"> }</span>   <span class="n">← one more entry</span>`,
+        t: wordAt("formats-2", "lab") - oData - 0.2,
+        ghost: true,
+      },
+    ];
+    for (const l of lines) l.t += oData + 0.3;
+    panels.push({
+      kind: "data",
+      file: "packages/kit/src/formats/index.ts",
+      lines,
+      keys: [
+        { t: oData, x: 2400, y: 500, s: 0.95, r: 5, o: 0 },
+        { t: oData + 0.05, x: 2400, y: 500, s: 0.95, r: 5, o: 1, e: "lin" },
+        { t: oData + 1.0, x: 1400, y: 470, s: 0.94, r: 0.8, o: 1, e: "out5" },
+        { t: oDataOut, x: 1400, y: 470, s: 0.94, r: 0.8, o: 1, e: "lin" },
+        { t: oDataOut + 0.7, x: 2400, y: 500, s: 0.95, r: 5, o: 0, e: "in" },
+      ],
+    });
+    sound(oData, "whoosh", 0.32, 0.4);
+    sound(oDataOut, "whoosh_back", 0.28, 0.3);
+    sound(wordAt("formats-2", "lab") - 0.1, "pop", 0.26, 0.4);
+    bgMood.push({ t: t0 + 1, hue: 22 });
+    formatsEnd = Math.max(nEnd + 1.4, oCreated + 1.2);
+    scenes.formats = { t0, t1: formatsEnd };
+    clock = formatsEnd;
+  }
+
+  // ---------------------------------------------------------------- agents, through MCP
+  let agentsEnd;
+  {
+    const t0 = clock;
+    const nEnd = say("agents", t0 + 0.55);
+    // The window goes right and shows the page before and after the agent; the terminal takes the left.
+    pose(t0, { s: 1, dx: 0, dy: 0, o: 1, r: 0 }, "lin");
+    pose(t0 + 1.0, { s: 0.8, dx: 300, dy: 20, o: 1, r: 0 }, "out5");
+    sound(t0, "whoosh", 0.3, 0.2);
+
+    // The mouse goes back to the first page in the sidebar (real), then the agent works on it.
+    const oBackClick = play(t0 + 0.1, ms("click.back", -1000), ms("page.back", 300), 1.4);
+    const beginSrc = ms("mcp.begin", -150);
+    const oListDocs = wordAt("agents-1", "agent") - 0.2;
+    const oOutline = wordAt("agents-1", "read") - 0.2;
+    const oInsert = wordAt("agents-1", "add", "t0") - 0.1;
+    const clickBack = outOf(ms("click.back"));
+    if (clickBack !== null) sound(clickBack, "click", 0.38);
+    const insertCall = ms("mcp.insert_notes.call");
+    // First the page as it was, then the real insert.
+    hold(oBackClick, oInsert, beginSrc);
+    const oShown = play(oInsert, insertCall - 100, ms("mcp.shown", 400));
+    const hist = rects("mcp.shown").historyItems[0];
+    ring(
+      wordAt("agents-2", "history") - 0.3,
+      oShown + 3.0,
+      hist,
+      "var(--coral)",
+      "From the agent",
+      "below",
+      6,
+    );
+    camTo(t0, t0 + 1.0, 800, 450, 1.0);
+
+    // the terminal: the real calls, typed as they happen
+    const calls = cap.mcp;
+    const short = (s, n = 58) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
+    const lines = [];
+    const firstLine = (text, n = 60) => short(text.split("\n")[0], n);
+    const at = { list_documents: oListDocs, get_outline: oOutline, insert_notes: oInsert };
+    for (const c of calls) {
+      const t = at[c.name];
+      const args =
+        c.name === "insert_notes" ? ` lmd: "${short(c.args.lmd.replace(/\n/g, "\\n"), 40)}"` : "";
+      lines.push({ kind: "cmd", t, text: `${c.name}${args}`, cps: 70 });
+      const out = c.result.split("\n").filter((l) => l.trim().length > 0);
+      if (c.name === "list_documents") {
+        lines.push({
+          kind: "out",
+          t: t + 0.5,
+          text: short(out[0].replace(/^[0-9a-f-]{36}\s+\S+\s+/, "page  "), 60),
+          cps: 80,
+        });
+      } else if (c.name === "get_outline") {
+        const show = out.slice(0, 6).map((l) => short(l, 62));
+        show.forEach((l, i) =>
+          lines.push({ kind: "out", t: t + 0.55 + i * 0.16, text: l, cps: 120 }),
+        );
+        lines.push({ kind: "out", t: t + 0.55 + show.length * 0.16, text: "…", cps: 10 });
+      } else {
+        lines.push({
+          kind: "out",
+          t: t + 0.6,
+          text: short(out[0].replace(/ New revision.*$/, ""), 62),
+          cps: 80,
+        });
+      }
+      lines.push({ kind: "gap", t });
+    }
+    panels.push({
+      kind: "term",
+      title: "an MCP client calling Lucid",
+      lines,
+      keys: [
+        { t: t0 + 0.1, x: -420, y: 500, s: 0.95, r: -2, o: 0 },
+        { t: t0 + 0.15, x: -420, y: 500, s: 0.95, r: -2, o: 1, e: "lin" },
+        { t: t0 + 1.1, x: 395, y: 500, s: 0.93, r: -0.4, o: 1, e: "out5" },
+      ],
+    });
+    for (const l of lines) {
+      if (l.kind !== "cmd" && l.kind !== "out") continue;
+      const nChars = Math.min(l.text.length, 60);
+      for (let i = 0; i < nChars; i += 4)
+        sound(l.t + i / (l.cps ?? 60), "tick", 0.07 + 0.03 * ((i / 4) % 3), -0.5);
+    }
+    sound(outOf(insertCall) ?? oInsert, "pop", 0.26, -0.3);
+    sound(oInsert + 0.5, "chime", 0.3);
+    chapters.push({
+      t0: t0 + 0.3,
+      t1: 0,
+      n: 7,
+      text: script.scenes.find((s) => s.id === "agents").chapter,
+    });
+    bgMood.push({ t: t0 + 1, hue: -18 });
+    agentsEnd = Math.max(nEnd + 1.5, oShown + 3.2);
+    scenes.agents = { t0, t1: agentsEnd };
+    clock = agentsEnd;
+  }
+
+  // ---------------------------------------------------------------- outro
+  let total;
+  {
+    const t0 = clock;
+    const nEnd = say("outro", t0 + 0.7);
+    pose(t0, { s: 0.8, dx: 300, dy: 20, o: 1, r: 0 }, "lin");
+    pose(t0 + 0.9, { s: 0.66, dx: 300, dy: 70, o: 0, r: 0 }, "in");
+    panels
+      .find((p) => p.kind === "term")
+      .keys.push(
+        { t: t0, x: 395, y: 500, s: 0.93, r: -0.4, o: 1, e: "lin" },
+        { t: t0 + 0.8, x: 300, y: 540, s: 0.9, r: -1.5, o: 0, e: "in" },
+      );
+    const gh = wordAt("outro-2", "GitHub");
+    const hero = {
+      t0: t0 + 0.5,
+      t1: nEnd + 2.4,
+      fadeIn: 0.6,
+      fadeOut: 0.9,
+      markAt: 0.2,
+      wordAt: 0.55,
+      taglineAt: 1.2,
+      tagline2At: 1.85,
+      urlAt: gh - (t0 + 0.5) + 0.15,
+      word: "Lucid",
+      tagline: "Free and open source.",
+      tagline2: "Everything runs on your computer.",
+      url: "github.com/triggeredcode/lucid",
+      markTop: 270,
+      wordTop: 422,
+      taglineTop: 612,
+      tagline2Top: 684,
+      urlTop: 770,
+    };
+    heroes.push(hero);
+    sound(t0 + 0.5, "finale", 0.3);
+    sound(gh + 0.1, "pop", 0.3);
+    bgMood.push({ t: t0 + 1, hue: 0 });
+    total = nEnd + 2.4;
+    scenes.outro = { t0, t1: total };
+    clock = total;
+  }
+  return total;
 }
 
-// ---------------------------------------------------------------- outro
-let total;
-{
-  const t0 = clock;
-  const nEnd = say("outro", t0 + 0.7);
-  pose(t0, { s: 0.8, dx: 300, dy: 20, o: 1, r: 0 }, "lin");
-  pose(t0 + 0.9, { s: 0.66, dx: 300, dy: 70, o: 0, r: 0 }, "in");
-  panels
-    .find((p) => p.kind === "term")
-    .keys.push(
-      { t: t0, x: 395, y: 500, s: 0.93, r: -0.4, o: 1, e: "lin" },
-      { t: t0 + 0.8, x: 300, y: 540, s: 0.9, r: -1.5, o: 0, e: "in" },
-    );
-  const gh = wordAt("outro-2", "GitHub");
-  const hero = {
-    t0: t0 + 0.5,
-    t1: nEnd + 2.4,
-    fadeIn: 0.6,
-    fadeOut: 0.9,
-    markAt: 0.2,
-    wordAt: 0.55,
-    taglineAt: 1.2,
-    tagline2At: 1.85,
-    urlAt: gh - (t0 + 0.5) + 0.15,
-    word: "Lucid",
-    tagline: "Free and open source.",
-    tagline2: "Everything runs on your computer.",
-    url: "github.com/triggeredcode/lucid",
-    markTop: 270,
-    wordTop: 422,
-    taglineTop: 612,
-    tagline2Top: 684,
-    urlTop: 770,
-  };
-  heroes.push(hero);
-  sound(t0 + 0.5, "finale", 0.3);
-  sound(gh + 0.1, "pop", 0.3);
-  bgMood.push({ t: t0 + 1, hue: 0 });
-  total = nEnd + 2.4;
-  scenes.outro = { t0, t1: total };
-  clock = total;
+// ================================================================ the story of the GIF
+/**
+ * About ten seconds, no captions: a thought pasted, a structured page, a diagram by voice, one command. The same real frames
+ * as the video, cut shorter, in the same window on the same gradient.
+ */
+function gifStory() {
+  const bar0 = rects("page.ready").bar;
+  const pill0 = (step) =>
+    pill({
+      t0: step.oWorking + 0.05,
+      t1: step.oDone + 0.5,
+      space: "card",
+      x: bar0.x + bar0.w,
+      y: bar0.y - 40,
+      anchor: "r",
+      small: true,
+      c: "var(--amber)",
+      dot: true,
+      text: `Model time: ${Math.round(step.real)} s`,
+      sub: "shortened",
+    });
+  // The window rises on the empty page.
+  pose(-0.1, { s: 0.9, dy: 60, o: 0, e: "lin" });
+  pose(0.6, { s: 1, dy: 0, o: 1, e: "out5" });
+  hold(0, 0.5, ms("page.ready"));
+  camTo(0.2, 0.9, 738, 680, 1.5);
+
+  // 1. A thought lands in the box; the page appears.
+  const fast = { trans: 0.5, tail: 0.5 };
+  const d1 = dictStep("d1", { oPaste: 0.5, holdFor: 0.7, doneAt: 2.3, ...fast });
+  pill0(d1);
+  camTo(d1.oDone - 0.2, d1.oDone + 0.9, 700, 270, 1.5);
+  // 2. A comparison: the table.
+  const oPaste2 = d1.oDone + 0.7;
+  camTo(oPaste2 - 0.9, oPaste2 - 0.1, 780, 520, 1.3);
+  const d2 = dictStep("d2", {
+    oPaste: oPaste2,
+    holdFor: 0.4,
+    doneAt: oPaste2 + 1.5,
+    ...fast,
+  });
+  pill0(d2);
+  camTo(d2.oDone, d2.oDone + 0.8, 790, 400, 1.4);
+  // 3. The diagram builder: the drawing with its numbers, then "done" puts it into the page.
+  const oB = d2.oDone + 0.6;
+  seg(oB, oB + 0.5, ms("b8.settled"), ms("b8.settled"), { x: 0.3 });
+  const oDone = play(oB + 0.5, ms("b9.pasted", 60), ms("b9.settled"), 2.0);
+  const oShown = play(oDone, ms("b9.settled"), ms("builder.done"), 3.0);
+  camTo(oB - 0.3, oB + 0.5, 760, 390, 1.3);
+  camTo(oDone - 0.2, oDone + 0.9, 740, 390, 1.2);
+  // 4. One command: the cache.
+  const oCmd = oShown + 0.2;
+  camTo(oCmd - 0.4, oCmd + 0.5, 800, 560, 1.22);
+  hold(oShown, oCmd, ms("builder.done"));
+  const d4 = dictStep("d4", { oPaste: oCmd, holdFor: 0.6, doneAt: oCmd + 1.6, ...fast });
+  pill0(d4);
+  const o2 = play(d4.oEnd, d4.after, ms("d4.done", 1200), 3.0);
+  const o3 = play(o2, ms("d4.done", 1200), ms("d4.settled"), 2.0);
+  const cache = rects("d4.settled").nodes.find((n) => /cache/i.test(n.label));
+  if (cache) ring(o3 + 0.1, o3 + 1.5, cache, "var(--indigo)", "New: the cache", "right", 8);
+  const end = o3 + 1.0;
+  // The window leaves, so that the loop starts from the empty gradient.
+  pose(end - 0.5, { s: 1, dy: 0, o: 1, e: "lin" });
+  pose(end, { s: 0.94, dy: -20, o: 0, e: "in" });
+  scenes.gif = { t0: 0, t1: end };
+  return end;
 }
+
+const total = GIF ? gifStory() : videoStory();
 
 // ================================================================ the timeline
 const byT = (a, b) => a.t - b.t;
@@ -802,7 +921,7 @@ const ACCENTS = [
 ];
 chapters.forEach((c, i) => {
   c.c = ACCENTS[i % ACCENTS.length];
-  c.t1 = (chapters[i + 1]?.t0 ?? scenes.agents.t1) - 0.05;
+  c.t1 = (chapters[i + 1]?.t0 ?? scenes.agents?.t1 ?? total) - 0.05;
 });
 // A pill or ring that was given no end lasts to the end of its scene; none are open-ended here.
 
@@ -855,13 +974,13 @@ const timeline = {
   // The 1280 x 640 poster: a real frame of the page with its table and diagram, after the agent has not yet touched it.
   poster: {
     title: "Lucid",
-    tagline: "Voice to structured notes, tables and diagrams.",
+    tagline: "Voice to structured notes and diagrams.",
     chips: [
-      ["Speak or type", "var(--coral)"],
-      ["Local model", "var(--indigo)"],
+      ["Hands-free", "var(--coral)"],
+      ["Local and private", "var(--indigo)"],
       ["PDF and MCP", "var(--teal)"],
     ],
-    x: 566,
+    x: 600,
     y: 92,
     scale: 0.66,
     file: frameAt(ms("page.back", 250)),
@@ -869,7 +988,7 @@ const timeline = {
 };
 
 mkdirSync(OUT, { recursive: true });
-writeFileSync(join(OUT, "timeline.json"), JSON.stringify(timeline));
+writeFileSync(join(OUT, GIF ? "timeline-gif.json" : "timeline.json"), JSON.stringify(timeline));
 console.log(
   `timeline: ${timeline.duration.toFixed(1)} s, ${map.length} source segments, ${rings.length} rings, ${pills.length} pills, ${sfx.length} sounds`,
 );
