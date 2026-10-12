@@ -154,7 +154,7 @@ function table(block: Block): string {
   const t = parsed.data;
   const n = t.columns.length;
   const spec =
-    t.headerColumn && n > 1 ? `@{}l*{${String(n - 1)}}{X}@{}` : `@{}*{${String(n)}}{X}@{}`;
+    t.headerColumn && n > 1 ? `@{}l*{${String(n - 1)}}{Y}@{}` : `@{}*{${String(n)}}{Y}@{}`;
   const cell = (
     text: string,
     s: "normal" | "struck" | "chosen",
@@ -173,7 +173,7 @@ function table(block: Block): string {
   );
   const caption = str(block, "caption");
   return [
-    "\\begin{table}[H]\\centering\\small",
+    "\\begin{table}[H]\\centering\\small\\renewcommand{\\arraystretch}{1.25}",
     `\\begin{tabularx}{\\linewidth}{${spec}}`,
     "\\toprule",
     `${head} \\\\`,
