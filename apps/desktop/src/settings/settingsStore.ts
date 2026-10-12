@@ -1,4 +1,10 @@
-import type { PublicSettings, SettingsInput, SettingsSaveResult } from "../../electron/ipc/types";
+import { useEffect, useState } from "react";
+import type {
+  AutoSendMs,
+  PublicSettings,
+  SettingsInput,
+  SettingsSaveResult,
+} from "../../electron/ipc/types";
 import { resetModel } from "../llm/model";
 
 let current: PublicSettings | undefined;
@@ -26,4 +32,22 @@ export async function saveSettings(input: SettingsInput): Promise<SettingsSaveRe
     window.dispatchEvent(new Event("lucid:settings-saved"));
   }
   return result;
+}
+
+/** How long a paste waits for more before it is sent by itself (0: never); follows the Settings window. */
+export function useAutoSendMs(): AutoSendMs {
+  const [ms, setMs] = useState<AutoSendMs>(peekSettings()?.dictation.autoSendMs ?? 450);
+  useEffect(() => {
+    const read = () => {
+      void loadSettings().then((s) => {
+        setMs(s.dictation.autoSendMs);
+      });
+    };
+    read();
+    window.addEventListener("lucid:settings-saved", read);
+    return () => {
+      window.removeEventListener("lucid:settings-saved", read);
+    };
+  }, []);
+  return ms;
 }

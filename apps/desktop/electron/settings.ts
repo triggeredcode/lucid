@@ -1,7 +1,15 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { DEFAULT_PDF_STYLE, PdfStyleSchema } from "@lucid/kit";
+import { AUTO_SEND_MS } from "./ipc/types";
 import { z } from "zod";
+
+const AutoSendMsSchema = z.union([
+  z.literal(AUTO_SEND_MS[0]),
+  z.literal(AUTO_SEND_MS[1]),
+  z.literal(AUTO_SEND_MS[2]),
+  z.literal(AUTO_SEND_MS[3]),
+]);
 
 /** User settings in `<library>/.lucid/settings.json`. Missing file or fields fall back to the defaults. */
 export const SettingsSchema = z.object({
@@ -11,6 +19,8 @@ export const SettingsSchema = z.object({
   footerRight: z.string().default(""),
   /** How PDFs look: paper, text size, typeface, margins, accent, numbering and date (the house style by default). */
   pdf: PdfStyleSchema.default(DEFAULT_PDF_STYLE),
+  /** Dictation: how long a paste waits for more before it is sent by itself (0: never, press Enter). */
+  dictation: z.object({ autoSendMs: AutoSendMsSchema.default(450) }).default({ autoSendMs: 450 }),
   /** Words speech recognition tends to get wrong (names, tools); kept as spoken when the notes are written. */
   vocabulary: z.array(z.string()).default([]),
   /** The Tectonic to run; empty means the one that comes with Lucid, or an installed one. */
@@ -87,6 +97,7 @@ export const EditableSettingsSchema = z.strictObject({
   author: oneLine(80),
   footerRight: oneLine(40),
   pdf: PdfStyleSchema,
+  dictation: z.strictObject({ autoSendMs: AutoSendMsSchema }),
   vocabulary: z.array(oneLine(60).min(1)).max(200, "at most 200 words"),
   llm: z.strictObject({
     baseUrl: LocalAddress,
@@ -120,6 +131,7 @@ export async function saveSettings(libraryDir: string, input: unknown): Promise<
     author: parsed.data.author,
     footerRight: parsed.data.footerRight,
     pdf: parsed.data.pdf,
+    dictation: parsed.data.dictation,
     vocabulary: [...new Set(parsed.data.vocabulary)],
     llm: { ...current.llm, ...parsed.data.llm },
   };

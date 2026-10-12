@@ -25,6 +25,19 @@ describe("loadSettings", () => {
     expect(await loadSettings(dir)).toMatchObject({ author: "Asha", footerRight: "" });
   });
 
+  it("sends a paste after 0.5 s unless the settings say otherwise (a file from before has no such setting)", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "lucid-set-"));
+    await mkdir(join(dir, ".lucid"));
+    const file = join(dir, ".lucid", "settings.json");
+    await writeFile(file, JSON.stringify({ author: "Asha" }), "utf8");
+    expect((await loadSettings(dir)).dictation).toEqual({ autoSendMs: 450 });
+    await writeFile(file, JSON.stringify({ dictation: { autoSendMs: 0 } }), "utf8");
+    expect((await loadSettings(dir)).dictation).toEqual({ autoSendMs: 0 });
+    // A value that is not offered falls back to the defaults, like any damaged setting.
+    await writeFile(file, JSON.stringify({ dictation: { autoSendMs: 7 } }), "utf8");
+    expect((await loadSettings(dir)).dictation).toEqual({ autoSendMs: 450 });
+  });
+
   it("gives the house style to a settings file from before there were PDF choices, and keeps partial ones", async () => {
     const dir = await mkdtemp(join(tmpdir(), "lucid-set-"));
     await mkdir(join(dir, ".lucid"));
@@ -53,6 +66,7 @@ describe("saveSettings", () => {
     author: "Asha",
     footerRight: "Notes",
     pdf: { ...DEFAULT_PDF_STYLE, paper: "a4", fontSize: 11, accent: "navy", showDate: false },
+    dictation: { autoSendMs: 1000 },
     vocabulary: ["vLLM", "Kafka", "vLLM"],
     llm: { baseUrl: "http://localhost:1234/", model: "other/model-7b", contextLength: 16384 },
   };
@@ -70,6 +84,7 @@ describe("saveSettings", () => {
       author: "Asha",
       footerRight: "Notes",
       pdf: { paper: "a4", fontSize: 11, accent: "navy", showDate: false },
+      dictation: { autoSendMs: 1000 },
       vocabulary: ["vLLM", "Kafka"],
       tectonicPath: "/custom/tectonic",
       llm: {
@@ -118,6 +133,8 @@ describe("saveSettings", () => {
       SettingsError,
     );
     expect(await bad({ pdf: undefined })).toBeInstanceOf(SettingsError);
+    expect(await bad({ dictation: { autoSendMs: 300 } })).toBeInstanceOf(SettingsError);
+    expect(await bad({ dictation: undefined })).toBeInstanceOf(SettingsError);
     expect(await loadSettings(dir)).toEqual(before);
   });
 });

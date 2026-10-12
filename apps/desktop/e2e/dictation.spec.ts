@@ -120,6 +120,55 @@ test("a paste (how Wispr Flow delivers dictation) is sent on its own after a sho
   }
 });
 
+/** Settings, Dictation: how long a paste waits before it is sent by itself. */
+async function chooseSendDelay(page: Page, label: string): Promise<void> {
+  await page.keyboard.press("Meta+,");
+  const dialog = page.getByRole("dialog", { name: "Settings" });
+  await dialog
+    .locator(".dictation-settings")
+    .getByRole("radio", { name: label, exact: true })
+    .click();
+  await dialog.getByRole("button", { name: "Save" }).click();
+  await expect(dialog).toBeHidden();
+}
+
+test("Settings can make a paste wait longer before it is sent, or never send it by itself", async () => {
+  test.setTimeout(120_000);
+  const { app, page, home } = await launch({
+    script: [
+      { kind: "reply", content: notes },
+      { kind: "reply", content: notes },
+    ],
+  });
+  try {
+    // Two seconds: nothing is sent after one.
+    await chooseSendDelay(page, "2 s");
+    const stored = JSON.parse(readFileSync(join(home, ".lucid", "settings.json"), "utf8")) as {
+      dictation: unknown;
+    };
+    expect(stored.dictation).toEqual({ autoSendMs: 2000 });
+    await wisprPaste(app, page, `${said} `);
+    await page.waitForTimeout(1000);
+    expect(requestsSent()).toBe(0);
+    await expect.poll(requestsSent, { timeout: 30_000 }).toBe(1);
+
+    // Never: the words wait in the box until Enter.
+    await chooseSendDelay(page, "Never");
+    await bar(page).focus();
+    await wisprPaste(app, page, `${said} `);
+    await page.waitForTimeout(2500);
+    expect(requestsSent()).toBe(1);
+    await expect(bar(page)).toHaveValue(/^Load balancer\. Multiple application servers/);
+    await bar(page).press("Enter");
+    await expect.poll(requestsSent, { timeout: 30_000 }).toBe(2);
+    await expect(bar(page)).toHaveValue("");
+    // Said by a paste, so it is kept as a dictation and not as typing.
+    expect(JSON.stringify(mock?.requests[1]?.body)).toContain("Multiple application servers");
+  } finally {
+    await app.close();
+  }
+});
+
 test("typing after a paste cancels the automatic send", async () => {
   test.setTimeout(60_000);
   const { app, page } = await launch({ script: [{ kind: "reply", content: notes }] });
