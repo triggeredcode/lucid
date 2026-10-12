@@ -1670,6 +1670,7 @@ select:focus-visible,
 }
 .settings input,
 .settings textarea,
+.template textarea,
 .np-about textarea,
 .np-title input,
 .fp-fields input {
@@ -1683,6 +1684,7 @@ select:focus-visible,
 }
 .settings input:focus,
 .settings textarea:focus,
+.template textarea:focus,
 .np-about textarea:focus,
 .np-title input:focus,
 .fp-fields input:focus {
@@ -1716,6 +1718,36 @@ select:focus-visible,
 }
 .setting-row > span {
   font-weight: 700;
+}
+/* The PDF template window, over Settings. */
+.modal.template {
+  width: min(820px, 100%);
+}
+.template-about {
+  margin: 8px 0 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink-2);
+}
+.template textarea {
+  display: block;
+  min-height: 50vh;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre;
+  overflow: auto;
+  resize: vertical;
+}
+.modal.template footer .spacer {
+  flex: 1;
+}
+.template-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink-3);
+  font-weight: 400;
 }
 .setting-row .segmented {
   flex-wrap: wrap;

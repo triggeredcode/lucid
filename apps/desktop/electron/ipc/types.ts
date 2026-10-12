@@ -128,6 +128,14 @@ export type LlmEvent =
   | { id: number; type: "end" }
   | { id: number; type: "error"; message: string };
 
+/** The PDF template (`lucid.sty`): the person's own, or the one that comes with Lucid. */
+export interface TemplateState {
+  custom: boolean;
+  text: string;
+}
+export type TemplateSaveResult =
+  { ok: true; template: TemplateState } | { ok: false; problems: string[] };
+
 export const IPC = {
   ping: "lucid:ping",
   pagesList: "lucid:pages-list",
@@ -148,6 +156,9 @@ export const IPC = {
   fileSaveText: "lucid:file-save-text",
   settingsGet: "lucid:settings-get",
   settingsSave: "lucid:settings-save",
+  templateGet: "lucid:template-get",
+  templateSave: "lucid:template-save",
+  templateReset: "lucid:template-reset",
   llmStart: "lucid:llm-start",
   llmAbort: "lucid:llm-abort",
   lmStatus: "lucid:lm-status",
@@ -180,6 +191,13 @@ export interface LucidApi {
     get(): Promise<PublicSettings>;
     /** Checks and saves; the new values apply at once (the model, the PDF style, new pages). */
     save(input: SettingsInput): Promise<SettingsSaveResult>;
+  };
+  template: {
+    get(): Promise<TemplateState>;
+    /** Checks and keeps the text as the PDF template; it is used from the next PDF. */
+    save(text: string): Promise<TemplateSaveResult>;
+    /** Back to the template that comes with Lucid. */
+    reset(): Promise<TemplateState>;
   };
   llm: {
     /** Starts the request; resolves when the response headers are in. The body then arrives as events. */
