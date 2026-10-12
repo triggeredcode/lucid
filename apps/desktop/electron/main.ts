@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { app, BrowserWindow, dialog, nativeImage, screen, shell } from "electron";
 import { registerIpc } from "./ipc";
+import { trafficLightPosition } from "./chrome";
 import { installMenu } from "./menu";
 import { boundsToOpen, readWindowState, writeWindowState } from "./windowState";
 
@@ -12,13 +13,24 @@ function createWindow(): BrowserWindow {
   // Open at the size and place the window was left (when that place is still on a screen).
   const stateFile = join(app.getPath("userData"), "window-state.json");
   const saved = readWindowState(stateFile);
+  const opened = boundsToOpen(
+    saved,
+    screen.getAllDisplays().map((d) => d.workArea),
+    { width: 1280, height: 800 },
+  );
+  const mac = process.platform === "darwin";
   const win = new BrowserWindow({
+    // The name is for the Window menu and the Dock, and for screen readers; on a Mac it is not drawn in the window.
     title: "Lucid",
-    ...boundsToOpen(
-      saved,
-      screen.getAllDisplays().map((d) => d.workArea),
-      { width: 1280, height: 800 },
-    ),
+    ...opened,
+    // On a Mac the window has no title bar of its own: the top row of the page takes its place, with the three round buttons
+    // in it (the page leaves room for them: `.is-mac` in styles.css).
+    ...(mac
+      ? {
+          titleBarStyle: "hidden" as const,
+          trafficLightPosition: trafficLightPosition(opened.width ?? 1280),
+        }
+      : {}),
     minWidth: 820,
     minHeight: 560,
     show: false,
@@ -60,6 +72,12 @@ function createWindow(): BrowserWindow {
     clearTimeout(later);
     later = setTimeout(remember, 600);
   };
+  // The buttons stay in the middle of the top row, which grows with the window.
+  const placeButtons = () => {
+    if (mac && !win.isDestroyed())
+      win.setWindowButtonPosition(trafficLightPosition(win.getContentSize()[0] ?? 1280));
+  };
+  win.on("resize", placeButtons);
   win.on("resize", soon);
   win.on("move", soon);
   win.on("close", remember);

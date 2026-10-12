@@ -10,6 +10,8 @@
  */
 :root {
   color-scheme: light;
+  /* The height of the top row (the page's top bar, and the sidebar's brand row on a Mac); electron/chrome.ts has the same rule. */
+  --bar-h: clamp(56px, calc(32px + 1.6vw), 72px);
   --bg: #ffffff;
   --bg-2: #f9f8f7;
   --bg-3: #f0efed;
@@ -343,6 +345,30 @@ select:focus-visible,
   flex: none;
   color: var(--ink);
 }
+/*
+ * A Mac: the window has no title bar of its own, so the top row of the page (the sidebar's brand row, the page's top bar)
+ * takes its place. The three round buttons sit at its left (electron/chrome.ts puts them in the middle of its height), so the
+ * brand starts after them, and with the pages hidden the top bar does too. The empty parts of both rows move the window.
+ */
+.is-mac .sidebar {
+  padding-top: 0;
+}
+.is-mac .brand {
+  height: var(--bar-h);
+  padding: 0 8px 0 74px;
+  margin-bottom: 8px;
+}
+.is-mac .app[data-sidebar="closed"] .topbar {
+  padding-left: max(var(--gutter), 84px);
+}
+.is-mac .brand,
+.is-mac .topbar {
+  -webkit-app-region: drag;
+}
+.is-mac .brand > *,
+.is-mac .topbar > * {
+  -webkit-app-region: no-drag;
+}
 .new-page,
 .new-from,
 .sidebar-settings {
@@ -564,7 +590,6 @@ select:focus-visible,
   --text: clamp(15px, calc(9px + 0.5vw), 21px);
   --page-width: clamp(660px, 58vw, 1100px);
   --gutter: clamp(16px, 3vw, 56px);
-  --bar-h: clamp(56px, calc(32px + 1.6vw), 72px);
   flex: 1;
   min-height: 0;
   display: grid;
