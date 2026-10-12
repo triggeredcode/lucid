@@ -3,6 +3,7 @@ import { ACCENT_COLORS, FONT_NAMES, type PdfStyle } from "@lucid/kit";
 import { AUTO_SEND_MS, type AutoSendMs, type PublicSettings } from "../../electron/ipc/types";
 import {
   setFont,
+  setPageLook,
   setTheme,
   useAppearance,
   type ThemeChoice,
@@ -10,6 +11,7 @@ import {
 } from "../theme/appearance";
 import { Icon, type IconName } from "../ui/Icon";
 import { setBlockNumbers, useBlockNumbers } from "../theme/blockNumbers";
+import { PAGE_LOOKS } from "../pages/PageLookSwitch";
 import { saveSettings } from "./settingsStore";
 import { TemplateDialog } from "./TemplateDialog";
 
@@ -220,6 +222,27 @@ export function SettingsDialog({ settings, onClose }: Props) {
               </div>
             </div>
             <div className="setting-row">
+              <span id="page-look-label">Page</span>
+              <div className="segmented" role="radiogroup" aria-labelledby="page-look-label">
+                {PAGE_LOOKS.map((o) => (
+                  <button
+                    key={o.value}
+                    type="button"
+                    role="radio"
+                    aria-checked={appearance.pageLook === o.value}
+                    onClick={() => {
+                      setPageLook(o.value);
+                    }}
+                  >
+                    <Icon name={o.icon} size={14} />{" "}
+                    {o.value === "auto"
+                      ? "Like the app"
+                      : o.label.charAt(0).toUpperCase() + o.label.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="setting-row">
               <span id="numbers-label">Block numbers</span>
               <div className="segmented" role="radiogroup" aria-labelledby="numbers-label">
                 {(
@@ -243,8 +266,9 @@ export function SettingsDialog({ settings, onClose }: Props) {
               </div>
             </div>
             <small>
-              Applied at once. Mono is the default; the look of PDFs is set below. Block numbers
-              (B1, B2…) sit in the page margin; say “in block 3, …” to talk about one.
+              Applied at once. Mono is the default. The page can be light or dark whatever the app
+              is; the look of PDFs is set below. Block numbers (B1, B2…) sit in the page margin; say
+              “in block 3, …” to talk about one.
             </small>
           </fieldset>
 

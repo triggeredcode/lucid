@@ -8,10 +8,9 @@
  *
  * Everything below reads the tokens in the first two blocks, so a theme is one block of variables.
  */
-:root {
+:root,
+[data-page-look="light"] {
   color-scheme: light;
-  /* The height of the top row (the page's top bar, and the sidebar's brand row on a Mac); electron/chrome.ts has the same rule. */
-  --bar-h: clamp(56px, calc(32px + 1.6vw), 72px);
   --bg: #ffffff;
   --bg-2: #f9f8f7;
   --bg-3: #f0efed;
@@ -41,6 +40,11 @@
   --shadow-pop:
     0 0 0 1px rgb(15 15 15 / 7%), 0 3px 6px rgb(15 15 15 / 10%), 0 12px 32px rgb(15 15 15 / 14%);
   --backdrop: rgb(15 15 15 / 40%);
+}
+
+:root {
+  /* The height of the top row (the page's top bar, and the sidebar's brand row on a Mac); electron/chrome.ts has the same rule. */
+  --bar-h: clamp(56px, calc(32px + 1.6vw), 72px);
 
   --font-mono: "iA Writer Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --font-sans:
@@ -53,7 +57,8 @@
   color: var(--ink);
 }
 
-:root[data-theme="dark"] {
+:root[data-theme="dark"],
+[data-page-look="dark"] {
   color-scheme: dark;
   --bg: #191919;
   --bg-2: #202020;
@@ -753,6 +758,26 @@ select:focus-visible,
 }
 .zoom-chip {
   font-variant-numeric: tabular-nums;
+}
+/* The switch for the page's own light and dark, in the top bar: three small icon buttons. */
+/* Where the bar is short of room (History open in the default window) the button goes: Settings has the same choice. */
+@container topbar (max-width: 800px) {
+  .topbar .page-look {
+    display: none;
+  }
+}
+.page-look {
+  flex: none;
+  align-self: center;
+  width: 32px;
+  height: 32px;
+  color: var(--ink-2);
+}
+
+/* A page with a look of its own (not the app's) is painted in it: the tokens above are set on the element, this makes it show. */
+[data-page-look] {
+  background: var(--bg);
+  color: var(--ink);
 }
 .editor-scroll {
   flex: 1;
