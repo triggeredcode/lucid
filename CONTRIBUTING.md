@@ -16,6 +16,18 @@ pnpm dev
 You do **not** need LM Studio for tests: unit, integration and end-to-end tests use a scripted server
 (`packages/mock-lmstudio`). Only `pnpm eval` and `pnpm e2e:real` use a real model.
 
+| Command | |
+|---|---|
+| `pnpm dev` | the app, with reload |
+| `pnpm test` | unit tests (all packages) |
+| `pnpm e2e` | Electron end-to-end tests with a fake LM Studio, in a maximized window (written and run on a Mac) |
+| `pnpm run ci` | typecheck, lint, formatting and unit tests |
+| `pnpm eval` | 74 cases (and their variants) against the real model in LM Studio; see [`docs/evals.md`](docs/evals.md) |
+| `pnpm dist` | builds the installers for the system it runs on into `apps/desktop/release/`: a `.dmg` and `.zip` (macOS), an installer and `.zip` (Windows), an `.AppImage` and `.deb` (Linux) |
+| `pnpm e2e:packaged` | runs the end-to-end tests against the built app, on any of the three systems (after `pnpm dist:dir`) |
+
+How the code fits together, and what each package does, is in [`docs/architecture.md`](docs/architecture.md).
+
 ## Before you open a pull request
 
 ```bash
@@ -29,7 +41,7 @@ pnpm e2e       # the Electron tests, in a maximized window (do not touch the key
 - End-to-end tests call `maximizeWindow` (see `apps/desktop/e2e/helpers.ts`): Lucid is made for a full-screen window.
 - If your change touches the prompts or the pipelines, run `pnpm eval` with the model and say what changed in the pass
   rates (see [`docs/evals.md`](docs/evals.md)).
-- Update the README, the guide (`docs/guide.html`) and the changelog when something a person sees changes.
+- Update the docs (the README, `docs/`, the guide `docs/guide.html`) and the changelog when something a person sees changes.
 
 ## Three systems
 
