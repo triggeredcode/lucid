@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from "electron";
 import {
   IPC,
+  type AiEvent,
   type AgentReply,
   type AgentRequest,
   type LlmEvent,
@@ -95,6 +96,29 @@ const api: LucidApi = {
         ipcRenderer.removeListener(IPC.llmEvent, handler);
       };
     },
+  },
+  ai: {
+    start: (request) =>
+      ipcRenderer.invoke(IPC.aiStart, request) as ReturnType<LucidApi["ai"]["start"]>,
+    abort: (id) => ipcRenderer.invoke(IPC.aiAbort, id) as Promise<void>,
+    onEvent: (listener) => {
+      const handler = (_event: IpcRendererEvent, aiEvent: AiEvent) => {
+        listener(aiEvent);
+      };
+      ipcRenderer.on(IPC.aiEvent, handler);
+      return () => {
+        ipcRenderer.removeListener(IPC.aiEvent, handler);
+      };
+    },
+  },
+  credentials: {
+    save: (request) =>
+      ipcRenderer.invoke(IPC.credentialSave, request) as ReturnType<
+        LucidApi["credentials"]["save"]
+      >,
+    delete: (id) => ipcRenderer.invoke(IPC.credentialDelete, id) as Promise<void>,
+    status: (id) =>
+      ipcRenderer.invoke(IPC.credentialStatus, id) as ReturnType<LucidApi["credentials"]["status"]>,
   },
   lm: {
     status: () => ipcRenderer.invoke(IPC.lmStatus) as Promise<LmStatus>,

@@ -23,6 +23,7 @@ import { RendererBridge } from "../agentBridge";
 import { lmLoad, lmStatus, type LmDeps } from "../lmstudio";
 import { LMSTUDIO_DOWNLOAD, defaultLmsPath, findLmStudio } from "../studio";
 import { checkLlmUrl, registerLlmIpc } from "./llm";
+import { registerSecureAiIpc } from "./ai";
 import {
   IPC,
   type NoteImportResult,
@@ -92,6 +93,7 @@ export function registerIpc(): void {
     (await library).save(parseLucidFile(file)),
   );
   registerLlmIpc();
+  registerSecureAiIpc(libraryDir());
   const lmDeps = async (): Promise<LmDeps> => {
     const s = await loadSettings(libraryDir());
     const baseUrl = process.env["LUCID_LLM_URL"] ?? s.llm.baseUrl;

@@ -73,6 +73,15 @@ spike: adopting it later is an adapter implementation choice and should be justi
 References: [AI SDK `streamText`](https://ai-sdk.dev/docs/reference/ai-sdk-core/stream-text) and
 [OpenAI-compatible providers](https://ai-sdk.dev/providers/openai-compatible-providers).
 
+Provider requests and credentials cross a second, narrower boundary in the desktop app. The renderer can start or abort a
+configured provider job and receive text/result events; it cannot submit arbitrary URLs, headers, or methods. Provider runtime
+configuration and requests execute in Electron's main process. Credentials are never returned through preload: the renderer
+can only save, delete, or ask whether one is present. Persistent values are encrypted with Electron `safeStorage`; Linux's
+`basic_text` backend and temporary encryption failures use memory for that app session instead of writing plaintext. Provider
+addresses require HTTPS except for loopback HTTP, and redirects are followed only after validation and only on the same origin.
+The old loopback-only LM Studio fetch bridge remains temporarily for compatibility and is removed when LM Studio moves onto
+this service.
+
 ## PDF
 
 The renderer draws each diagram and chart as SVG with Mermaid. The main process converts the SVG to vector PDF with Electron's

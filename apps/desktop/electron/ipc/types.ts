@@ -134,6 +134,56 @@ export type LlmEvent =
   | { id: number; type: "end" }
   | { id: number; type: "error"; message: string };
 
+export interface AiStartRequest {
+  id: number;
+  /** Resolves to main-process configuration; it is not an endpoint or credential. */
+  providerId: string;
+  model: string;
+  messages: { role: "system" | "user" | "assistant"; content: string }[];
+  lane: {
+    temperature: number;
+    topP: number;
+    topK: number;
+    presencePenalty: number;
+    maxTokens: number;
+  };
+  jsonSchema?: { name: string; schema: object } | undefined;
+  reasoning?: "none" | "minimal" | "low" | "medium" | "high" | undefined;
+}
+export type AiStartResult = { ok: true } | { ok: false; message: string };
+export type AiEvent =
+  | { id: number; type: "delta"; text: string }
+  | {
+      id: number;
+      type: "complete";
+      result: {
+        usage: {
+          prompt: number;
+          completion: number;
+          reasoning: number;
+          source: "provider" | "estimated";
+        };
+        characters: { request: number; response: number };
+        timings: { sentAt: number; firstTokenAt: number | null; doneAt: number };
+        model: string;
+        provider: string;
+        repairAttempts: number;
+      };
+    }
+  | { id: number; type: "error"; code: string; message: string };
+
+export interface CredentialSaveRequest {
+  id: string;
+  secret: string;
+  /** When secure persistence is unavailable, the result reports session storage instead. */
+  persist: boolean;
+}
+export interface CredentialStatus {
+  present: boolean;
+  storage: "secure" | "session" | "none";
+  securePersistenceAvailable: boolean;
+}
+
 /** The PDF template (`lucid.sty`): the person's own, or the one that comes with Lucid. */
 export interface TemplateState {
   custom: boolean;
@@ -173,6 +223,12 @@ export const IPC = {
   agentReply: "lucid:agent-reply",
   pagesChanged: "lucid:pages-changed",
   llmEvent: "lucid:llm-event",
+  aiStart: "lucid:ai-start",
+  aiAbort: "lucid:ai-abort",
+  aiEvent: "lucid:ai-event",
+  credentialSave: "lucid:credential-save",
+  credentialDelete: "lucid:credential-delete",
+  credentialStatus: "lucid:credential-status",
 } as const;
 
 export interface LucidApi {
@@ -211,6 +267,17 @@ export interface LucidApi {
     abort(id: number): Promise<void>;
     /** Returns a function that stops listening. */
     onEvent(listener: (event: LlmEvent) => void): () => void;
+  };
+  ai: {
+    start(request: AiStartRequest): Promise<AiStartResult>;
+    abort(id: number): Promise<void>;
+    onEvent(listener: (event: AiEvent) => void): () => void;
+  };
+  credentials: {
+    /** Saves a secret but never returns it. */
+    save(request: CredentialSaveRequest): Promise<CredentialStatus>;
+    delete(id: string): Promise<void>;
+    status(id: string): Promise<CredentialStatus>;
   };
   lm: {
     status(): Promise<LmStatus>;
