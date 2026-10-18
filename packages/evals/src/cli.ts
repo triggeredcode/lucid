@@ -95,7 +95,7 @@ export async function main(args: string[], options: MainOptions = {}): Promise<n
     const t = await runTrial(c, utterance, variant, { client, lanes });
     trials.push(t);
     console.log(
-      `[${String(i + 1)}/${String(plan.length)}] ${t.pass ? "PASS" : "FAIL"} ${c.category}/${c.id}${variant > 0 ? `#${String(variant)}` : ""} ${(t.ms / 1000).toFixed(1)}s${t.pass ? "" : `  ${t.failures[0] ?? ""}`}`,
+      `[${String(i + 1)}/${String(plan.length)}] ${t.pass ? "PASS" : "FAIL"} ${c.category}/${c.id}${variant > 0 ? `#${String(variant)}` : ""} ${(t.ms / 1000).toFixed(1)}s · ${String(t.promptTokens)}→${String(t.outputTokens)} tok${t.tokenSource === "estimated" ? " est." : ""} · ${String(t.repairCalls)} repair${t.repairCalls === 1 ? "" : "s"}${t.pass ? "" : `  ${t.failures[0] ?? ""}`}`,
     );
   }
 

@@ -16,9 +16,21 @@ const trial = (
   pass,
   failures: pass ? [] : ["missing component CDN"],
   outcome: pass ? "edit" : "edit",
+  lane: "command",
+  cancelled: false,
   ms: 1000,
+  firstTokenMs: 250,
   promptTokens: 100,
   outputTokens: 50,
+  tokenSource: "provider",
+  requestChars: 400,
+  responseChars: 200,
+  modelCalls: 1,
+  repairCalls: 0,
+  affectedBlocks: 1,
+  unrelatedBlocksModified: 0,
+  provider: "lmstudio",
+  model: "m",
   raw: "{}",
   ...over,
 });
@@ -48,6 +60,15 @@ describe("summarise", () => {
       threshold: 0.95,
       ok: false,
     });
+    expect(s).toMatchObject({
+      p50FirstTokenMs: 250,
+      promptTokens: 1200,
+      outputTokens: 600,
+      modelCalls: 12,
+      affectedBlocks: 12,
+      unrelatedBlocksModified: 0,
+      cancellations: 0,
+    });
   });
 
   it("counts pipeline errors and leaves out categories that were not run", () => {
@@ -67,6 +88,8 @@ describe("toMarkdown", () => {
     );
     expect(md).toContain("# Eval report: v1");
     expect(md).toContain("| diagram_edit | 1/2 | 50% | 80% | **below** |");
+    expect(md).toContain("2 calls (0 repairs), 200 input tokens and 100 output tokens");
+    expect(md).toContain("2 affected blocks; 0 unrelated blocks modified");
     expect(md).toContain("### b (variant 1) · diagram_edit");
     expect(md).toContain("- missing component CDN");
     expect(md).toContain('{"kind":"edit"}');

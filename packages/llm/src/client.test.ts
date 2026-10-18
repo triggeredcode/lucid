@@ -40,6 +40,10 @@ describe("chat", () => {
     expect(deltas.length).toBeGreaterThan(2);
     expect(result.usage.completion).toBeGreaterThan(0);
     expect(result.usage.reasoning).toBe(0);
+    expect(result.usage.source).toBe("provider");
+    expect(result.characters.request).toBeGreaterThan(0);
+    expect(result.characters.response).toBe(result.content.length);
+    expect(result.repairAttempts).toBe(0);
     expect(result.timings.firstTokenAt).not.toBeNull();
     expect(result.timings.doneAt).toBeGreaterThanOrEqual(result.timings.sentAt);
 
@@ -53,6 +57,16 @@ describe("chat", () => {
       stream_options: { include_usage: true },
     });
     expect(body).not.toHaveProperty("response_format");
+  });
+
+  it("labels estimated usage when the provider omits token counts", async () => {
+    const { client } = await start({
+      script: [{ kind: "reply", content: "estimated response", includeUsage: false }],
+    });
+    const result = await client.chat({ lane, messages });
+    expect(result.usage.source).toBe("estimated");
+    expect(result.usage.prompt).toBeGreaterThan(0);
+    expect(result.usage.completion).toBeGreaterThan(0);
   });
 
   it("asks for strict structured output when a schema is given", async () => {
@@ -71,7 +85,9 @@ describe("chat", () => {
     const { mock, client } = await start({
       script: [{ kind: "empty-with-reasoning" }, { kind: "reply", content: "ok" }],
     });
-    expect((await client.chat({ lane, messages })).content).toBe("ok");
+    const result = await client.chat({ lane, messages });
+    expect(result.content).toBe("ok");
+    expect(result.repairAttempts).toBe(1);
     expect(mock.requests).toHaveLength(2);
   });
 

@@ -14,6 +14,12 @@ The model must be loaded first (`lms load qwen/qwen3.8-27b --context-length 3276
 app). A run writes `packages/evals/reports/<date>-<label>/results.json` and `report.md` (pass rates per category against the
 bars, and every failure with what was said, what was expected and what the model wrote). `--strict` exits 1 below a bar.
 
+Each trial also records its provider, model, lane, time to first token, total time, model and repair call counts, final outcome,
+affected blocks, and unrelated blocks changed. Token totals use provider-reported usage when available; otherwise Lucid stores
+character-based estimates and marks them `estimated` rather than presenting them as exact. This measurement data contains
+counts and identifiers only—never API keys, full prompts, or document text. Failure examples shown by the eval reporter come
+only from this repository's synthetic fixtures and scripted utterances.
+
 ## The bars
 
 Overall 90%. Each category 80%, and 95% for `non_destructive` and `mode_separation` (a mistake there loses the person's

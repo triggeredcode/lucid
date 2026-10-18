@@ -72,6 +72,14 @@ describe("runTrial", () => {
     expect(t).toMatchObject({ pass: true, outcome: "applied", failures: [], variant: 0 });
     expect(t.raw).toContain("Load Balancer");
     expect(t.outputTokens).toBeGreaterThan(0);
+    expect(t).toMatchObject({
+      tokenSource: "provider",
+      modelCalls: 1,
+      repairCalls: 0,
+      affectedBlocks: 3,
+      provider: "lmstudio",
+    });
+    expect(t.firstTokenMs).not.toBeNull();
   });
 
   it("fails with the reasons when the notes are not what was expected", async () => {
@@ -100,6 +108,7 @@ describe("runTrial", () => {
       ),
     ]);
     expect(ok).toMatchObject({ pass: true, outcome: "edit", summary: "Added a CDN" });
+    expect(ok).toMatchObject({ affectedBlocks: 1, unrelatedBlocksModified: 0 });
     const body = mock?.requests[0]?.body;
     const last = (body?.["messages"] as { content: string }[]).at(-1)?.content ?? "";
     expect(last).toContain("FOCUS");
@@ -168,6 +177,7 @@ describe("runTrial, advisor and format pages", () => {
       ),
     ]);
     expect(good).toMatchObject({ pass: true, outcome: "advice" });
+    expect(good).toMatchObject({ modelCalls: 1, tokenSource: "provider" });
     const bad = await trial(pick, [
       reply(JSON.stringify({ formatId: "system-design", title: "x", reason: "y" })),
     ]);

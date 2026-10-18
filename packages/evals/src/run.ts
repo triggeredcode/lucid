@@ -1,4 +1,4 @@
-import { applyPatch, type LucidDoc } from "@lucid/core";
+import { applyPatch, patchedIds, type LucidDoc } from "@lucid/core";
 import {
   DEFAULT_LANES,
   runAdvisor,
@@ -9,7 +9,7 @@ import {
   type LmStudioClient,
 } from "@lucid/llm";
 import { fixture } from "./fixtures";
-import { evaluate, findBlock, type Observed } from "./matchers";
+import { evaluate, findBlock, unrelatedChangedCount, type Observed } from "./matchers";
 import type { Case } from "./types";
 
 export interface Trial {
@@ -22,9 +22,21 @@ export interface Trial {
   failures: string[];
   /** What the pipeline came to (applied, command, unprocessed, edit, proposal, clarify, none, failed, error). */
   outcome: string;
+  lane: Case["mode"];
+  cancelled: boolean;
   ms: number;
+  firstTokenMs: number | null;
   promptTokens: number;
   outputTokens: number;
+  tokenSource: "provider" | "estimated" | "none";
+  requestChars: number;
+  responseChars: number;
+  modelCalls: number;
+  repairCalls: number;
+  affectedBlocks: number;
+  unrelatedBlocksModified: number | null;
+  provider: string;
+  model: string;
   /** The model's last answer, as it wrote it. */
   raw: string;
   /** What Lucid said it did, for a change. */
@@ -53,17 +65,19 @@ export async function runTrial(
     const found = findBlock(before, sel);
     return found ? [{ blockId: found.id, note: "added a note" }] : [];
   });
-  const base = { caseId: c.id, category: c.category, variant, utterance };
+  const base = { caseId: c.id, category: c.category, variant, utterance, lane: c.mode };
   const started = Date.now();
   try {
     let observed: Observed;
-    let calls: readonly ChatResult[] = [];
+    let calls: ChatResult[] = [];
     let raw = "";
     let summary: string | undefined;
+    let affectedBlocks = 0;
     if (c.mode === "advisor") {
       const advice = await runAdvisor(utterance, {
         client: deps.client,
         lane: deps.lanes?.advisor ?? DEFAULT_LANES.advisor,
+        onResult: (result) => calls.push(result),
       });
       raw = JSON.stringify(advice);
       observed = { before, after: before, outcome: "advice", utterance, formatId: advice.formatId };
@@ -82,6 +96,7 @@ export async function runTrial(
       calls = out.calls;
       raw = out.raw;
       const after = out.kind === "applied" ? applyPatch(before, out.patch) : before;
+      if (out.kind === "applied") affectedBlocks = patchedIds(out.patch).length;
       observed = { before, after, outcome: out.kind, utterance };
     } else {
       const out = await runCommand(
@@ -100,6 +115,7 @@ export async function runTrial(
       raw = out.raw;
       const after = out.kind === "edit" || out.kind === "proposal" ? out.next : before;
       if (out.kind === "edit" || out.kind === "proposal") summary = out.summary;
+      if (out.kind === "edit" || out.kind === "proposal") affectedBlocks = out.affected.length;
       observed = {
         before,
         after,
@@ -111,14 +127,37 @@ export async function runTrial(
     }
     const outputTokens = sum(calls, (x) => x.usage.completion);
     const failures = evaluate(c.mode, c.expect, { ...observed, outputTokens });
+    const firstCall = calls[0];
+    const firstTokenMs = firstCall?.timings.firstTokenAt;
     return {
       ...base,
       pass: failures.length === 0,
       failures,
       outcome: observed.outcome,
+      cancelled: false,
       ms: Date.now() - started,
+      firstTokenMs:
+        firstCall && firstTokenMs !== null && firstTokenMs !== undefined
+          ? firstTokenMs - firstCall.timings.sentAt
+          : null,
       promptTokens: sum(calls, (x) => x.usage.prompt),
       outputTokens,
+      tokenSource:
+        calls.length === 0
+          ? "none"
+          : calls.every((call) => call.usage.source === "provider")
+            ? "provider"
+            : "estimated",
+      requestChars: sum(calls, (x) => x.characters.request),
+      responseChars: sum(calls, (x) => x.characters.response),
+      modelCalls: calls.length,
+      repairCalls: Math.max(0, calls.length - 1) + sum(calls, (call) => call.repairAttempts),
+      affectedBlocks,
+      unrelatedBlocksModified: c.expect.touchedOnly
+        ? unrelatedChangedCount(observed, c.expect.touchedOnly)
+        : null,
+      provider: calls.at(-1)?.provider ?? "none",
+      model: calls.at(-1)?.model ?? "none",
       raw,
       summary,
     };
@@ -129,9 +168,23 @@ export async function runTrial(
       pass: false,
       failures: [`the pipeline failed: ${message}`],
       outcome: "error",
+      cancelled:
+        error instanceof Error &&
+        "code" in error &&
+        (error as { code?: unknown }).code === "Aborted",
       ms: Date.now() - started,
+      firstTokenMs: null,
       promptTokens: 0,
       outputTokens: 0,
+      tokenSource: "none",
+      requestChars: 0,
+      responseChars: 0,
+      modelCalls: 0,
+      repairCalls: 0,
+      affectedBlocks: 0,
+      unrelatedBlocksModified: null,
+      provider: "none",
+      model: "none",
       raw: "",
       error: message,
     };
