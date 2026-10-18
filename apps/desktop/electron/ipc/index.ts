@@ -22,7 +22,7 @@ import { AppBackend } from "../appBackend";
 import { RendererBridge } from "../agentBridge";
 import { lmLoad, lmStatus, type LmDeps } from "../lmstudio";
 import { LMSTUDIO_DOWNLOAD, defaultLmsPath, findLmStudio } from "../studio";
-import { checkLlmUrl, registerLlmIpc } from "./llm";
+import { checkLlmUrl } from "./llm";
 import { registerSecureAiIpc } from "./ai";
 import {
   IPC,
@@ -92,7 +92,6 @@ export function registerIpc(): void {
   ipcMain.handle(IPC.pagesSave, async (_e, file: unknown) =>
     (await library).save(parseLucidFile(file)),
   );
-  registerLlmIpc();
   registerSecureAiIpc(libraryDir());
   const lmDeps = async (): Promise<LmDeps> => {
     const s = await loadSettings(libraryDir());

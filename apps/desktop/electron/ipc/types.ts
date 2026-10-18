@@ -198,21 +198,6 @@ export interface ProviderConnectionResult {
 
 export const providerCredentialId = (profileId: string): string => `provider.${profileId}`;
 
-/** A request for LM Studio, made by the main process because LM Studio sends no CORS headers. */
-export interface LlmRequest {
-  id: number;
-  url: string;
-  method: string;
-  headers: Record<string, string>;
-  body?: string | undefined;
-}
-export type LlmHead =
-  { ok: true; status: number; headers: Record<string, string> } | { ok: false; message: string };
-export type LlmEvent =
-  | { id: number; type: "chunk"; data: Uint8Array }
-  | { id: number; type: "end" }
-  | { id: number; type: "error"; message: string };
-
 export interface AiStartRequest {
   id: number;
   /** Resolves to main-process configuration; it is not an endpoint or credential. */
@@ -294,14 +279,11 @@ export const IPC = {
   templateGet: "lucid:template-get",
   templateSave: "lucid:template-save",
   templateReset: "lucid:template-reset",
-  llmStart: "lucid:llm-start",
-  llmAbort: "lucid:llm-abort",
   lmStatus: "lucid:lm-status",
   lmLoad: "lucid:lm-load",
   agentRequest: "lucid:agent-request",
   agentReply: "lucid:agent-reply",
   pagesChanged: "lucid:pages-changed",
-  llmEvent: "lucid:llm-event",
   aiStart: "lucid:ai-start",
   aiAbort: "lucid:ai-abort",
   aiEvent: "lucid:ai-event",
@@ -341,13 +323,6 @@ export interface LucidApi {
     save(text: string): Promise<TemplateSaveResult>;
     /** Back to the template that comes with Lucid. */
     reset(): Promise<TemplateState>;
-  };
-  llm: {
-    /** Starts the request; resolves when the response headers are in. The body then arrives as events. */
-    start(req: LlmRequest): Promise<LlmHead>;
-    abort(id: number): Promise<void>;
-    /** Returns a function that stops listening. */
-    onEvent(listener: (event: LlmEvent) => void): () => void;
   };
   ai: {
     start(request: AiStartRequest): Promise<AiStartResult>;

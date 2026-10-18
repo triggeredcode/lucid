@@ -66,6 +66,7 @@ const ProviderProfileSchema = z.strictObject({
     .max(240)
     .regex(/^[^\r\n]*$/, "must be one line"),
 });
+const LOCAL_PROVIDER_HOSTS = new Set(["127.0.0.1", "localhost", "[::1]"]);
 const AiSettingsSchema = z
   .strictObject({
     defaultProfileId: z.string().trim(),
@@ -82,6 +83,15 @@ const AiSettingsSchema = z
         });
       ids.add(profile.id);
       const provider = AI_PROVIDER_CATALOG.find((candidate) => candidate.kind === profile.kind);
+      if (provider && !provider.cloud) {
+        const url = new URL(profile.baseUrl);
+        if (url.protocol !== "http:" || !LOCAL_PROVIDER_HOSTS.has(url.hostname))
+          ctx.addIssue({
+            code: "custom",
+            path: ["profiles", index, "baseUrl"],
+            message: `${provider.label} must use an address on this computer`,
+          });
+      }
       if (
         provider &&
         !provider.customBaseUrl &&

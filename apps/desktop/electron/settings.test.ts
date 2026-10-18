@@ -181,6 +181,19 @@ describe("saveSettings", () => {
     expect(
       await bad({
         ai: {
+          defaultProfileId: "lmstudio",
+          profiles: [
+            {
+              ...valid.ai.profiles[0],
+              baseUrl: "https://lm-studio.example.com",
+            },
+          ],
+        },
+      }),
+    ).toBeInstanceOf(SettingsError);
+    expect(
+      await bad({
+        ai: {
           defaultProfileId: "openai",
           profiles: [
             {

@@ -2,6 +2,7 @@ import { ipcMain, safeStorage } from "electron";
 import { join } from "node:path";
 import { CredentialVault, type SecretEncryption } from "../ai/credentials";
 import { inspectProvider } from "../ai/providers";
+import { createRuntimeResolver } from "../ai/runtime";
 import { MainAiService, type AiRuntimeResolver } from "../ai/service";
 import { loadSettings } from "../settings";
 import {
@@ -23,10 +24,10 @@ const encryption: SecretEncryption = {
 
 export function registerSecureAiIpc(
   libraryDir: string,
-  resolve: AiRuntimeResolver = () => Promise.resolve(undefined),
+  resolve?: AiRuntimeResolver,
 ): CredentialVault {
   const vault = new CredentialVault(join(libraryDir, ".lucid"), encryption);
-  const service = new MainAiService(resolve);
+  const service = new MainAiService(resolve ?? createRuntimeResolver(libraryDir));
   ipcMain.handle(IPC.aiStart, async (event, request: AiStartRequest) =>
     service.start(request, (aiEvent: AiEvent) => {
       if (!event.sender.isDestroyed()) event.sender.send(IPC.aiEvent, aiEvent);

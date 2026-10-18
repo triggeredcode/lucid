@@ -55,7 +55,7 @@ flowchart TD
 ## AI provider boundary
 
 Input, Command, Advisor, the desktop job queue, and evals depend on Lucid's `AiClient` interface in
-`packages/llm/src/provider.ts`; only application composition constructs `LmStudioClient`. The contract covers streamed text,
+`packages/llm/src/provider.ts`; Electron main-process composition constructs `LmStudioClient`. The contract covers streamed text,
 `AbortSignal` cancellation, optional JSON Schema output, usage and timing results, model discovery, and optional local-model
 controls. Every adapter publishes a capability record, so unsupported behavior is data rather than an assumption. LM Studio
 currently advertises JSON Schema, streaming, cancellation, discovery, reasoning controls, and custom base URLs; it does not
@@ -79,8 +79,9 @@ configuration and requests execute in Electron's main process. Credentials are n
 can only save, delete, or ask whether one is present. Persistent values are encrypted with Electron `safeStorage`; Linux's
 `basic_text` backend and temporary encryption failures use memory for that app session instead of writing plaintext. Provider
 addresses require HTTPS except for loopback HTTP, and redirects are followed only after validation and only on the same origin.
-The old loopback-only LM Studio fetch bridge remains temporarily for compatibility and is removed when LM Studio moves onto
-this service.
+LM Studio uses this service too: the renderer implements `AiClient` over start/abort/events, while the existing
+`LmStudioClient` performs streaming, retries, structured output, and usage accounting in main. The earlier renderer-side
+HTTP-shaped bridge has been removed.
 
 ## PDF
 

@@ -4,7 +4,6 @@ import {
   type AiEvent,
   type AgentReply,
   type AgentRequest,
-  type LlmEvent,
   type LmLoadResult,
   type LmStatus,
   type LucidApi,
@@ -83,19 +82,6 @@ const api: LucidApi = {
     get: () => ipcRenderer.invoke(IPC.settingsGet) as ReturnType<LucidApi["settings"]["get"]>,
     save: (input) =>
       ipcRenderer.invoke(IPC.settingsSave, input) as ReturnType<LucidApi["settings"]["save"]>,
-  },
-  llm: {
-    start: (req) => ipcRenderer.invoke(IPC.llmStart, req) as ReturnType<LucidApi["llm"]["start"]>,
-    abort: (id) => ipcRenderer.invoke(IPC.llmAbort, id) as Promise<void>,
-    onEvent: (listener) => {
-      const handler = (_e: IpcRendererEvent, event: LlmEvent) => {
-        listener(event);
-      };
-      ipcRenderer.on(IPC.llmEvent, handler);
-      return () => {
-        ipcRenderer.removeListener(IPC.llmEvent, handler);
-      };
-    },
   },
   ai: {
     start: (request) =>
