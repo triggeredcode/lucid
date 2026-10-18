@@ -1,8 +1,17 @@
 import { ipcMain, safeStorage } from "electron";
 import { join } from "node:path";
 import { CredentialVault, type SecretEncryption } from "../ai/credentials";
+import { inspectProvider } from "../ai/providers";
 import { MainAiService, type AiRuntimeResolver } from "../ai/service";
-import { IPC, type AiEvent, type AiStartRequest, type CredentialSaveRequest } from "./types";
+import { loadSettings } from "../settings";
+import {
+  IPC,
+  providerCredentialId,
+  type AiEvent,
+  type AiStartRequest,
+  type CredentialSaveRequest,
+  type ProviderConnectionResult,
+} from "./types";
 
 const encryption: SecretEncryption = {
   secureAvailable: () =>
@@ -31,5 +40,16 @@ export function registerSecureAiIpc(
   );
   ipcMain.handle(IPC.credentialDelete, (_event, id: string) => vault.delete(id));
   ipcMain.handle(IPC.credentialStatus, (_event, id: string) => vault.status(id));
+  const inspect = async (id: unknown): Promise<ProviderConnectionResult> => {
+    if (typeof id !== "string") return { ok: false, message: "Choose a provider profile first." };
+    const profile = (await loadSettings(libraryDir)).ai.profiles.find(
+      (candidate) => candidate.id === id,
+    );
+    if (!profile) return { ok: false, message: "That provider profile no longer exists." };
+    const secret = await vault.read(providerCredentialId(profile.id));
+    return inspectProvider(profile, secret);
+  };
+  ipcMain.handle(IPC.providerTest, (_event, id: unknown) => inspect(id));
+  ipcMain.handle(IPC.providerModels, (_event, id: unknown) => inspect(id));
   return vault;
 }

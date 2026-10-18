@@ -1679,6 +1679,9 @@ select:focus-visible,
   margin: 14px 0 0;
   padding: 12px 0 0;
 }
+.modal.settings {
+  width: min(780px, 100%);
+}
 .settings legend {
   padding: 0 8px 0 0;
   font-size: 12px;
@@ -1695,6 +1698,7 @@ select:focus-visible,
 }
 .settings input,
 .settings textarea,
+.settings select,
 .template textarea,
 .np-about textarea,
 .np-title input,
@@ -1709,6 +1713,7 @@ select:focus-visible,
 }
 .settings input:focus,
 .settings textarea:focus,
+.settings select:focus,
 .template textarea:focus,
 .np-about textarea:focus,
 .np-title input:focus,
@@ -1724,6 +1729,130 @@ select:focus-visible,
 .settings small {
   color: var(--ink-3);
   font-size: 12px;
+}
+.settings-intro {
+  margin: 0 0 10px;
+  color: var(--ink-2);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.provider-layout {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.36fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+.provider-list {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.provider-list > button {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding: 8px 9px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+}
+.provider-list > button:hover {
+  background: var(--hover);
+}
+.provider-list > button[aria-current="true"] {
+  border-color: var(--line);
+  background: var(--bg-2);
+}
+.provider-list > button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 700;
+}
+.provider-list > button small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.provider-add {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 5px;
+  margin-top: 5px;
+}
+.provider-add select {
+  min-width: 0;
+  padding: 5px 7px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg-2);
+  color: var(--ink);
+}
+.provider-editor {
+  min-width: 0;
+  padding-left: 16px;
+  border-left: 1px solid var(--line);
+}
+.provider-key {
+  margin-bottom: 10px;
+}
+.provider-key label {
+  margin-bottom: 5px;
+}
+.provider-inline-actions,
+.provider-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.provider-actions {
+  margin-top: 10px;
+}
+.provider-actions .danger {
+  margin-left: auto;
+  color: var(--red);
+}
+.provider-disclosure,
+.provider-result {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border-left: 2px solid var(--ink-3);
+  background: var(--bg-2);
+  color: var(--ink-2);
+  font-size: 12px;
+  line-height: 1.45;
+}
+.provider-result[data-kind="success"] {
+  border-left-color: var(--ok);
+  color: var(--ink);
+}
+.provider-result[data-kind="error"] {
+  border-left-color: var(--red);
+  background: var(--red-bg);
+  color: var(--red);
+}
+@media (max-width: 700px) {
+  .modal-backdrop {
+    padding: 12px;
+  }
+  .modal {
+    max-height: calc(100vh - 24px);
+  }
+  .provider-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .provider-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .provider-add {
+    grid-column: 1 / -1;
+  }
+  .provider-editor {
+    padding: 12px 0 0;
+    border-top: 1px solid var(--line);
+    border-left: 0;
+  }
 }
 .settings-problems {
   margin: 8px 0 0;

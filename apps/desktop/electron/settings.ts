@@ -1,7 +1,13 @@
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { DEFAULT_PDF_STYLE, PdfStyleSchema } from "@lucid/kit";
-import { AUTO_SEND_MS } from "./ipc/types";
+import {
+  AI_PROVIDER_CATALOG,
+  AUTO_SEND_MS,
+  type AiProviderKind,
+  type AiSettings,
+} from "./ipc/types";
+import { validateProviderEndpoint } from "./ai/security";
 import { z } from "zod";
 
 const AutoSendMsSchema = z.union([
@@ -10,6 +16,90 @@ const AutoSendMsSchema = z.union([
   z.literal(AUTO_SEND_MS[2]),
   z.literal(AUTO_SEND_MS[3]),
 ]);
+
+const defaultAiSettings = (llm?: { baseUrl?: string; model?: string }): AiSettings => ({
+  defaultProfileId: "lmstudio",
+  profiles: [
+    {
+      id: "lmstudio",
+      name: "LM Studio",
+      kind: "lmstudio",
+      baseUrl: llm?.baseUrl ?? "http://127.0.0.1:1234",
+      model: llm?.model ?? "qwen/qwen3.8-27b",
+    },
+  ],
+});
+
+const ProviderKindSchema = z.enum(
+  AI_PROVIDER_CATALOG.map((provider) => provider.kind) as [AiProviderKind, ...AiProviderKind[]],
+);
+const ProviderProfileSchema = z.strictObject({
+  id: z
+    .string()
+    .trim()
+    .regex(/^[a-z0-9][a-z0-9._-]{0,79}$/i, "must contain only letters, numbers, dots or dashes"),
+  name: z
+    .string()
+    .trim()
+    .min(1)
+    .max(80)
+    .regex(/^[^\r\n]*$/, "must be one line"),
+  kind: ProviderKindSchema,
+  baseUrl: z
+    .string()
+    .trim()
+    .transform((value, ctx) => {
+      try {
+        return validateProviderEndpoint(value).href.replace(/\/+$/, "");
+      } catch (error) {
+        ctx.addIssue({
+          code: "custom",
+          message: error instanceof Error ? error.message : "must be a valid provider address",
+        });
+        return z.NEVER;
+      }
+    }),
+  model: z
+    .string()
+    .trim()
+    .min(1)
+    .max(240)
+    .regex(/^[^\r\n]*$/, "must be one line"),
+});
+const AiSettingsSchema = z
+  .strictObject({
+    defaultProfileId: z.string().trim(),
+    profiles: z.array(ProviderProfileSchema).min(1).max(20),
+  })
+  .superRefine((settings, ctx) => {
+    const ids = new Set<string>();
+    for (const [index, profile] of settings.profiles.entries()) {
+      if (ids.has(profile.id))
+        ctx.addIssue({
+          code: "custom",
+          path: ["profiles", index, "id"],
+          message: "must be unique",
+        });
+      ids.add(profile.id);
+      const provider = AI_PROVIDER_CATALOG.find((candidate) => candidate.kind === profile.kind);
+      if (
+        provider &&
+        !provider.customBaseUrl &&
+        profile.baseUrl !== provider.defaultBaseUrl.replace(/\/+$/, "")
+      )
+        ctx.addIssue({
+          code: "custom",
+          path: ["profiles", index, "baseUrl"],
+          message: `is fixed for ${provider.label}`,
+        });
+    }
+    if (!ids.has(settings.defaultProfileId))
+      ctx.addIssue({
+        code: "custom",
+        path: ["defaultProfileId"],
+        message: "must name one of the provider profiles",
+      });
+  });
 
 /** User settings in `<library>/.lucid/settings.json`. Missing file or fields fall back to the defaults. */
 export const SettingsSchema = z.object({
@@ -40,6 +130,7 @@ export const SettingsSchema = z.object({
       contextLength: 32768,
       lmsPath: "",
     }),
+  ai: AiSettingsSchema.default(defaultAiSettings()),
 });
 export type Settings = z.infer<typeof SettingsSchema>;
 
@@ -56,7 +147,11 @@ export async function loadSettings(libraryDir: string): Promise<Settings> {
     return defaults;
   }
   try {
-    const parsed = SettingsSchema.safeParse(JSON.parse(text));
+    const source = JSON.parse(text) as { ai?: unknown; llm?: { baseUrl?: string; model?: string } };
+    const parsed = SettingsSchema.safeParse({
+      ...source,
+      ai: source.ai ?? defaultAiSettings(source.llm),
+    });
     return parsed.success ? parsed.data : SettingsSchema.parse({});
   } catch {
     return SettingsSchema.parse({});
@@ -107,6 +202,7 @@ export const EditableSettingsSchema = z.strictObject({
       .regex(/^[\w][\w./@:+-]{0,200}$/, "must be a model name like qwen/qwen3.8-27b"),
     contextLength: z.number().int().min(2048).max(262144),
   }),
+  ai: AiSettingsSchema,
 });
 export type EditableSettings = z.infer<typeof EditableSettingsSchema>;
 
@@ -134,7 +230,15 @@ export async function saveSettings(libraryDir: string, input: unknown): Promise<
     dictation: parsed.data.dictation,
     vocabulary: [...new Set(parsed.data.vocabulary)],
     llm: { ...current.llm, ...parsed.data.llm },
+    ai: parsed.data.ai,
   };
+  const defaultProfile = next.ai.profiles.find(
+    (profile) => profile.id === next.ai.defaultProfileId,
+  );
+  if (defaultProfile?.kind === "lmstudio") {
+    next.llm.baseUrl = defaultProfile.baseUrl;
+    next.llm.model = defaultProfile.model;
+  }
   const dir = join(libraryDir, ".lucid");
   await mkdir(dir, { recursive: true });
   const tmp = join(dir, `settings.json.${String(process.pid)}.tmp`);

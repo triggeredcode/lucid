@@ -163,18 +163,47 @@ export function registerIpc(): void {
       model: s.llm.model,
       contextLength: s.llm.contextLength,
     },
+    ai: {
+      defaultProfileId: s.ai.defaultProfileId,
+      profiles: s.ai.profiles.map((profile) => ({
+        ...profile,
+        baseUrl:
+          profile.kind === "lmstudio" && process.env["LUCID_LLM_URL"]
+            ? process.env["LUCID_LLM_URL"]
+            : profile.baseUrl,
+      })),
+    },
     llmUrlLocked: process.env["LUCID_LLM_URL"] !== undefined,
   });
   ipcMain.handle(IPC.settingsGet, async () => publicSettings(await loadSettings(libraryDir())));
   ipcMain.handle(IPC.settingsSave, async (_e, input: unknown): Promise<SettingsSaveResult> => {
     try {
       // With the address fixed from the environment, keep the stored one whatever the window sends.
-      const sent = input as { llm?: { baseUrl?: unknown } } | null;
+      const sent = input as {
+        llm?: { baseUrl?: unknown };
+        ai?: { profiles?: { id?: unknown; kind?: unknown; baseUrl?: unknown }[] };
+      } | null;
       const locked = process.env["LUCID_LLM_URL"] !== undefined;
       const stored = await loadSettings(libraryDir());
       const checked =
         locked && sent?.llm
-          ? { ...sent, llm: { ...sent.llm, baseUrl: stored.llm.baseUrl } }
+          ? {
+              ...sent,
+              llm: { ...sent.llm, baseUrl: stored.llm.baseUrl },
+              ai: sent.ai
+                ? {
+                    ...sent.ai,
+                    profiles: sent.ai.profiles?.map((profile) => ({
+                      ...profile,
+                      baseUrl:
+                        profile.kind === "lmstudio"
+                          ? (stored.ai.profiles.find((saved) => saved.id === profile.id)?.baseUrl ??
+                            "http://127.0.0.1:1234")
+                          : profile.baseUrl,
+                    })),
+                  }
+                : sent.ai,
+            }
           : input;
       const saved = await saveSettings(libraryDir(), checked);
       (await compiler).setStyle({

@@ -120,6 +120,12 @@ const api: LucidApi = {
     status: (id) =>
       ipcRenderer.invoke(IPC.credentialStatus, id) as ReturnType<LucidApi["credentials"]["status"]>,
   },
+  providers: {
+    test: (id) =>
+      ipcRenderer.invoke(IPC.providerTest, id) as ReturnType<LucidApi["providers"]["test"]>,
+    models: (id) =>
+      ipcRenderer.invoke(IPC.providerModels, id) as ReturnType<LucidApi["providers"]["models"]>,
+  },
   lm: {
     status: () => ipcRenderer.invoke(IPC.lmStatus) as Promise<LmStatus>,
     load: () => ipcRenderer.invoke(IPC.lmLoad) as Promise<LmLoadResult>,

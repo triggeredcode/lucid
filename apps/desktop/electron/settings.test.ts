@@ -25,6 +25,28 @@ describe("loadSettings", () => {
     expect(await loadSettings(dir)).toMatchObject({ author: "Asha", footerRight: "" });
   });
 
+  it("migrates an existing LM Studio address and model into the first provider profile", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "lucid-set-"));
+    await mkdir(join(dir, ".lucid"));
+    await writeFile(
+      join(dir, ".lucid", "settings.json"),
+      JSON.stringify({ llm: { baseUrl: "http://localhost:9876", model: "local/model" } }),
+      "utf8",
+    );
+    expect((await loadSettings(dir)).ai).toEqual({
+      defaultProfileId: "lmstudio",
+      profiles: [
+        {
+          id: "lmstudio",
+          name: "LM Studio",
+          kind: "lmstudio",
+          baseUrl: "http://localhost:9876",
+          model: "local/model",
+        },
+      ],
+    });
+  });
+
   it("sends a paste after 0.5 s unless the settings say otherwise (a file from before has no such setting)", async () => {
     const dir = await mkdtemp(join(tmpdir(), "lucid-set-"));
     await mkdir(join(dir, ".lucid"));
@@ -69,6 +91,18 @@ describe("saveSettings", () => {
     dictation: { autoSendMs: 1000 },
     vocabulary: ["vLLM", "Kafka", "vLLM"],
     llm: { baseUrl: "http://localhost:1234/", model: "other/model-7b", contextLength: 16384 },
+    ai: {
+      defaultProfileId: "lmstudio",
+      profiles: [
+        {
+          id: "lmstudio",
+          name: "Local",
+          kind: "lmstudio",
+          baseUrl: "http://localhost:1234",
+          model: "other/model-7b",
+        },
+      ],
+    },
   };
 
   it("writes the new values, keeps program paths and everything else, and tidies the address and the words", async () => {
@@ -93,6 +127,7 @@ describe("saveSettings", () => {
         contextLength: 16384,
         lmsPath: "/custom/lms",
       },
+      ai: valid.ai,
     });
     expect(JSON.parse(await readFile(join(dir, ".lucid", "settings.json"), "utf8"))).toEqual(saved);
     expect(await loadSettings(dir)).toEqual(saved);
@@ -135,6 +170,30 @@ describe("saveSettings", () => {
     expect(await bad({ pdf: undefined })).toBeInstanceOf(SettingsError);
     expect(await bad({ dictation: { autoSendMs: 300 } })).toBeInstanceOf(SettingsError);
     expect(await bad({ dictation: undefined })).toBeInstanceOf(SettingsError);
+    expect(
+      await bad({
+        ai: {
+          defaultProfileId: "missing",
+          profiles: valid.ai.profiles,
+        },
+      }),
+    ).toBeInstanceOf(SettingsError);
+    expect(
+      await bad({
+        ai: {
+          defaultProfileId: "openai",
+          profiles: [
+            {
+              id: "openai",
+              name: "OpenAI",
+              kind: "openai",
+              baseUrl: "https://example.com/v1",
+              model: "gpt-4.1-mini",
+            },
+          ],
+        },
+      }),
+    ).toBeInstanceOf(SettingsError);
     expect(await loadSettings(dir)).toEqual(before);
   });
 });

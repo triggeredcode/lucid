@@ -1,6 +1,11 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { ACCENT_COLORS, FONT_NAMES, type PdfStyle } from "@lucid/kit";
-import { AUTO_SEND_MS, type AutoSendMs, type PublicSettings } from "../../electron/ipc/types";
+import {
+  AUTO_SEND_MS,
+  type AiSettings,
+  type AutoSendMs,
+  type PublicSettings,
+} from "../../electron/ipc/types";
 import {
   setFont,
   setPageLook,
@@ -14,6 +19,7 @@ import { setBlockNumbers, useBlockNumbers } from "../theme/blockNumbers";
 import { PAGE_LOOKS } from "../pages/PageLookSwitch";
 import { saveSettings } from "./settingsStore";
 import { TemplateDialog } from "./TemplateDialog";
+import { ProviderSettings } from "./ProviderSettings";
 
 const THEME_OPTIONS: { value: ThemeChoice; label: string; icon: IconName }[] = [
   { value: "light", label: "Light", icon: "sun" },
@@ -112,18 +118,15 @@ export function SettingsDialog({ settings, onClose }: Props) {
   const changePdf = (change: Partial<PdfStyle>) => {
     setPdf((before) => ({ ...before, ...change }));
   };
-  const [address, setAddress] = useState(settings.llm.baseUrl);
-  const [model, setModel] = useState(settings.llm.model);
+  const [ai, setAi] = useState<AiSettings>(settings.ai);
   const [context, setContext] = useState(String(settings.llm.contextLength));
   const [words, setWords] = useState(settings.vocabulary.join("\n"));
   const [problems, setProblems] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
-  const first = useRef<HTMLInputElement>(null);
   const appearance = useAppearance();
   const numbers = useBlockNumbers();
 
   useEffect(() => {
-    first.current?.focus();
     const onKey = (e: KeyboardEvent) => {
       // The template window has its own Escape.
       if (e.key === "Escape" && !editingTemplate) onClose();
@@ -134,10 +137,11 @@ export function SettingsDialog({ settings, onClose }: Props) {
     };
   }, [onClose, editingTemplate]);
 
-  const save = async () => {
+  const persist = async (close = true): Promise<boolean> => {
     setSaving(true);
     setProblems([]);
     try {
+      const defaultProfile = ai.profiles.find((profile) => profile.id === ai.defaultProfileId);
       const result = await saveSettings({
         author,
         footerRight: footer,
@@ -147,15 +151,25 @@ export function SettingsDialog({ settings, onClose }: Props) {
           .split(/\r?\n/)
           .map((w) => w.trim())
           .filter((w) => w.length > 0),
-        llm: { baseUrl: address, model, contextLength: Number(context) },
+        llm: {
+          baseUrl:
+            defaultProfile?.kind === "lmstudio" ? defaultProfile.baseUrl : settings.llm.baseUrl,
+          model: defaultProfile?.kind === "lmstudio" ? defaultProfile.model : settings.llm.model,
+          contextLength: Number(context),
+        },
+        ai,
       });
-      if (result.ok) onClose();
-      else setProblems(result.problems);
+      if (result.ok) {
+        if (close) onClose();
+        return true;
+      }
+      setProblems(result.problems);
     } catch (error) {
       setProblems([error instanceof Error ? error.message : "The settings could not be saved."]);
     } finally {
       setSaving(false);
     }
+    return false;
   };
 
   return (
@@ -272,39 +286,15 @@ export function SettingsDialog({ settings, onClose }: Props) {
             </small>
           </fieldset>
 
+          <ProviderSettings
+            value={ai}
+            lmStudioUrlLocked={settings.llmUrlLocked}
+            onChange={setAi}
+            onPersist={() => persist(false)}
+          />
+
           <fieldset>
-            <legend>Language model (LM Studio)</legend>
-            <label>
-              <span>Address</span>
-              <input
-                ref={first}
-                value={address}
-                disabled={settings.llmUrlLocked}
-                onChange={(e) => {
-                  setAddress(e.target.value);
-                }}
-                spellCheck={false}
-              />
-              <small>
-                {settings.llmUrlLocked
-                  ? "Set by the LUCID_LLM_URL environment variable."
-                  : "Only this computer, like http://127.0.0.1:1234."}
-              </small>
-            </label>
-            <label>
-              <span>Model</span>
-              <input
-                value={model}
-                onChange={(e) => {
-                  setModel(e.target.value);
-                }}
-                spellCheck={false}
-              />
-              <small>
-                The name LM Studio uses, like qwen/qwen3.8-27b. Load it with the pill in the top
-                bar.
-              </small>
-            </label>
+            <legend>Local model</legend>
             <label>
               <span>Context length when Lucid loads the model</span>
               <input
@@ -496,7 +486,7 @@ export function SettingsDialog({ settings, onClose }: Props) {
               className="primary"
               disabled={saving}
               onClick={() => {
-                void save();
+                void persist();
               }}
             >
               Save

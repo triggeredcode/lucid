@@ -112,12 +112,91 @@ export interface PublicSettings {
   dictation: { autoSendMs: AutoSendMs };
   vocabulary: string[];
   llm: { baseUrl: string; model: string; contextLength: number };
+  ai: AiSettings;
   /** The address comes from the LUCID_LLM_URL environment variable (tests, development) and is not changed here. */
   llmUrlLocked: boolean;
 }
 export type SettingsInput = Omit<PublicSettings, "llmUrlLocked">;
 export type SettingsSaveResult =
   { ok: true; settings: PublicSettings } | { ok: false; problems: string[] };
+
+export const AI_PROVIDER_CATALOG = [
+  {
+    kind: "lmstudio",
+    label: "LM Studio",
+    credential: "none",
+    customBaseUrl: true,
+    cloud: false,
+    defaultBaseUrl: "http://127.0.0.1:1234",
+  },
+  {
+    kind: "ollama",
+    label: "Ollama",
+    credential: "none",
+    customBaseUrl: true,
+    cloud: false,
+    defaultBaseUrl: "http://127.0.0.1:11434",
+  },
+  {
+    kind: "openai",
+    label: "OpenAI API",
+    credential: "required",
+    customBaseUrl: false,
+    cloud: true,
+    defaultBaseUrl: "https://api.openai.com/v1",
+  },
+  {
+    kind: "anthropic",
+    label: "Anthropic API",
+    credential: "required",
+    customBaseUrl: false,
+    cloud: true,
+    defaultBaseUrl: "https://api.anthropic.com/v1",
+  },
+  {
+    kind: "openrouter",
+    label: "OpenRouter",
+    credential: "required",
+    customBaseUrl: false,
+    cloud: true,
+    defaultBaseUrl: "https://openrouter.ai/api/v1",
+  },
+  {
+    kind: "ollama-cloud",
+    label: "Ollama Cloud",
+    credential: "required",
+    customBaseUrl: false,
+    cloud: true,
+    defaultBaseUrl: "https://ollama.com/v1",
+  },
+  {
+    kind: "custom",
+    label: "OpenAI-compatible",
+    credential: "optional",
+    customBaseUrl: true,
+    cloud: true,
+    defaultBaseUrl: "https://api.example.com/v1",
+  },
+] as const;
+export type AiProviderKind = (typeof AI_PROVIDER_CATALOG)[number]["kind"];
+export interface ProviderProfile {
+  id: string;
+  name: string;
+  kind: AiProviderKind;
+  baseUrl: string;
+  model: string;
+}
+export interface AiSettings {
+  defaultProfileId: string;
+  profiles: ProviderProfile[];
+}
+export interface ProviderConnectionResult {
+  ok: boolean;
+  message: string;
+  models?: string[] | undefined;
+}
+
+export const providerCredentialId = (profileId: string): string => `provider.${profileId}`;
 
 /** A request for LM Studio, made by the main process because LM Studio sends no CORS headers. */
 export interface LlmRequest {
@@ -229,6 +308,8 @@ export const IPC = {
   credentialSave: "lucid:credential-save",
   credentialDelete: "lucid:credential-delete",
   credentialStatus: "lucid:credential-status",
+  providerTest: "lucid:provider-test",
+  providerModels: "lucid:provider-models",
 } as const;
 
 export interface LucidApi {
@@ -278,6 +359,12 @@ export interface LucidApi {
     save(request: CredentialSaveRequest): Promise<CredentialStatus>;
     delete(id: string): Promise<void>;
     status(id: string): Promise<CredentialStatus>;
+  };
+  providers: {
+    /** Tests the saved profile. Main resolves its URL and credential by id. */
+    test(id: string): Promise<ProviderConnectionResult>;
+    /** Returns model ids from the saved profile without exposing credentials. */
+    models(id: string): Promise<ProviderConnectionResult>;
   };
   lm: {
     status(): Promise<LmStatus>;
