@@ -14,7 +14,7 @@ import {
   runInput,
   unprocessedPatch,
   type CommandOutcome,
-  type LmStudioClient,
+  type AiClient,
   type Lane,
   type LlmError,
 } from "@lucid/llm";
@@ -52,7 +52,7 @@ export interface EditorPort {
 }
 
 export interface QueueOptions {
-  client: LmStudioClient;
+  client: AiClient;
   lanes: { input: Lane; command: Lane };
   /** Shown when the model is not loaded. */
   modelName: string;

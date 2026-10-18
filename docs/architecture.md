@@ -25,7 +25,7 @@ flowchart TD
 |---|---|
 | `packages/core` | Pure TypeScript, no DOM, no network. The document model (`model/`), the op language and its checks (`ops/`), the diagram language LGN and its Mermaid output (`lgn/`, `mermaid/`), the guided builders' grammar (`guided/`), grounding checks (`grounding/`), reverts, and the saved file format (`persistence/`). |
 | `packages/kit` | The block kit. Each block type is a folder with its schema, a short description for the model, outline, Markdown and LaTeX output and fixtures. Also the note formats (`formats/`), the Lucid Markdown language the model writes (`lmd/`), the op compiler (`ops/`) and the LaTeX document builder (`latex/`). |
-| `packages/llm` | The LM Studio client (streamed `/v1/chat/completions`, reasoning off), the Input and Command pipelines, and the prompts. |
+| `packages/llm` | Lucid's provider-neutral AI contract, the LM Studio adapter (streamed `/v1/chat/completions`), the Input and Command pipelines, and the prompts. |
 | `packages/mcp` | The MCP server and the socket protocol between it and the running app. |
 | `packages/evals` | Eval cases and the runner that scores the model against them. |
 | `packages/mock-lmstudio` | A scripted LM Studio for tests. |
@@ -51,6 +51,27 @@ flowchart TD
   away, so it waits for a yes), a question (it is unsure which thing you meant) or "nothing to do".
 - **Guided builders:** a grammar in `packages/core/src/guided` reads "client to server", "rename 3 to Cache" and similar, and
   builds diagrams and tables step by step; only what the grammar cannot read goes to the model, with the builder's numbering.
+
+## AI provider boundary
+
+Input, Command, Advisor, the desktop job queue, and evals depend on Lucid's `AiClient` interface in
+`packages/llm/src/provider.ts`; only application composition constructs `LmStudioClient`. The contract covers streamed text,
+`AbortSignal` cancellation, optional JSON Schema output, usage and timing results, model discovery, and optional local-model
+controls. Every adapter publishes a capability record, so unsupported behavior is data rather than an assumption. LM Studio
+currently advertises JSON Schema, streaming, cancellation, discovery, reasoning controls, and custom base URLs; it does not
+advertise in-app model loading because Lucid has not implemented that control yet.
+
+### Vercel AI SDK compatibility spike
+
+The SDK could sit behind `AiClient`, but it is not the Lucid contract. Its current `streamText` API accepts an abort signal,
+streams text, returns usage, and supports structured output from JSON Schema. Its OpenAI-compatible adapter accepts custom base
+URLs, provider options, structured-output flags, and streamed usage. Those cover the existing Input, Command, and Advisor call
+shape. Model discovery and local-model load/status are not portable SDK features, and reasoning switches remain
+provider-specific. Lucid therefore keeps those capabilities in its own adapter boundary. No SDK dependency is added in this
+spike: adopting it later is an adapter implementation choice and should be justified by a concrete provider migration.
+
+References: [AI SDK `streamText`](https://ai-sdk.dev/docs/reference/ai-sdk-core/stream-text) and
+[OpenAI-compatible providers](https://ai-sdk.dev/providers/openai-compatible-providers).
 
 ## PDF
 

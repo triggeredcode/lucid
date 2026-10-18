@@ -1,10 +1,10 @@
 import { FORMATS, pickFormat } from "@lucid/kit";
-import type { ChatResult, LmStudioClient } from "./client";
+import type { AiClient, ChatResult } from "./provider";
 import { DEFAULT_LANES, type Lane } from "./lanes";
 import { advisorJsonSchema, buildAdvisorMessages } from "./prompts/advisor";
 
 export interface AdvisorDeps {
-  client: LmStudioClient;
+  client: AiClient;
   lane?: Lane | undefined;
   signal?: AbortSignal | undefined;
   /** Development/eval telemetry hook. It receives counts and timings, never credentials. */

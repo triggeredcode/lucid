@@ -29,6 +29,22 @@ const failure = async (p: Promise<unknown>): Promise<LlmError> => {
 };
 
 describe("chat", () => {
+  it("advertises the LM Studio adapter capabilities explicitly", async () => {
+    const { client } = await start();
+    expect(client.provider).toBe("lmstudio");
+    expect(client.capabilities).toEqual({
+      streaming: true,
+      cancellation: true,
+      structuredOutput: "json-schema",
+      modelDiscovery: true,
+      usage: "provider-or-estimated",
+      reasoningControl: true,
+      localModelManagement: false,
+      customBaseUrl: true,
+    });
+    expect(client.localModels).toBeUndefined();
+  });
+
   it("streams content, reports usage and timings, and sends the request Lucid needs", async () => {
     const { mock, client } = await start({
       script: [{ kind: "reply", content: "## Load balancer\n- one", chunkChars: 5 }],
@@ -74,11 +90,17 @@ describe("chat", () => {
       script: [{ kind: "reply", content: '{"kind":"none","reason":"x"}' }],
     });
     const schema = { type: "object", properties: { kind: { type: "string" } } };
-    await client.chat({ lane, messages, jsonSchema: { name: "lucid_command", schema } });
+    await client.chat({
+      lane,
+      messages,
+      jsonSchema: { name: "lucid_command", schema },
+      reasoning: "low",
+    });
     expect(mock.requests[0]?.body["response_format"]).toEqual({
       type: "json_schema",
       json_schema: { name: "lucid_command", strict: true, schema },
     });
+    expect(mock.requests[0]?.body["reasoning_effort"]).toBe("low");
   });
 
   it("retries a reasoning leak once and succeeds", async () => {

@@ -14,12 +14,12 @@ import {
   type Op,
 } from "@lucid/core";
 import { compileOps, OpError } from "@lucid/kit";
-import type { ChatMessage, ChatResult, LmStudioClient } from "./client";
+import type { AiClient, ChatMessage, ChatResult } from "./provider";
 import { DEFAULT_LANES, type Lane } from "./lanes";
 import { buildCommandMessages, endsWithAnswer, type CommandContext } from "./prompts/command";
 
 export interface CommandDeps {
-  client: LmStudioClient;
+  client: AiClient;
   lane?: Lane | undefined;
   signal?: AbortSignal | undefined;
   onDelta?: ((text: string) => void) | undefined;

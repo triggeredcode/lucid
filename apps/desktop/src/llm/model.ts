@@ -1,8 +1,8 @@
-import { DEFAULT_LANES, LmStudioClient, type Lane } from "@lucid/llm";
+import { DEFAULT_LANES, LmStudioClient, type AiClient, type Lane } from "@lucid/llm";
 import { bridgeFetch } from "./bridgeFetch";
 
 export interface Model {
-  client: LmStudioClient;
+  client: AiClient;
   lanes: { input: Lane; command: Lane; advisor: Lane };
   /** The model's short name, for messages. */
   name: string;

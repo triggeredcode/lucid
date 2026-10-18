@@ -6,7 +6,7 @@ import {
   runInput,
   type ChatResult,
   type Lane,
-  type LmStudioClient,
+  type AiClient,
 } from "@lucid/llm";
 import { fixture } from "./fixtures";
 import { evaluate, findBlock, unrelatedChangedCount, type Observed } from "./matchers";
@@ -45,7 +45,7 @@ export interface Trial {
 }
 
 export interface RunDeps {
-  client: LmStudioClient;
+  client: AiClient;
   lanes?: { input: Lane; command: Lane; advisor?: Lane } | undefined;
 }
 
