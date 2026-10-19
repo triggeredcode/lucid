@@ -62,7 +62,7 @@ export class OllamaClient implements AiClient {
   readonly capabilities: Readonly<ProviderCapabilities> = Object.freeze({
     streaming: true,
     cancellation: true,
-    structuredOutput: "json-schema",
+    structuredOutput: "native",
     modelDiscovery: true,
     usage: "provider-or-estimated",
     reasoningControl: false,

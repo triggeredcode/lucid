@@ -1,6 +1,11 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
-import { DEFAULT_LANES, LmStudioClient } from "@lucid/llm";
+import {
+  DEFAULT_LANES,
+  LmStudioClient,
+  type AiClient,
+  type ProviderCapabilities,
+} from "@lucid/llm";
 import { ALL_CASES, validateCases } from "./cases";
 import { comparisonToMarkdown, summarise, toMarkdown, type Results } from "./report";
 import { runTrial, trialsOf, type Trial } from "./run";
@@ -9,7 +14,8 @@ import type { Case } from "./types";
 /**
  * `pnpm eval`: runs the cases against the model in LM Studio, one request at a time, and writes a report.
  *   pnpm eval [--category a,b] [--id x,y] [--mode input|command] [--no-variants] [--label name]
- *             [--model key] [--url http://127.0.0.1:1234] [--out dir] [--strict]
+ *             [--model key] [--url http://127.0.0.1:1234] [--structured native|prompted]
+ *             [--out dir] [--strict]
  *   pnpm eval --compare <reportDirA> <reportDirB>
  */
 function arg(args: string[], name: string): string | undefined {
@@ -72,8 +78,24 @@ export async function main(args: string[], options: MainOptions = {}): Promise<n
   }
   const baseUrl = arg(args, "url") ?? process.env["LMSTUDIO_URL"] ?? "http://127.0.0.1:1234";
   const model = arg(args, "model") ?? DEFAULT_LANES.input.model;
-  const client = new LmStudioClient({ baseUrl });
-  const health = await client.health();
+  const structuredArg = arg(args, "structured") ?? "native";
+  if (structuredArg !== "native" && structuredArg !== "prompted") {
+    console.error("--structured must be native or prompted.");
+    return 2;
+  }
+  const structuredOutput: ProviderCapabilities["structuredOutput"] = structuredArg;
+  const nativeClient = new LmStudioClient({ baseUrl });
+  const client: AiClient =
+    structuredOutput === "native"
+      ? nativeClient
+      : {
+          provider: nativeClient.provider,
+          capabilities: { ...nativeClient.capabilities, structuredOutput },
+          localModels: nativeClient.localModels,
+          chat: (request) => nativeClient.chat(request),
+          health: (signal) => nativeClient.health(signal),
+        };
+  const health = await nativeClient.health();
   if (!health.reachable || !health.models.includes(model)) {
     console.error(
       !health.reachable
@@ -101,7 +123,7 @@ export async function main(args: string[], options: MainOptions = {}): Promise<n
 
   const date = new Date().toISOString();
   const label = arg(args, "label") ?? "run";
-  const results: Results = { meta: { model, date, label, baseUrl }, trials };
+  const results: Results = { meta: { model, date, label, baseUrl, structuredOutput }, trials };
   // The folder is named by the local day, which is the day the person ran it.
   const day = new Date().toLocaleDateString("en-CA");
   const out = arg(args, "out") ?? join(cwd, "packages/evals/reports", `${day}-${label}`);

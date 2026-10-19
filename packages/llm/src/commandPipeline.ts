@@ -44,6 +44,8 @@ interface Change {
 }
 
 export type CommandOutcome =
+  /** The selected provider cannot safely produce checked Command operations. No request was sent. */
+  | { kind: "unavailable"; message: string; calls: []; raw: "" }
   /** A change, ready to apply. */
   | (Common & Change & { kind: "edit" })
   /** A change that throws something away without the user having said so: show it and wait for a yes. */
@@ -64,6 +66,16 @@ const repairMessage = (problems: string[]): ChatMessage => ({
   content: `Your answer had these problems:\n${problems.map((p) => `- ${p}`).join("\n")}\nReturn the corrected, complete JSON object and nothing else.`,
 });
 
+const promptedSchemaMessage = (schema: { name: string; schema: object }): ChatMessage => ({
+  role: "user",
+  content: [
+    "STRUCTURED OUTPUT CONTRACT:",
+    "Return exactly one JSON object and no prose or markdown.",
+    "It must satisfy this JSON Schema. Lucid will reject the response before making any change if it does not.",
+    JSON.stringify(schema.schema),
+  ].join("\n"),
+});
+
 /**
  * Command Mode for one utterance: ask the model for ops, compile them on a copy of the document, and
  * report an edit, a proposal (destructive without a removal word), a question, or "nothing to do". At most one
@@ -78,11 +90,21 @@ export async function runCommand(job: CommandJob, deps: CommandDeps): Promise<Co
     name: "lucid_command",
     schema: commandJsonSchema({ allowClarify: !endsWithAnswer(job.utterance) }),
   };
+  const structuredOutput = deps.client.capabilities.structuredOutput;
+  if (structuredOutput === "unavailable") {
+    return {
+      kind: "unavailable",
+      message: `${deps.client.provider} cannot safely produce structured Command operations. Choose a provider with structured output support. No edit was applied.`,
+      calls: [],
+      raw: "",
+    };
+  }
+  if (structuredOutput === "prompted") messages.push(promptedSchemaMessage(schema));
   const ask = async (): Promise<string> => {
     const result = await deps.client.chat({
       lane,
       messages,
-      jsonSchema: schema,
+      jsonSchema: structuredOutput === "native" ? schema : undefined,
       signal: deps.signal,
       onDelta: deps.onDelta,
     });

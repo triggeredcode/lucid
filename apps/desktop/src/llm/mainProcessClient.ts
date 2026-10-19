@@ -25,7 +25,7 @@ export interface MainAiTransport {
 const LOCAL_CAPABILITIES: Readonly<ProviderCapabilities> = Object.freeze({
   streaming: true,
   cancellation: true,
-  structuredOutput: "json-schema",
+  structuredOutput: "native",
   modelDiscovery: true,
   usage: "provider-or-estimated",
   reasoningControl: false,
@@ -71,12 +71,14 @@ export class MainProcessAiClient implements AiClient {
       profile.kind === "lmstudio"
         ? { ...LOCAL_CAPABILITIES, reasoningControl: true }
         : profile.kind === "ollama-cloud"
-          ? { ...LOCAL_CAPABILITIES, structuredOutput: "none", customBaseUrl: false }
+          ? { ...LOCAL_CAPABILITIES, structuredOutput: "unavailable", customBaseUrl: false }
           : profile.kind === "openai" ||
               profile.kind === "anthropic" ||
               profile.kind === "openrouter"
             ? { ...LOCAL_CAPABILITIES, customBaseUrl: false }
-            : LOCAL_CAPABILITIES;
+            : profile.kind === "custom"
+              ? { ...LOCAL_CAPABILITIES, structuredOutput: "prompted" }
+              : LOCAL_CAPABILITIES;
   }
 
   async health(signal?: AbortSignal): Promise<ProviderHealth> {

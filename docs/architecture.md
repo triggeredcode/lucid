@@ -73,9 +73,13 @@ lexical and structural only; it makes no router-model call and stores no vectors
 Input, Command, Advisor, the desktop job queue, and evals depend on Lucid's `AiClient` interface in
 `packages/llm/src/provider.ts`; Electron main-process composition constructs the selected provider adapter. The contract covers streamed text,
 `AbortSignal` cancellation, optional JSON Schema output, usage and timing results, model discovery, and optional local-model
-controls. Every adapter publishes a capability record, so unsupported behavior is data rather than an assumption. LM Studio
-currently advertises JSON Schema, streaming, cancellation, discovery, reasoning controls, and custom base URLs; it does not
-advertise in-app model loading because Lucid has not implemented that control yet.
+controls. Every adapter publishes a capability record, so unsupported behavior is data rather than an assumption. Structured
+output is classified as `native`, `prompted`, or `unavailable`: native adapters receive the JSON Schema at the provider API;
+prompted adapters receive the same schema as an explicit prompt contract and Lucid still parses, validates, compiles, and
+repairs at most once; unavailable adapters stop Command before the request and show a dedicated UI state. There is no automatic
+downgrade after a native schema request fails. LM Studio currently advertises native JSON Schema, streaming, cancellation,
+discovery, reasoning controls, and custom base URLs; it does not advertise in-app model loading because Lucid has not
+implemented that control yet.
 
 ### Vercel AI SDK compatibility spike
 

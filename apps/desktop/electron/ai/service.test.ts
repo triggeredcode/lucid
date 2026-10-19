@@ -16,7 +16,7 @@ const client = (chat: AiClient["chat"]): AiClient => ({
   capabilities: {
     streaming: true,
     cancellation: true,
-    structuredOutput: "json-schema",
+    structuredOutput: "native",
     modelDiscovery: false,
     usage: "estimated",
     reasoningControl: false,

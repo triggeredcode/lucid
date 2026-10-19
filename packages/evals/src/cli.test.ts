@@ -66,13 +66,17 @@ describe("main", () => {
       c("a", { variants: ["variant of a"] }),
       c("b", { expect: { doc: { hasHeading: [{ text: "kafka" }] } } }),
     ];
-    const code = await main(["--url", mock.url, "--out", out, "--label", "t"], { cases });
+    const code = await main(
+      ["--url", mock.url, "--out", out, "--label", "t", "--structured", "prompted"],
+      { cases },
+    );
     expect(code).toBe(0);
     const results = JSON.parse(readFileSync(join(out, "results.json"), "utf8")) as {
-      meta: { label: string };
+      meta: { label: string; structuredOutput: string };
       trials: { caseId: string; pass: boolean }[];
     };
     expect(results.meta.label).toBe("t");
+    expect(results.meta.structuredOutput).toBe("prompted");
     expect(results.trials.map((t) => [t.caseId, t.pass])).toEqual([
       ["a", true],
       ["a", true],
@@ -98,6 +102,12 @@ describe("main", () => {
     expect(await main(["--url", mock.url], { cases: [c("a")] })).toBe(2);
     expect(String(err.mock.calls[0]?.[0])).toContain("is not loaded in LM Studio");
     expect(mock.requests).toHaveLength(0);
+  });
+
+  it("rejects an unknown structured-output eval configuration before connecting", async () => {
+    const err = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    expect(await main(["--structured", "maybe"], { cases: [c("a")] })).toBe(2);
+    expect(String(err.mock.calls[0]?.[0])).toContain("native or prompted");
   });
 
   it("compares two reports", async () => {

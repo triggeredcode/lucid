@@ -35,7 +35,7 @@ describe("chat", () => {
     expect(client.capabilities).toEqual({
       streaming: true,
       cancellation: true,
-      structuredOutput: "json-schema",
+      structuredOutput: "native",
       modelDiscovery: true,
       usage: "provider-or-estimated",
       reasoningControl: true,

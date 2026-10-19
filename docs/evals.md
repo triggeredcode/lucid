@@ -6,6 +6,7 @@ and says which ones still work. Prompt changes must not make it worse.
 ```bash
 pnpm eval --label my-change                    # every case, one request at a time (~15 minutes)
 pnpm eval --category diagram_edit,table_edit   # some categories
+pnpm eval --mode command --structured prompted # exercise prompt-plus-validation providers
 pnpm eval --id diag-add-redis --no-variants    # one case
 pnpm eval --compare packages/evals/reports/2026-10-11-baseline packages/evals/reports/2026-10-12-my-change
 ```

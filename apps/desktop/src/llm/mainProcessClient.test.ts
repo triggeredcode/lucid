@@ -174,7 +174,7 @@ describe("MainProcessAiClient", () => {
     );
     expect(ollama.provider).toBe("ollama");
     expect(ollama.capabilities).toMatchObject({
-      structuredOutput: "json-schema",
+      structuredOutput: "native",
       usage: "provider-or-estimated",
       reasoningControl: false,
     });

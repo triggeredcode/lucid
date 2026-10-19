@@ -203,7 +203,7 @@ export class OpenAiClient extends CloudClient {
   readonly capabilities: Readonly<ProviderCapabilities> = Object.freeze({
     streaming: true,
     cancellation: true,
-    structuredOutput: "json-schema",
+    structuredOutput: "native",
     modelDiscovery: true,
     usage: "provider-or-estimated",
     reasoningControl: false,
@@ -298,7 +298,7 @@ export class AnthropicClient extends CloudClient {
   readonly capabilities: Readonly<ProviderCapabilities> = Object.freeze({
     streaming: true,
     cancellation: true,
-    structuredOutput: "json-schema",
+    structuredOutput: "native",
     modelDiscovery: true,
     usage: "provider-or-estimated",
     reasoningControl: false,
@@ -414,7 +414,12 @@ export class OpenAiCompatibleClient extends CloudClient {
     this.capabilities = Object.freeze({
       streaming: true,
       cancellation: true,
-      structuredOutput: options.kind === "ollama-cloud" ? "none" : "json-schema",
+      structuredOutput:
+        options.kind === "ollama-cloud"
+          ? "unavailable"
+          : options.kind === "custom"
+            ? "prompted"
+            : "native",
       modelDiscovery: true,
       usage: "provider-or-estimated",
       reasoningControl: false,

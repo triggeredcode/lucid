@@ -53,7 +53,12 @@ export interface LocalModelControl {
 export interface ProviderCapabilities {
   streaming: boolean;
   cancellation: boolean;
-  structuredOutput: "json-schema" | "json-object" | "none";
+  /**
+   * `native` means the provider enforces Lucid's JSON Schema. `prompted` means Lucid must include the
+   * schema in the prompt and validate the answer itself. `unavailable` must stop structured work before
+   * any request is sent; adapters never silently downgrade between these modes.
+   */
+  structuredOutput: "native" | "prompted" | "unavailable";
   modelDiscovery: boolean;
   usage: "provider-or-estimated" | "estimated" | "none";
   reasoningControl: boolean;

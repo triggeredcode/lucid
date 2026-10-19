@@ -6,6 +6,7 @@ import {
   type Category,
 } from "./types";
 import type { Trial } from "./run";
+import type { ProviderCapabilities } from "@lucid/llm";
 
 export interface RunMeta {
   model: string;
@@ -13,6 +14,8 @@ export interface RunMeta {
   /** Names the prompt version or experiment, for comparing runs. */
   label: string;
   baseUrl: string;
+  /** Structured-output contract exercised by Command trials in this run. */
+  structuredOutput?: ProviderCapabilities["structuredOutput"] | undefined;
 }
 
 export interface Results {
@@ -95,7 +98,7 @@ export function toMarkdown(results: Results): string {
   const lines: string[] = [
     `# Eval report: ${results.meta.label}`,
     "",
-    `Model \`${results.meta.model}\`, ${results.meta.date}, ${String(results.trials.length)} trials.`,
+    `Model \`${results.meta.model}\`, ${results.meta.date}, ${String(results.trials.length)} trials. Structured output: \`${results.meta.structuredOutput ?? "native"}\`.`,
     "",
     `**Overall ${pct(s.overall.rate)}** (${String(s.overall.pass)} of ${String(s.overall.total)}), needs ${pct(OVERALL_THRESHOLD)}: ${s.overall.ok ? "met" : "NOT met"}. Median ${secs(s.p50Ms)} per trial. Pipeline errors: ${String(s.errors)}; cancellations: ${String(s.cancellations)}.`,
     "",

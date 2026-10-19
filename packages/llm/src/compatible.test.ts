@@ -56,6 +56,7 @@ describe("OpenAI-compatible hosted endpoints", () => {
       stream_options: { include_usage: true },
     });
     expect(body).not.toHaveProperty("models");
+    expect(client.capabilities.structuredOutput).toBe("native");
     expect(fetcher).toHaveBeenCalledTimes(1);
   });
 
@@ -72,6 +73,7 @@ describe("OpenAI-compatible hosted endpoints", () => {
     if (typeof payload !== "string") throw new Error("Expected request body");
     expect(JSON.parse(payload)).not.toHaveProperty("stream_options");
     expect(client.capabilities.customBaseUrl).toBe(true);
+    expect(client.capabilities.structuredOutput).toBe("prompted");
   });
 
   it("allows Ollama Cloud Input but blocks Command and Advisor before a network request", async () => {
@@ -82,7 +84,7 @@ describe("OpenAI-compatible hosted endpoints", () => {
       apiKey: "secret",
       fetch: fetcher,
     });
-    expect(client.capabilities.structuredOutput).toBe("none");
+    expect(client.capabilities.structuredOutput).toBe("unavailable");
     await expect(client.chat(request(true))).rejects.toThrow(/does not support JSON Schema/);
     expect(fetcher).not.toHaveBeenCalled();
     expect((await client.chat(request())).content).toBe("hello");

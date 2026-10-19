@@ -43,6 +43,8 @@ export type JobStatus =
   | { kind: "clarify"; question: string; options: { label: string; ref: string | null }[] }
   /** A Command Mode utterance that was really notes. */
   | { kind: "content"; text: string }
+  /** Command is disabled because the selected provider cannot meet the checked-operations contract. */
+  | { kind: "unavailable"; message: string }
   | { kind: "failed"; message: string; text: string };
 
 /** The open page's editor, as the queue needs it. */
@@ -401,6 +403,10 @@ export class JobQueue {
     );
     this.report("command", outcome.calls);
     switch (outcome.kind) {
+      case "unavailable":
+        this.log(job, "rejected");
+        this.options.onStatus({ kind: "unavailable", message: outcome.message });
+        return;
       case "edit": {
         editor.apply(outcome.patch);
         const notice = outcome.warnings.length > 0 ? outcome.warnings.join(" ") : undefined;

@@ -276,6 +276,19 @@ export function DictationBar({
             </button>
           </>
         )}
+        {status.kind === "unavailable" && (
+          <>
+            <span className="bang" aria-hidden="true">
+              !
+            </span>
+            <span>
+              <strong>Command unavailable.</strong> {status.message}
+            </span>
+            <button type="button" className="link" onClick={onDismiss}>
+              Dismiss
+            </button>
+          </>
+        )}
         {status.kind === "proposal" && (
           <>
             <div className="card-text">
