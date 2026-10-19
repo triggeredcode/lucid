@@ -9,5 +9,6 @@ export * from "./prompts/input";
 export * from "./input";
 export * from "./prompts/command";
 export * from "./commandPipeline";
+export * from "./deterministicCommand";
 export * from "./advisor";
 export { ADVISOR_EXAMPLES, advisorSystemPrompt } from "./prompts/advisor";

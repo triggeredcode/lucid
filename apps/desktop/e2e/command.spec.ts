@@ -137,6 +137,27 @@ test("a command crosses out a list item on the page, is saved, and the voice com
   }
 });
 
+test("an exact empty-section command skips the model and still supports one-step undo", async () => {
+  test.setTimeout(60_000);
+  const { app, page } = await launch([]);
+  try {
+    await modeButton(page, "Command").click();
+    await say(page, 'create an empty section named "Failure modes"');
+    await expect(
+      page.locator(".page-editor h2").filter({ hasText: "Failure modes" }),
+    ).toBeVisible();
+    await expect(page.getByText("Created empty section “Failure modes”.")).toBeVisible();
+    expect(mock?.requests).toHaveLength(0);
+
+    await page.getByRole("button", { name: "Undo" }).click();
+    await expect(page.locator(".page-editor h2").filter({ hasText: "Failure modes" })).toHaveCount(
+      0,
+    );
+  } finally {
+    await app.close();
+  }
+});
+
 test("a command that throws something away waits for a yes: by button, or by voice", async () => {
   test.setTimeout(90_000);
   const remove = json({

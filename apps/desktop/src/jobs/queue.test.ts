@@ -359,6 +359,17 @@ describe("JobQueue in Command mode", () => {
   const props = (t: Awaited<ReturnType<typeof withDoc>>, id: string) =>
     t.editor.doc.blocks.find((b) => b.id === id)?.props;
 
+  it("routes an exact selected-block command without a model call and records its source", async () => {
+    const t = await withDoc([]);
+    t.editor.cursor = "t1";
+    t.say("delete this block", "typed", "command");
+    await t.settled();
+    expect(t.mock.requests).toHaveLength(0);
+    expect(t.editor.doc.blocks.some((block) => block.id === "t1")).toBe(false);
+    expect(t.last()).toMatchObject({ kind: "done", summary: "Deleted selected block" });
+    expect(t.changes.at(-1)).toMatchObject({ source: "deterministic" });
+  });
+
   it("carries out a command on the page and records it", async () => {
     const t = await withDoc([reply(strike)]);
     t.say("cross out MongoDB", "typed", "command");

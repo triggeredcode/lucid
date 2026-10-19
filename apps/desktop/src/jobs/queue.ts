@@ -204,7 +204,16 @@ export class JobQueue {
       }
       throw error;
     }
-    this.finish(p.job, "applied", p.outcome.summary, undefined, p.outcome.affected, "command");
+    this.finish(
+      p.job,
+      "applied",
+      p.outcome.summary,
+      undefined,
+      p.outcome.affected,
+      "command",
+      undefined,
+      p.outcome.execution === "deterministic" ? "deterministic" : "local-model",
+    );
   }
 
   /** The user said no. */
@@ -410,7 +419,16 @@ export class JobQueue {
       case "edit": {
         editor.apply(outcome.patch);
         const notice = outcome.warnings.length > 0 ? outcome.warnings.join(" ") : undefined;
-        this.finish(job, "applied", outcome.summary, notice, outcome.affected, "command");
+        this.finish(
+          job,
+          "applied",
+          outcome.summary,
+          notice,
+          outcome.affected,
+          "command",
+          undefined,
+          outcome.execution === "deterministic" ? "deterministic" : "local-model",
+        );
         return;
       }
       case "proposal":
@@ -520,6 +538,7 @@ export class JobQueue {
     affected: readonly string[] | undefined,
     mode: Mode,
     recentText?: string,
+    source = "local-model",
   ): void {
     this.log(job, status);
     this.recent = [...this.recent, { mode, text: recentText ?? joined(job) }].slice(-3);
@@ -531,7 +550,7 @@ export class JobQueue {
       id: job.utterances[0]?.id ?? (this.options.ids ?? newId)(),
       at: new Date(at).toISOString(),
       summary,
-      source: "local-model",
+      source,
       affected: [...(affected ?? [])],
       reverted: false,
     });

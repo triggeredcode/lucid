@@ -59,6 +59,35 @@ describe("the few-shot examples", () => {
 });
 
 describe("runCommand", () => {
+  it("runs an exact selected-block command without contacting the provider", async () => {
+    const { client, mock } = await setup({ script: [] });
+    const out = await runCommand(job("delete this block", { cursorBlockId: "t1" }), {
+      client: withStructuredOutput(client, "unavailable"),
+      ids: ids(),
+    });
+    expect(out).toMatchObject({
+      kind: "edit",
+      execution: "deterministic",
+      calls: [],
+      summary: "Deleted selected block",
+    });
+    if (out.kind !== "edit") throw new Error(out.kind);
+    expect(out.next.blocks.some((block) => block.id === "t1")).toBe(false);
+    expect(mock.requests).toHaveLength(0);
+  });
+
+  it("falls through to the model for wording outside the exact allowlist", async () => {
+    const { client, mock } = await setup({
+      script: [reply(json({ kind: "none", reason: "ambiguous wording" }))],
+    });
+    const out = await runCommand(job("delete this block please", { cursorBlockId: "t1" }), {
+      client,
+      ids: ids(),
+    });
+    expect(out).toMatchObject({ kind: "none", execution: "model" });
+    expect(mock.requests).toHaveLength(1);
+  });
+
   it("uses a prompted-and-validated contract without claiming native schema enforcement", async () => {
     const { client, mock } = await setup({
       script: [

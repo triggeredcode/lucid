@@ -37,6 +37,8 @@ export interface Trial {
   unrelatedBlocksModified: number | null;
   provider: string;
   model: string;
+  /** How the command ran. Optional so older saved eval reports remain comparable. */
+  execution?: "model" | "deterministic" | "none";
   /** The model's last answer, as it wrote it. */
   raw: string;
   /** What Lucid said it did, for a change. */
@@ -73,6 +75,7 @@ export async function runTrial(
     let raw = "";
     let summary: string | undefined;
     let affectedBlocks = 0;
+    let execution: NonNullable<Trial["execution"]> = "model";
     if (c.mode === "advisor") {
       const advice = await runAdvisor(utterance, {
         client: deps.client,
@@ -111,6 +114,7 @@ export async function runTrial(
         },
         { client: deps.client, lane: deps.lanes?.command ?? DEFAULT_LANES.command },
       );
+      execution = out.execution;
       calls = out.calls;
       raw = out.raw;
       const after = out.kind === "edit" || out.kind === "proposal" ? out.next : before;
@@ -158,6 +162,7 @@ export async function runTrial(
         : null,
       provider: calls.at(-1)?.provider ?? "none",
       model: calls.at(-1)?.model ?? "none",
+      execution,
       raw,
       summary,
     };
@@ -185,6 +190,7 @@ export async function runTrial(
       unrelatedBlocksModified: null,
       provider: "none",
       model: "none",
+      execution: "none",
       raw: "",
       error: message,
     };
