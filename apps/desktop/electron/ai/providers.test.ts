@@ -117,4 +117,54 @@ describe("inspectProvider", () => {
     expect(result.message).toContain("Could not connect");
     expect(result.message).not.toContain("top-secret");
   });
+
+  it("uses Ollama Cloud's native model list with explicit bearer authentication", async () => {
+    const request = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(Response.json({ models: [{ model: "gemma4:31b" }] }));
+    const result = await inspectProvider(
+      profile({ kind: "ollama-cloud", baseUrl: "https://ollama.com/v1" }),
+      "cloud-secret",
+      request,
+    );
+    expect(result.models).toEqual(["gemma4:31b"]);
+    expect(request.mock.calls[0]?.[0]).toEqual(new URL("https://ollama.com/api/tags"));
+    expect(request.mock.calls[0]?.[1]?.headers).toMatchObject({
+      Authorization: "Bearer cloud-secret",
+    });
+  });
+
+  it("explains that custom model listing is optional", async () => {
+    const result = await inspectProvider(
+      profile({ kind: "custom", baseUrl: "https://llm.example.test/v1" }),
+      undefined,
+      vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 404 })),
+    );
+    expect(result).toMatchObject({ ok: false });
+    expect(result.message).toContain("Enter its model ID manually");
+  });
+
+  it("rejects unsafe custom addresses and cross-origin redirects before sending a key", async () => {
+    const request = vi.fn<typeof fetch>();
+    const unsafe = await inspectProvider(
+      profile({ kind: "custom", baseUrl: "http://private.example.test/v1" }),
+      "secret",
+      request,
+    );
+    expect(unsafe.ok).toBe(false);
+    expect(request).not.toHaveBeenCalled();
+
+    const redirect = await inspectProvider(
+      profile({ kind: "custom", baseUrl: "https://llm.example.test/v1" }),
+      "secret",
+      vi.fn<typeof fetch>().mockResolvedValue(
+        new Response(null, {
+          status: 302,
+          headers: { Location: "https://other.example.test/models" },
+        }),
+      ),
+    );
+    expect(redirect.ok).toBe(false);
+    expect(redirect.message).not.toContain("secret");
+  });
 });

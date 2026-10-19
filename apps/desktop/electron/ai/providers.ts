@@ -12,6 +12,7 @@ const modelsUrl = (profile: ProviderProfile): string => {
   const base = profile.baseUrl.replace(/\/+$/, "");
   if (profile.kind === "lmstudio") return `${base}/v1/models`;
   if (profile.kind === "ollama") return `${base}/api/tags`;
+  if (profile.kind === "ollama-cloud") return `${new URL(base).origin}/api/tags`;
   return `${base}/models`;
 };
 
@@ -71,7 +72,10 @@ export async function inspectProvider(
     if (!response.ok)
       return {
         ok: false,
-        message: `${provider.label} returned HTTP ${String(response.status)}. Check the address, API key, and account access.`,
+        message:
+          profile.kind === "custom" && response.status === 404
+            ? "This endpoint has no model-list API. Enter its model ID manually; Test connection cannot verify it until a request runs."
+            : `${provider.label} returned HTTP ${String(response.status)}. Check the address, API key, and account access.`,
       };
     const models = modelIds(await response.json(), profile.kind === "ollama");
     return {

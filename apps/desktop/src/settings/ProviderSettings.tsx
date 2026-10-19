@@ -11,7 +11,8 @@ import {
 
 const modelHint = (kind: AiProviderKind): string => {
   if (kind === "lmstudio") return "qwen/qwen3.8-27b";
-  if (kind === "ollama" || kind === "ollama-cloud") return "llama3.2";
+  if (kind === "ollama") return "llama3.2";
+  if (kind === "ollama-cloud") return "gemma4:31b";
   if (kind === "anthropic") return "claude-sonnet-4-5";
   if (kind === "openrouter") return "openai/gpt-4.1-mini";
   if (kind === "openai") return "gpt-4.1-mini";
@@ -302,6 +303,19 @@ export function ProviderSettings({ value, lmStudioUrlLocked, onChange, onPersist
             <p className="provider-disclosure">
               Command Mode requires a current Ollama version and a model that accepts JSON Schema.
               If Ollama rejects structured output, Lucid stops without applying the command.
+            </p>
+          )}
+          {active.kind === "ollama-cloud" && (
+            <p className="provider-disclosure">
+              Ollama Cloud currently lacks JSON Schema output. Input can run here; Command and
+              Advisor stop safely without sending a schema request.
+            </p>
+          )}
+          {(active.kind === "openrouter" || active.kind === "custom") && (
+            <p className="provider-disclosure">
+              Structured output depends on the selected model and endpoint. If it is not supported,
+              Lucid stops Command or Advisor without applying an edit. Model listing may also be
+              unavailable; you can enter a model ID manually.
             </p>
           )}
 

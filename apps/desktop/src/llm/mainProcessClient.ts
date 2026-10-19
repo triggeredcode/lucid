@@ -70,9 +70,13 @@ export class MainProcessAiClient implements AiClient {
     this.capabilities =
       profile.kind === "lmstudio"
         ? { ...LOCAL_CAPABILITIES, reasoningControl: true }
-        : profile.kind === "openai" || profile.kind === "anthropic"
-          ? { ...LOCAL_CAPABILITIES, customBaseUrl: false }
-          : LOCAL_CAPABILITIES;
+        : profile.kind === "ollama-cloud"
+          ? { ...LOCAL_CAPABILITIES, structuredOutput: "none", customBaseUrl: false }
+          : profile.kind === "openai" ||
+              profile.kind === "anthropic" ||
+              profile.kind === "openrouter"
+            ? { ...LOCAL_CAPABILITIES, customBaseUrl: false }
+            : LOCAL_CAPABILITIES;
   }
 
   async health(signal?: AbortSignal): Promise<ProviderHealth> {

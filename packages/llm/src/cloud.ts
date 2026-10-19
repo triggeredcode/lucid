@@ -395,3 +395,132 @@ export class AnthropicClient extends CloudClient {
     return this.result(request, content, model, usage, timing);
   }
 }
+
+export type CompatibleKind = "openrouter" | "ollama-cloud" | "custom";
+export interface CompatibleClientOptions extends Omit<CloudClientOptions, "apiKey"> {
+  kind: CompatibleKind;
+  baseUrl: string;
+  apiKey?: string;
+}
+
+/** Chat Completions compatibility is narrower than native OpenAI Responses. Never infer full parity. */
+export class OpenAiCompatibleClient extends CloudClient {
+  readonly provider: CompatibleKind;
+  readonly capabilities: Readonly<ProviderCapabilities>;
+
+  constructor(options: CompatibleClientOptions) {
+    super({ ...options, apiKey: options.apiKey ?? "" }, options.baseUrl);
+    this.provider = options.kind;
+    this.capabilities = Object.freeze({
+      streaming: true,
+      cancellation: true,
+      structuredOutput: options.kind === "ollama-cloud" ? "none" : "json-schema",
+      modelDiscovery: true,
+      usage: "provider-or-estimated",
+      reasoningControl: false,
+      localModelManagement: false,
+      customBaseUrl: options.kind === "custom",
+    });
+  }
+
+  private headers(): Record<string, string> {
+    return this.apiKey ? { Authorization: `Bearer ${this.apiKey}` } : {};
+  }
+
+  async health(signal?: AbortSignal): Promise<ProviderHealth> {
+    try {
+      const url =
+        this.provider === "ollama-cloud"
+          ? `${new URL(this.baseUrl).origin}/api/tags`
+          : `${this.baseUrl}/models`;
+      const response = await this.doFetch(url, {
+        headers: this.headers(),
+        ...(signal ? { signal } : {}),
+      });
+      if (!response.ok) return { reachable: false, models: [] };
+      const body = object(await response.json());
+      const data = Array.isArray(body.data)
+        ? body.data
+        : Array.isArray(body.models)
+          ? body.models
+          : [];
+      return {
+        reachable: true,
+        models: data
+          .map((item) => {
+            const entry = object(item);
+            const id = entry.id ?? entry.model ?? entry.name;
+            return typeof id === "string" ? id : undefined;
+          })
+          .filter((id): id is string => id !== undefined),
+      };
+    } catch {
+      return { reachable: false, models: [] };
+    }
+  }
+
+  async chat(request: ChatRequest): Promise<ChatResult> {
+    if (request.jsonSchema && this.provider === "ollama-cloud")
+      throw new LlmError(
+        "BadResponse",
+        "Ollama Cloud does not support JSON Schema output. Command and Advisor cannot run with this provider; choose a structured-output-capable provider. No edit was applied.",
+      );
+    let content = "";
+    let model = request.lane.model;
+    const state = { complete: false, failure: false };
+    const usage: { prompt?: number; completion?: number; reasoning?: number } = {};
+    const timing = await this.stream(
+      "/chat/completions",
+      this.headers(),
+      {
+        model,
+        messages: request.messages,
+        stream: true,
+        max_tokens: request.lane.maxTokens,
+        ...(this.provider === "openrouter" ? { stream_options: { include_usage: true } } : {}),
+        ...(request.jsonSchema
+          ? {
+              response_format: {
+                type: "json_schema",
+                json_schema: {
+                  name: request.jsonSchema.name,
+                  schema: request.jsonSchema.schema,
+                  strict: true,
+                },
+              },
+              ...(this.provider === "openrouter" ? { provider: { require_parameters: true } } : {}),
+            }
+          : {}),
+      },
+      request,
+      (event) => {
+        if (event.error !== undefined) state.failure = true;
+        if (typeof event.model === "string") model = event.model;
+        const counts = object(event.usage);
+        const prompt = count(counts.prompt_tokens);
+        const completion = count(counts.completion_tokens);
+        const reasoning = count(object(counts.completion_tokens_details).reasoning_tokens);
+        if (prompt !== undefined) usage.prompt = prompt;
+        if (completion !== undefined) usage.completion = completion;
+        if (reasoning !== undefined) usage.reasoning = reasoning;
+        const choices = Array.isArray(event.choices) ? event.choices : [];
+        const choice = object(choices[0]);
+        if (choice.finish_reason === "stop") state.complete = true;
+        else if (typeof choice.finish_reason === "string") state.failure = true;
+        const delta = object(choice.delta).content;
+        if (typeof delta === "string" && delta) {
+          content += delta;
+          request.onDelta?.(delta);
+          return true;
+        }
+        return false;
+      },
+    );
+    if (state.failure || !state.complete)
+      throw new LlmError(
+        "BadResponse",
+        `${this.provider} did not complete a supported response. Check model capabilities; no edit was applied.`,
+      );
+    return this.result(request, content, model, usage, timing);
+  }
+}

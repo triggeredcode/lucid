@@ -159,6 +159,28 @@ test("selecting Ollama shows structured-output guidance and hides LM Studio stat
   }
 });
 
+test("hosted compatibility presets explain capability limits and custom URLs stay editable", async () => {
+  test.setTimeout(60_000);
+  const { app, page } = await launch();
+  try {
+    await page.getByRole("button", { name: /Settings/ }).click();
+    const box = dialog(page);
+    await box.getByLabel("Provider to add").selectOption("ollama-cloud");
+    await box.getByRole("button", { name: "Add", exact: true }).click();
+    await expect(box).toContainText("Ollama Cloud currently lacks JSON Schema output");
+    await expect(field(page, ADDRESS)).toBeDisabled();
+
+    await box.getByLabel("Provider to add").selectOption("custom");
+    await box.getByRole("button", { name: "Add", exact: true }).click();
+    await expect(field(page, ADDRESS)).toBeEnabled();
+    await field(page, ADDRESS).fill("https://llm.example.test/v1");
+    await expect(box).toContainText("you can enter a model ID manually");
+    await field(page, MODEL).fill("my-model");
+  } finally {
+    await app.close();
+  }
+});
+
 test("saved settings apply at once: the model asked, the PDF footer, the words; and they are in the settings file", async () => {
   test.setTimeout(120_000);
   const notes = "## Caching\n- Redis keeps hot keys in memory.";

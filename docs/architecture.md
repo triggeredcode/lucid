@@ -91,6 +91,12 @@ model support are omitted. Command and Advisor send provider-specific JSON Schem
 constraints are removed from the wire copy, and Lucid still validates the original response before applying edits. A rejected
 schema is never retried as unstructured output. Cloud credentials are read from the encrypted/session vault only in Electron
 main, are included in main-only error redaction, and are never returned to the renderer.
+OpenRouter, Ollama Cloud, and user-supplied OpenAI-compatible endpoints use Chat Completions through the same main-process
+boundary. OpenRouter requires schema-supporting upstream parameters for structured requests; custom endpoints may list models
+or accept a manually entered ID, and schema rejection stops rather than retrying without constraints. Ollama Cloud uses
+`https://ollama.com/v1` for chat and the native `/api/tags` model list. Because it currently lacks structured output, only
+plain Input requests are sent there; Command and Advisor fail before network I/O. Lucid performs no automatic provider
+switching or failover, and hosts no inference gateway.
 
 ## PDF
 

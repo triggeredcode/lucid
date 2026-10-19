@@ -1,4 +1,10 @@
-import { AnthropicClient, LmStudioClient, OllamaClient, OpenAiClient } from "@lucid/llm";
+import {
+  AnthropicClient,
+  LmStudioClient,
+  OllamaClient,
+  OpenAiClient,
+  OpenAiCompatibleClient,
+} from "@lucid/llm";
 import { loadSettings } from "../settings";
 import { providerCredentialId } from "../ipc/types";
 import type { AiRuntimeResolver } from "./service";
@@ -14,17 +20,22 @@ export const createRuntimeResolver = (
   return async (profileId) => {
     const settings = await loadSettings(libraryDir);
     const profile = settings.ai.profiles.find((candidate) => candidate.id === profileId);
-    if (!profile || !["lmstudio", "ollama", "openai", "anthropic"].includes(profile.kind))
-      return undefined;
+    if (!profile) return undefined;
     const endpoint = (
       profile.kind === "lmstudio" ? (environmentUrl ?? profile.baseUrl) : profile.baseUrl
     ).replace(/\/+$/, "");
     const providerFetch: typeof fetch = (input, init) => secureProviderFetch(input, init, doFetch);
     const secret =
-      profile.kind === "openai" || profile.kind === "anthropic"
+      profile.kind !== "lmstudio" && profile.kind !== "ollama"
         ? await readCredential(providerCredentialId(profile.id))
         : undefined;
-    if ((profile.kind === "openai" || profile.kind === "anthropic") && !secret) return undefined;
+    if (
+      profile.kind !== "lmstudio" &&
+      profile.kind !== "ollama" &&
+      profile.kind !== "custom" &&
+      !secret
+    )
+      return undefined;
     return {
       endpoint,
       ...(secret ? { secrets: [secret] } : {}),
@@ -35,11 +46,18 @@ export const createRuntimeResolver = (
             ? new OllamaClient({ baseUrl: endpoint, fetch: providerFetch })
             : profile.kind === "openai"
               ? new OpenAiClient({ apiKey: secret ?? "", baseUrl: endpoint, fetch: providerFetch })
-              : new AnthropicClient({
-                  apiKey: secret ?? "",
-                  baseUrl: endpoint,
-                  fetch: providerFetch,
-                }),
+              : profile.kind === "anthropic"
+                ? new AnthropicClient({
+                    apiKey: secret ?? "",
+                    baseUrl: endpoint,
+                    fetch: providerFetch,
+                  })
+                : new OpenAiCompatibleClient({
+                    kind: profile.kind,
+                    ...(secret ? { apiKey: secret } : {}),
+                    baseUrl: endpoint,
+                    fetch: providerFetch,
+                  }),
     };
   };
 };

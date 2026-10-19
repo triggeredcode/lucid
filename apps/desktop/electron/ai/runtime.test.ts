@@ -134,4 +134,49 @@ describe("createRuntimeResolver", () => {
     });
     expect(read).toHaveBeenCalledWith("provider.claude");
   });
+
+  it("resolves hosted compatibility presets but never falls back to another provider", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "lucid-runtime-"));
+    await mkdir(join(dir, ".lucid"));
+    await writeFile(
+      join(dir, ".lucid", "settings.json"),
+      JSON.stringify({
+        ai: {
+          defaultProfileId: "router",
+          profiles: [
+            {
+              id: "router",
+              name: "Router",
+              kind: "openrouter",
+              baseUrl: "https://openrouter.ai/api/v1",
+              model: "openai/gpt-4.1-mini",
+            },
+            {
+              id: "cloud",
+              name: "Cloud",
+              kind: "ollama-cloud",
+              baseUrl: "https://ollama.com/v1",
+              model: "gemma4:31b",
+            },
+            {
+              id: "proxy",
+              name: "Proxy",
+              kind: "custom",
+              baseUrl: "https://llm.example.test/v1",
+              model: "custom/model",
+            },
+          ],
+        },
+      }),
+      "utf8",
+    );
+    const read = vi.fn((id: string) =>
+      Promise.resolve(id === "provider.router" ? "router-key" : undefined),
+    );
+    const resolve = createRuntimeResolver(dir, vi.fn<typeof fetch>(), undefined, read);
+    expect(await resolve("router")).toMatchObject({ client: { provider: "openrouter" } });
+    expect(await resolve("cloud")).toBeUndefined();
+    expect(await resolve("proxy")).toMatchObject({ client: { provider: "custom" } });
+    expect(await resolve("unknown")).toBeUndefined();
+  });
 });
