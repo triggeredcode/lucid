@@ -22,13 +22,13 @@ export interface MainAiTransport {
   models(id: string): Promise<ProviderConnectionResult>;
 }
 
-const LM_STUDIO_CAPABILITIES: Readonly<ProviderCapabilities> = Object.freeze({
+const LOCAL_CAPABILITIES: Readonly<ProviderCapabilities> = Object.freeze({
   streaming: true,
   cancellation: true,
   structuredOutput: "json-schema",
   modelDiscovery: true,
   usage: "provider-or-estimated",
-  reasoningControl: true,
+  reasoningControl: false,
   localModelManagement: false,
   customBaseUrl: true,
 });
@@ -59,7 +59,7 @@ const defaultTransport = (): MainAiTransport => ({
  */
 export class MainProcessAiClient implements AiClient {
   readonly provider: string;
-  readonly capabilities = LM_STUDIO_CAPABILITIES;
+  readonly capabilities: Readonly<ProviderCapabilities>;
   readonly localModels = undefined;
 
   constructor(
@@ -67,6 +67,10 @@ export class MainProcessAiClient implements AiClient {
     private readonly transport: MainAiTransport = defaultTransport(),
   ) {
     this.provider = profile.kind;
+    this.capabilities =
+      profile.kind === "lmstudio"
+        ? { ...LOCAL_CAPABILITIES, reasoningControl: true }
+        : LOCAL_CAPABILITIES;
   }
 
   async health(signal?: AbortSignal): Promise<ProviderHealth> {

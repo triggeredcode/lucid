@@ -31,7 +31,10 @@ describe("inspectProvider", () => {
     const request = vi
       .fn<typeof fetch>()
       .mockResolvedValue(
-        new Response(JSON.stringify({ models: [{ name: "llama3.2" }] }), { status: 200 }),
+        new Response(
+          JSON.stringify({ models: [{ name: "llama3.2" }, { name: "deepseek:cloud" }] }),
+          { status: 200 },
+        ),
       );
     const result = await inspectProvider(
       profile({ kind: "ollama", baseUrl: "http://localhost:11434" }),
@@ -40,6 +43,23 @@ describe("inspectProvider", () => {
     );
     expect(result.models).toEqual(["llama3.2"]);
     expect(request.mock.calls[0]?.[0]).toEqual(new URL("http://localhost:11434/api/tags"));
+  });
+
+  it("gives actionable Ollama setup guidance", async () => {
+    const ollama = profile({ kind: "ollama", baseUrl: "http://localhost:11434" });
+    const empty = await inspectProvider(
+      ollama,
+      undefined,
+      vi.fn<typeof fetch>().mockResolvedValue(Response.json({ models: [] })),
+    );
+    expect(empty.message).toContain("ollama pull");
+
+    const offline = await inspectProvider(
+      ollama,
+      undefined,
+      vi.fn<typeof fetch>().mockRejectedValue(new Error("connection refused")),
+    );
+    expect(offline.message).toContain("ollama serve");
   });
 
   it("requires credentials before contacting a cloud provider", async () => {

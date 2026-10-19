@@ -82,6 +82,12 @@ const AiSettingsSchema = z
           message: "must be unique",
         });
       ids.add(profile.id);
+      if (profile.kind === "ollama" && /:cloud$/i.test(profile.model))
+        ctx.addIssue({
+          code: "custom",
+          path: ["profiles", index, "model"],
+          message: "Ollama Cloud models require a cloud provider profile",
+        });
       const provider = AI_PROVIDER_CATALOG.find((candidate) => candidate.kind === profile.kind);
       if (provider && !provider.cloud) {
         const url = new URL(profile.baseUrl);

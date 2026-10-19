@@ -136,6 +136,29 @@ test("provider profiles expose only relevant controls and keep cloud use explici
   }
 });
 
+test("selecting Ollama shows structured-output guidance and hides LM Studio status", async () => {
+  test.setTimeout(60_000);
+  const { app, page } = await launch();
+  try {
+    await page.getByRole("complementary").getByRole("button", { name: "New page" }).click();
+    const pill = page.getByRole("group", { name: "Model status" });
+    await expect(pill).toHaveAttribute("data-state", "ready");
+
+    await page.getByRole("button", { name: /Settings/ }).click();
+    const box = dialog(page);
+    await box.getByLabel("Provider to add").selectOption("ollama");
+    await box.getByRole("button", { name: "Add", exact: true }).click();
+    await expect(box).toContainText("Command Mode requires a current Ollama version");
+    await field(page, MODEL).fill("qwen3:8b");
+    await box.getByRole("button", { name: "Set default" }).click();
+    await box.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(box).toBeHidden();
+    await expect(pill).toBeHidden();
+  } finally {
+    await app.close();
+  }
+});
+
 test("saved settings apply at once: the model asked, the PDF footer, the words; and they are in the settings file", async () => {
   test.setTimeout(120_000);
   const notes = "## Caching\n- Redis keeps hot keys in memory.";

@@ -26,7 +26,7 @@ const headersFor = (profile: ProviderProfile, secret?: string): Record<string, s
   return { Accept: "application/json", Authorization: `Bearer ${secret}` };
 };
 
-const modelIds = (value: unknown): string[] => {
+const modelIds = (value: unknown, localModelsOnly = false): string[] => {
   if (!value || typeof value !== "object") return [];
   const body = value as { data?: unknown; models?: unknown };
   const entries = Array.isArray(body.data)
@@ -43,7 +43,9 @@ const modelIds = (value: unknown): string[] => {
           const id = item.id ?? item.name ?? item.model;
           return typeof id === "string" && id.length <= 240 ? id : undefined;
         })
-        .filter((id): id is string => id !== undefined),
+        .filter(
+          (id): id is string => id !== undefined && (!localModelsOnly || !/:cloud$/i.test(id)),
+        ),
     ),
   ]
     .sort((a, b) => a.localeCompare(b))
@@ -71,19 +73,24 @@ export async function inspectProvider(
         ok: false,
         message: `${provider.label} returned HTTP ${String(response.status)}. Check the address, API key, and account access.`,
       };
-    const models = modelIds(await response.json());
+    const models = modelIds(await response.json(), profile.kind === "ollama");
     return {
       ok: true,
       message:
         models.length > 0
           ? `Connected to ${provider.label}. ${String(models.length)} model${models.length === 1 ? "" : "s"} available.`
-          : `Connected to ${provider.label}, but it reported no models.`,
+          : profile.kind === "ollama"
+            ? "Connected to Ollama, but no local models are installed. Run “ollama pull <model>”, then fetch models again."
+            : `Connected to ${provider.label}, but it reported no models.`,
       models,
     };
   } catch (error) {
     return {
       ok: false,
-      message: `Could not connect to ${provider.label}: ${redactSensitive(error, secret ? [secret] : [])}`,
+      message:
+        profile.kind === "ollama"
+          ? `Could not connect to Ollama. Start it with “ollama serve”, then try again. ${redactSensitive(error)}`
+          : `Could not connect to ${provider.label}: ${redactSensitive(error, secret ? [secret] : [])}`,
     };
   }
 }

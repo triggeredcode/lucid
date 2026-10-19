@@ -81,7 +81,10 @@ can only save, delete, or ask whether one is present. Persistent values are encr
 addresses require HTTPS except for loopback HTTP, and redirects are followed only after validation and only on the same origin.
 LM Studio uses this service too: the renderer implements `AiClient` over start/abort/events, while the existing
 `LmStudioClient` performs streaming, retries, structured output, and usage accounting in main. The earlier renderer-side
-HTTP-shaped bridge has been removed.
+HTTP-shaped bridge has been removed. Ollama uses its native loopback API through the same boundary, including installed-model
+discovery, NDJSON streaming, cancellation, JSON Schema output, and provider-reported token counts; it never falls back to
+LM Studio or a cloud provider. Local Ollama profiles exclude and reject `:cloud` model aliases; cloud use requires its own
+explicit provider profile.
 
 ## PDF
 

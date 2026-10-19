@@ -194,6 +194,22 @@ describe("saveSettings", () => {
     expect(
       await bad({
         ai: {
+          defaultProfileId: "ollama",
+          profiles: [
+            {
+              id: "ollama",
+              name: "Ollama",
+              kind: "ollama",
+              baseUrl: "http://127.0.0.1:11434",
+              model: "remote:cloud",
+            },
+          ],
+        },
+      }),
+    ).toBeInstanceOf(SettingsError);
+    expect(
+      await bad({
+        ai: {
           defaultProfileId: "openai",
           profiles: [
             {

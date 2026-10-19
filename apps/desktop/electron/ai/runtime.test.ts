@@ -30,6 +30,38 @@ describe("createRuntimeResolver", () => {
     expect(runtime?.endpoint).toBe("http://127.0.0.1:4567");
   });
 
+  it("builds the native Ollama adapter without applying the LM Studio override", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "lucid-runtime-"));
+    await mkdir(join(dir, ".lucid"));
+    await writeFile(
+      join(dir, ".lucid", "settings.json"),
+      JSON.stringify({
+        ai: {
+          defaultProfileId: "ollama",
+          profiles: [
+            {
+              id: "ollama",
+              name: "Ollama",
+              kind: "ollama",
+              baseUrl: "http://localhost:11434",
+              model: "qwen3:8b",
+            },
+          ],
+        },
+      }),
+      "utf8",
+    );
+    const runtime = await createRuntimeResolver(
+      dir,
+      vi.fn<typeof fetch>(),
+      "http://127.0.0.1:4567",
+    )("ollama");
+    expect(runtime).toMatchObject({
+      endpoint: "http://localhost:11434",
+      client: { provider: "ollama" },
+    });
+  });
+
   it("does not resolve providers whose production adapter has not landed yet", async () => {
     const dir = await mkdtemp(join(tmpdir(), "lucid-runtime-"));
     await mkdir(join(dir, ".lucid"));

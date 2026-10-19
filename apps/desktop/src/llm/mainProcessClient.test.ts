@@ -160,4 +160,23 @@ describe("MainProcessAiClient", () => {
     });
     expect(models).toHaveBeenCalledWith("lmstudio");
   });
+
+  it("declares Ollama structured output without claiming reasoning controls", () => {
+    const ollama = new MainProcessAiClient(
+      {
+        id: "ollama",
+        name: "Ollama",
+        kind: "ollama",
+        baseUrl: "http://127.0.0.1:11434",
+        model: "qwen3:8b",
+      },
+      controlledTransport().transport,
+    );
+    expect(ollama.provider).toBe("ollama");
+    expect(ollama.capabilities).toMatchObject({
+      structuredOutput: "json-schema",
+      usage: "provider-or-estimated",
+      reasoningControl: false,
+    });
+  });
 });

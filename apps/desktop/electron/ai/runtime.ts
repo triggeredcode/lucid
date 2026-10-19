@@ -1,4 +1,4 @@
-import { LmStudioClient } from "@lucid/llm";
+import { LmStudioClient, OllamaClient } from "@lucid/llm";
 import { loadSettings } from "../settings";
 import type { AiRuntimeResolver } from "./service";
 import { secureProviderFetch } from "./security";
@@ -12,14 +12,17 @@ export const createRuntimeResolver = (
   return async (profileId) => {
     const settings = await loadSettings(libraryDir);
     const profile = settings.ai.profiles.find((candidate) => candidate.id === profileId);
-    if (!profile || profile.kind !== "lmstudio") return undefined;
-    const endpoint = (environmentUrl ?? profile.baseUrl).replace(/\/+$/, "");
+    if (!profile || (profile.kind !== "lmstudio" && profile.kind !== "ollama")) return undefined;
+    const endpoint = (
+      profile.kind === "lmstudio" ? (environmentUrl ?? profile.baseUrl) : profile.baseUrl
+    ).replace(/\/+$/, "");
+    const providerFetch: typeof fetch = (input, init) => secureProviderFetch(input, init, doFetch);
     return {
       endpoint,
-      client: new LmStudioClient({
-        baseUrl: endpoint,
-        fetch: (input, init) => secureProviderFetch(input, init, doFetch),
-      }),
+      client:
+        profile.kind === "lmstudio"
+          ? new LmStudioClient({ baseUrl: endpoint, fetch: providerFetch })
+          : new OllamaClient({ baseUrl: endpoint, fetch: providerFetch }),
     };
   };
 };

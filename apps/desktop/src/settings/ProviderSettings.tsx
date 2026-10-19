@@ -298,6 +298,13 @@ export function ProviderSettings({ value, lmStudioUrlLocked, onChange, onPersist
             </p>
           )}
 
+          {active.kind === "ollama" && (
+            <p className="provider-disclosure">
+              Command Mode requires a current Ollama version and a model that accepts JSON Schema.
+              If Ollama rejects structured output, Lucid stops without applying the command.
+            </p>
+          )}
+
           <div className="provider-actions">
             <button
               type="button"
