@@ -39,7 +39,7 @@ const dialog = (page: Page) => page.getByRole("dialog", { name: "Settings" });
 /** A field of the dialog by the start of its label (the labels carry a help line too). */
 const field = (page: Page, label: RegExp) => dialog(page).getByRole("textbox", { name: label });
 const MODEL = /^Model\b/;
-const ADDRESS = /^Address/;
+const ADDRESS = /^Base URL/;
 const NAME = /^Your name/;
 const FOOTER = /^Footer/;
 const WORDS = /^One per line/;
@@ -105,6 +105,77 @@ test("Settings opens from the sidebar and with ⌘, , closes with Esc, and shows
     await expect(dialog(page)).toBeVisible();
     await dialog(page).getByRole("button", { name: "Cancel" }).click();
     await expect(dialog(page)).toBeHidden();
+  } finally {
+    await app.close();
+  }
+});
+
+test("provider profiles expose only relevant controls and keep cloud use explicit", async () => {
+  test.setTimeout(60_000);
+  const { app, page } = await launch();
+  try {
+    await page.getByRole("button", { name: /Settings/ }).click();
+    const box = dialog(page);
+    await expect(box.getByRole("group", { name: "AI providers" })).toContainText(
+      "never switches providers automatically",
+    );
+    await box.getByLabel("Provider to add").selectOption("openai");
+    await box.getByRole("button", { name: "Add", exact: true }).click();
+    await expect(field(page, /^API key/)).toBeVisible();
+    await expect(field(page, ADDRESS)).toBeDisabled();
+    await expect(box).toContainText("subscriptions do not include API access");
+    await expect(box).toContainText("selected note context");
+    await box.getByRole("button", { name: "Set default" }).click();
+    await box.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(box).toBeHidden();
+
+    await page.keyboard.press("Meta+,");
+    await expect(box).toContainText("OpenAI API · default");
+  } finally {
+    await app.close();
+  }
+});
+
+test("selecting Ollama shows structured-output guidance and hides LM Studio status", async () => {
+  test.setTimeout(60_000);
+  const { app, page } = await launch();
+  try {
+    await page.getByRole("complementary").getByRole("button", { name: "New page" }).click();
+    const pill = page.getByRole("group", { name: "Model status" });
+    await expect(pill).toHaveAttribute("data-state", "ready");
+
+    await page.getByRole("button", { name: /Settings/ }).click();
+    const box = dialog(page);
+    await box.getByLabel("Provider to add").selectOption("ollama");
+    await box.getByRole("button", { name: "Add", exact: true }).click();
+    await expect(box).toContainText("Command Mode requires a current Ollama version");
+    await field(page, MODEL).fill("qwen3:8b");
+    await box.getByRole("button", { name: "Set default" }).click();
+    await box.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(box).toBeHidden();
+    await expect(pill).toBeHidden();
+  } finally {
+    await app.close();
+  }
+});
+
+test("hosted compatibility presets explain capability limits and custom URLs stay editable", async () => {
+  test.setTimeout(60_000);
+  const { app, page } = await launch();
+  try {
+    await page.getByRole("button", { name: /Settings/ }).click();
+    const box = dialog(page);
+    await box.getByLabel("Provider to add").selectOption("ollama-cloud");
+    await box.getByRole("button", { name: "Add", exact: true }).click();
+    await expect(box).toContainText("Ollama Cloud currently lacks JSON Schema output");
+    await expect(field(page, ADDRESS)).toBeDisabled();
+
+    await box.getByLabel("Provider to add").selectOption("custom");
+    await box.getByRole("button", { name: "Add", exact: true }).click();
+    await expect(field(page, ADDRESS)).toBeEnabled();
+    await field(page, ADDRESS).fill("https://llm.example.test/v1");
+    await expect(box).toContainText("you can enter a model ID manually");
+    await field(page, MODEL).fill("my-model");
   } finally {
     await app.close();
   }

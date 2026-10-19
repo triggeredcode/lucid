@@ -1,28 +1,14 @@
 import { LlmError, isLlmError, type LlmErrorCode } from "./errors";
-import type { Lane } from "./lanes";
+import type {
+  AiClient,
+  ChatRequest,
+  ChatResult,
+  ProviderCapabilities,
+  ProviderHealth,
+} from "./provider";
 import { readSse } from "./sse";
 
-export interface ChatMessage {
-  role: "system" | "user" | "assistant";
-  content: string;
-}
-
-export interface ChatRequest {
-  lane: Lane;
-  messages: ChatMessage[];
-  /** Strict structured output (Command and advisor lanes). The Input lane streams plain text. */
-  jsonSchema?: { name: string; schema: object };
-  signal?: AbortSignal | undefined;
-  /** Called with each piece of streamed content. */
-  onDelta?: ((text: string) => void) | undefined;
-}
-
-export interface ChatResult {
-  content: string;
-  usage: { prompt: number; completion: number; reasoning: number };
-  timings: { sentAt: number; firstTokenAt: number | null; doneAt: number };
-  model: string;
-}
+export type { ChatMessage, ChatRequest, ChatResult, ProviderHealth as Health } from "./provider";
 
 export interface ClientOptions {
   baseUrl?: string;
@@ -30,12 +16,6 @@ export interface ClientOptions {
   fetch?: typeof fetch;
   firstTokenTimeoutMs?: number;
   requestTimeoutMs?: number;
-}
-
-export interface Health {
-  reachable: boolean;
-  /** Ids of the models LM Studio reports. Empty means none is loaded. */
-  models: string[];
 }
 
 interface StreamChunk {
@@ -52,9 +32,22 @@ interface StreamChunk {
 }
 
 const num = (v: unknown): number => (typeof v === "number" ? v : 0);
+const estimateTokens = (text: string): number => Math.max(1, Math.ceil(text.length / 4));
 
 /** The only request shape Lucid uses: /v1/chat/completions, streamed, with reasoning off. */
-export class LmStudioClient {
+export class LmStudioClient implements AiClient {
+  readonly provider = "lmstudio";
+  readonly localModels = undefined;
+  readonly capabilities: Readonly<ProviderCapabilities> = Object.freeze({
+    streaming: true,
+    cancellation: true,
+    structuredOutput: "native",
+    modelDiscovery: true,
+    usage: "provider-or-estimated",
+    reasoningControl: true,
+    localModelManagement: false,
+    customBaseUrl: true,
+  });
   private readonly baseUrl: string;
   private readonly doFetch: typeof fetch;
   private readonly firstTokenTimeoutMs: number;
@@ -68,7 +61,7 @@ export class LmStudioClient {
   }
 
   /** Never throws: an unreachable server is just `{ reachable: false }`. */
-  async health(signal?: AbortSignal): Promise<Health> {
+  async health(signal?: AbortSignal): Promise<ProviderHealth> {
     const controller = new AbortController();
     const timer = setTimeout(() => {
       controller.abort();
@@ -100,7 +93,10 @@ export class LmStudioClient {
     try {
       return await this.once(request);
     } catch (error) {
-      if (isLlmError(error) && error.code === "ReasoningLeak") return this.once(request);
+      if (isLlmError(error) && error.code === "ReasoningLeak") {
+        const repaired = await this.once(request);
+        return { ...repaired, repairAttempts: repaired.repairAttempts + 1 };
+      }
       throw error;
     }
   }
@@ -117,7 +113,7 @@ export class LmStudioClient {
       top_k: lane.topK,
       presence_penalty: lane.presencePenalty,
       max_tokens: lane.maxTokens,
-      reasoning_effort: "none",
+      reasoning_effort: request.reasoning ?? "none",
       ttl: 3600,
       ...(request.jsonSchema
         ? {
@@ -132,6 +128,7 @@ export class LmStudioClient {
           }
         : {}),
     };
+    const requestCharacters = JSON.stringify(body).length;
 
     const controller = new AbortController();
     let reason: LlmErrorCode | undefined;
@@ -219,6 +216,7 @@ export class LmStudioClient {
       let done = false;
       let model = lane.model;
       const usage = { prompt: 0, completion: 0, reasoning: 0 };
+      let usageReported = false;
       try {
         for await (const data of readSse(res.body)) {
           if (data === "[DONE]") {
@@ -254,6 +252,9 @@ export class LmStudioClient {
             usage.prompt = num(chunk.usage.prompt_tokens);
             usage.completion = num(chunk.usage.completion_tokens);
             usage.reasoning = num(chunk.usage.completion_tokens_details?.reasoning_tokens);
+            usageReported =
+              typeof chunk.usage.prompt_tokens === "number" &&
+              typeof chunk.usage.completion_tokens === "number";
           }
           if (typeof (chunk as { model?: unknown }).model === "string")
             model = (chunk as { model: string }).model;
@@ -278,7 +279,22 @@ export class LmStudioClient {
         throw new LlmError("BadResponse", "The model gave an empty answer.");
       }
       completed = true;
-      return { content, usage, timings: { sentAt, firstTokenAt, doneAt: Date.now() }, model };
+      return {
+        content,
+        usage: usageReported
+          ? { ...usage, source: "provider" }
+          : {
+              prompt: estimateTokens(JSON.stringify(request.messages)),
+              completion: estimateTokens(content),
+              reasoning: 0,
+              source: "estimated",
+            },
+        characters: { request: requestCharacters, response: content.length },
+        timings: { sentAt, firstTokenAt, doneAt: Date.now() },
+        model,
+        provider: this.provider,
+        repairAttempts: 0,
+      };
     } finally {
       clearTimeout(requestTimer);
       clearFirstToken();

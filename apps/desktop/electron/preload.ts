@@ -1,9 +1,9 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from "electron";
 import {
   IPC,
+  type AiEvent,
   type AgentReply,
   type AgentRequest,
-  type LlmEvent,
   type LmLoadResult,
   type LmStatus,
   type LucidApi,
@@ -83,18 +83,34 @@ const api: LucidApi = {
     save: (input) =>
       ipcRenderer.invoke(IPC.settingsSave, input) as ReturnType<LucidApi["settings"]["save"]>,
   },
-  llm: {
-    start: (req) => ipcRenderer.invoke(IPC.llmStart, req) as ReturnType<LucidApi["llm"]["start"]>,
-    abort: (id) => ipcRenderer.invoke(IPC.llmAbort, id) as Promise<void>,
+  ai: {
+    start: (request) =>
+      ipcRenderer.invoke(IPC.aiStart, request) as ReturnType<LucidApi["ai"]["start"]>,
+    abort: (id) => ipcRenderer.invoke(IPC.aiAbort, id) as Promise<void>,
     onEvent: (listener) => {
-      const handler = (_e: IpcRendererEvent, event: LlmEvent) => {
-        listener(event);
+      const handler = (_event: IpcRendererEvent, aiEvent: AiEvent) => {
+        listener(aiEvent);
       };
-      ipcRenderer.on(IPC.llmEvent, handler);
+      ipcRenderer.on(IPC.aiEvent, handler);
       return () => {
-        ipcRenderer.removeListener(IPC.llmEvent, handler);
+        ipcRenderer.removeListener(IPC.aiEvent, handler);
       };
     },
+  },
+  credentials: {
+    save: (request) =>
+      ipcRenderer.invoke(IPC.credentialSave, request) as ReturnType<
+        LucidApi["credentials"]["save"]
+      >,
+    delete: (id) => ipcRenderer.invoke(IPC.credentialDelete, id) as Promise<void>,
+    status: (id) =>
+      ipcRenderer.invoke(IPC.credentialStatus, id) as ReturnType<LucidApi["credentials"]["status"]>,
+  },
+  providers: {
+    test: (id) =>
+      ipcRenderer.invoke(IPC.providerTest, id) as ReturnType<LucidApi["providers"]["test"]>,
+    models: (id) =>
+      ipcRenderer.invoke(IPC.providerModels, id) as ReturnType<LucidApi["providers"]["models"]>,
   },
   lm: {
     status: () => ipcRenderer.invoke(IPC.lmStatus) as Promise<LmStatus>,

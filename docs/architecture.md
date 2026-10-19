@@ -25,7 +25,7 @@ flowchart TD
 |---|---|
 | `packages/core` | Pure TypeScript, no DOM, no network. The document model (`model/`), the op language and its checks (`ops/`), the diagram language LGN and its Mermaid output (`lgn/`, `mermaid/`), the guided builders' grammar (`guided/`), grounding checks (`grounding/`), reverts, and the saved file format (`persistence/`). |
 | `packages/kit` | The block kit. Each block type is a folder with its schema, a short description for the model, outline, Markdown and LaTeX output and fixtures. Also the note formats (`formats/`), the Lucid Markdown language the model writes (`lmd/`), the op compiler (`ops/`) and the LaTeX document builder (`latex/`). |
-| `packages/llm` | The LM Studio client (streamed `/v1/chat/completions`, reasoning off), the Input and Command pipelines, and the prompts. |
+| `packages/llm` | Lucid's provider-neutral AI contract, the LM Studio adapter (streamed `/v1/chat/completions`), the Input and Command pipelines, and the prompts. |
 | `packages/mcp` | The MCP server and the socket protocol between it and the running app. |
 | `packages/evals` | Eval cases and the runner that scores the model against them. |
 | `packages/mock-lmstudio` | A scripted LM Studio for tests. |
@@ -41,6 +41,22 @@ flowchart TD
 - A page is saved as one JSON file (validated with Zod, versioned and migrated). The `.lucid` export is the same file; its
   importer checks every block and never overwrites.
 
+### Rebuildable document context
+
+`packages/core/src/context/documentIndex.ts` derives a compact index from the current `LucidDoc`: heading ranges, block
+positions and short summaries, table/chart/diagram component references, diagram relationships, and a bounded list of recent
+blocks. The document remains the only source of truth. The index has no database or independent persistence; loading a page
+builds it fresh, and every complete editor update rebuilds it in memory. That same update path covers typing, patch insert/update/remove/move,
+undo, redo, and Revert, so deleted IDs cannot survive. This metadata is the deterministic input to targeted prompt selection,
+not a second document model.
+
+Live Input and Command requests use that index to send a compact section/component overview plus the focused section, nearby
+blocks, explicitly named references, recent touches, and the full details of only the structured components they require.
+Whole-page language expands the bundle deterministically. Missing block references and unfocused references to one of several
+tables, charts, or diagrams are marked as unresolved with all candidates kept in summary form, so Command asks instead of
+guessing. The system prompt and measured few-shot examples stay byte-for-byte stable for provider prompt caching. Selection is
+lexical and structural only; it makes no router-model call and stores no vectors.
+
 ## From words to blocks
 
 - **Input mode:** the model is given the page outline, the note format's section hints and your words, and writes Lucid
@@ -51,6 +67,56 @@ flowchart TD
   away, so it waits for a yes), a question (it is unsure which thing you meant) or "nothing to do".
 - **Guided builders:** a grammar in `packages/core/src/guided` reads "client to server", "rename 3 to Cache" and similar, and
   builds diagrams and tables step by step; only what the grammar cannot read goes to the model, with the builder's numbering.
+
+## AI provider boundary
+
+Input, Command, Advisor, the desktop job queue, and evals depend on Lucid's `AiClient` interface in
+`packages/llm/src/provider.ts`; Electron main-process composition constructs the selected provider adapter. The contract covers streamed text,
+`AbortSignal` cancellation, optional JSON Schema output, usage and timing results, model discovery, and optional local-model
+controls. Every adapter publishes a capability record, so unsupported behavior is data rather than an assumption. Structured
+output is classified as `native`, `prompted`, or `unavailable`: native adapters receive the JSON Schema at the provider API;
+prompted adapters receive the same schema as an explicit prompt contract and Lucid still parses, validates, compiles, and
+repairs at most once; unavailable adapters stop Command before the request and show a dedicated UI state. There is no automatic
+downgrade after a native schema request fails. LM Studio currently advertises native JSON Schema, streaming, cancellation,
+discovery, reasoning controls, and custom base URLs; it does not advertise in-app model loading because Lucid has not
+implemented that control yet.
+
+### Vercel AI SDK compatibility spike
+
+The SDK could sit behind `AiClient`, but it is not the Lucid contract. Its current `streamText` API accepts an abort signal,
+streams text, returns usage, and supports structured output from JSON Schema. Its OpenAI-compatible adapter accepts custom base
+URLs, provider options, structured-output flags, and streamed usage. Those cover the existing Input, Command, and Advisor call
+shape. Model discovery and local-model load/status are not portable SDK features, and reasoning switches remain
+provider-specific. Lucid therefore keeps those capabilities in its own adapter boundary. No SDK dependency is added in this
+spike: adopting it later is an adapter implementation choice and should be justified by a concrete provider migration.
+
+References: [AI SDK `streamText`](https://ai-sdk.dev/docs/reference/ai-sdk-core/stream-text) and
+[OpenAI-compatible providers](https://ai-sdk.dev/providers/openai-compatible-providers).
+
+Provider requests and credentials cross a second, narrower boundary in the desktop app. The renderer can start or abort a
+configured provider job and receive text/result events; it cannot submit arbitrary URLs, headers, or methods. Provider runtime
+configuration and requests execute in Electron's main process. Credentials are never returned through preload: the renderer
+can only save, delete, or ask whether one is present. Persistent values are encrypted with Electron `safeStorage`; Linux's
+`basic_text` backend and temporary encryption failures use memory for that app session instead of writing plaintext. Provider
+addresses require HTTPS except for loopback HTTP, and redirects are followed only after validation and only on the same origin.
+LM Studio uses this service too: the renderer implements `AiClient` over start/abort/events, while the existing
+`LmStudioClient` performs streaming, retries, structured output, and usage accounting in main. The earlier renderer-side
+HTTP-shaped bridge has been removed. Ollama uses its native loopback API through the same boundary, including installed-model
+discovery, NDJSON streaming, cancellation, JSON Schema output, and provider-reported token counts; it never falls back to
+LM Studio or a cloud provider. Local Ollama profiles exclude and reject `:cloud` model aliases; cloud use requires its own
+explicit provider profile.
+Native OpenAI and Anthropic adapters use their respective Responses and Messages streaming APIs. Their request translations
+stay inside `packages/llm/src/cloud.ts`: both map the lane's model and output-token ceiling, while controls with uncertain
+model support are omitted. Command and Advisor send provider-specific JSON Schema settings; unsupported Anthropic schema
+constraints are removed from the wire copy, and Lucid still validates the original response before applying edits. A rejected
+schema is never retried as unstructured output. Cloud credentials are read from the encrypted/session vault only in Electron
+main, are included in main-only error redaction, and are never returned to the renderer.
+OpenRouter, Ollama Cloud, and user-supplied OpenAI-compatible endpoints use Chat Completions through the same main-process
+boundary. OpenRouter requires schema-supporting upstream parameters for structured requests; custom endpoints may list models
+or accept a manually entered ID, and schema rejection stops rather than retrying without constraints. Ollama Cloud uses
+`https://ollama.com/v1` for chat and the native `/api/tags` model list. Because it currently lacks structured output, only
+plain Input requests are sent there; Command and Advisor fail before network I/O. Lucid performs no automatic provider
+switching or failover, and hosts no inference gateway.
 
 ## PDF
 

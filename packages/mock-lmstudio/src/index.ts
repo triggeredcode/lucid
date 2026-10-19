@@ -9,7 +9,14 @@ import type { AddressInfo } from "node:net";
 
 export type Behaviour =
   /** A normal streamed answer. */
-  | { kind: "reply"; content: string; chunkChars?: number; delayMs?: number; promptTokens?: number }
+  | {
+      kind: "reply";
+      content: string;
+      chunkChars?: number;
+      delayMs?: number;
+      promptTokens?: number;
+      includeUsage?: boolean;
+    }
   /** The reasoning leak: thinking tokens, no content. */
   | { kind: "empty-with-reasoning"; reasoningTokens?: number }
   /** HTTP error with LM Studio's error body. */
@@ -169,7 +176,9 @@ export async function startMockLmStudio(options: MockOptions = {}): Promise<Mock
           }
           sse(res, chunk({}, "stop"));
           const prompt = behaviour.kind === "reply" ? behaviour.promptTokens : undefined;
-          sse(res, usage(Math.ceil(text.length / 4), 0, prompt));
+          if (behaviour.kind !== "reply" || behaviour.includeUsage !== false) {
+            sse(res, usage(Math.ceil(text.length / 4), 0, prompt));
+          }
           sse(res, "[DONE]");
           res.end();
           return;

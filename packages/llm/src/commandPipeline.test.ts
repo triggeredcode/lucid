@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { LmStudioClient } from "./client";
 import { runCommand, type CommandJob } from "./commandPipeline";
 import { COMMAND_DOC, COMMAND_EXAMPLES, buildCommandMessages } from "./prompts/command";
+import type { AiClient, ProviderCapabilities } from "./provider";
 
 let mock: MockLmStudio | undefined;
 afterEach(async () => {
@@ -14,6 +15,16 @@ async function setup(script: Parameters<typeof startMockLmStudio>[0]) {
   mock = await startMockLmStudio(script);
   return { mock, client: new LmStudioClient({ baseUrl: mock.url }) };
 }
+const withStructuredOutput = (
+  client: AiClient,
+  structuredOutput: ProviderCapabilities["structuredOutput"],
+): AiClient => ({
+  provider: client.provider,
+  capabilities: { ...client.capabilities, structuredOutput },
+  localModels: client.localModels,
+  chat: (request) => client.chat(request),
+  health: (signal) => client.health(signal),
+});
 const ids = () => createSequentialIds("n");
 const json = (over: Record<string, unknown>) =>
   JSON.stringify({
@@ -48,6 +59,83 @@ describe("the few-shot examples", () => {
 });
 
 describe("runCommand", () => {
+  it("runs an exact selected-block command without contacting the provider", async () => {
+    const { client, mock } = await setup({ script: [] });
+    const out = await runCommand(job("delete this block", { cursorBlockId: "t1" }), {
+      client: withStructuredOutput(client, "unavailable"),
+      ids: ids(),
+    });
+    expect(out).toMatchObject({
+      kind: "edit",
+      execution: "deterministic",
+      calls: [],
+      summary: "Deleted selected block",
+    });
+    if (out.kind !== "edit") throw new Error(out.kind);
+    expect(out.next.blocks.some((block) => block.id === "t1")).toBe(false);
+    expect(mock.requests).toHaveLength(0);
+  });
+
+  it("falls through to the model for wording outside the exact allowlist", async () => {
+    const { client, mock } = await setup({
+      script: [reply(json({ kind: "none", reason: "ambiguous wording" }))],
+    });
+    const out = await runCommand(job("delete this block please", { cursorBlockId: "t1" }), {
+      client,
+      ids: ids(),
+    });
+    expect(out).toMatchObject({ kind: "none", execution: "model" });
+    expect(mock.requests).toHaveLength(1);
+  });
+
+  it("uses a prompted-and-validated contract without claiming native schema enforcement", async () => {
+    const { client, mock } = await setup({
+      script: [
+        reply(
+          json({
+            summary: "Struck it",
+            ops: [{ op: "set_status", target: "b6.2", in: null, status: "struck" }],
+          }),
+        ),
+      ],
+    });
+    const out = await runCommand(job("cross out MongoDB"), {
+      client: withStructuredOutput(client, "prompted"),
+      ids: ids(),
+    });
+    expect(out).toMatchObject({ kind: "edit", repaired: false });
+    const body = mock.requests[0]?.body;
+    expect(body).not.toHaveProperty("response_format");
+    const messages = body?.["messages"] as { role: string; content: string }[];
+    expect(messages.at(-1)?.content).toContain("STRUCTURED OUTPUT CONTRACT");
+    expect(messages.at(-1)?.content).toContain('"required"');
+  });
+
+  it.each([
+    ["malformed", "{ not json"],
+    ["partial", "{}"],
+    ["schema-violating", json({ kind: "clarify", question: 42, options: [] })],
+  ])("rejects %s prompted responses after one repair", async (_name, answer) => {
+    const { client, mock } = await setup({ script: [reply(answer)] });
+    const out = await runCommand(job("cross out MongoDB"), {
+      client: withStructuredOutput(client, "prompted"),
+      ids: ids(),
+    });
+    expect(out.kind).toBe("failed");
+    expect(mock.requests).toHaveLength(2);
+    expect(mock.requests.every((request) => !("response_format" in request.body))).toBe(true);
+  });
+
+  it("stops an unavailable structured provider before sending a request", async () => {
+    const { client, mock } = await setup({ script: [] });
+    const out = await runCommand(job("delete the table"), {
+      client: withStructuredOutput(client, "unavailable"),
+      ids: ids(),
+    });
+    expect(out).toMatchObject({ kind: "unavailable", calls: [], raw: "" });
+    expect(mock.requests).toHaveLength(0);
+  });
+
   it("returns a patch that applies the change to the document", async () => {
     const { client, mock } = await setup({
       script: [

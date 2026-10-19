@@ -29,6 +29,22 @@ const failure = async (p: Promise<unknown>): Promise<LlmError> => {
 };
 
 describe("chat", () => {
+  it("advertises the LM Studio adapter capabilities explicitly", async () => {
+    const { client } = await start();
+    expect(client.provider).toBe("lmstudio");
+    expect(client.capabilities).toEqual({
+      streaming: true,
+      cancellation: true,
+      structuredOutput: "native",
+      modelDiscovery: true,
+      usage: "provider-or-estimated",
+      reasoningControl: true,
+      localModelManagement: false,
+      customBaseUrl: true,
+    });
+    expect(client.localModels).toBeUndefined();
+  });
+
   it("streams content, reports usage and timings, and sends the request Lucid needs", async () => {
     const { mock, client } = await start({
       script: [{ kind: "reply", content: "## Load balancer\n- one", chunkChars: 5 }],
@@ -40,6 +56,10 @@ describe("chat", () => {
     expect(deltas.length).toBeGreaterThan(2);
     expect(result.usage.completion).toBeGreaterThan(0);
     expect(result.usage.reasoning).toBe(0);
+    expect(result.usage.source).toBe("provider");
+    expect(result.characters.request).toBeGreaterThan(0);
+    expect(result.characters.response).toBe(result.content.length);
+    expect(result.repairAttempts).toBe(0);
     expect(result.timings.firstTokenAt).not.toBeNull();
     expect(result.timings.doneAt).toBeGreaterThanOrEqual(result.timings.sentAt);
 
@@ -55,23 +75,41 @@ describe("chat", () => {
     expect(body).not.toHaveProperty("response_format");
   });
 
+  it("labels estimated usage when the provider omits token counts", async () => {
+    const { client } = await start({
+      script: [{ kind: "reply", content: "estimated response", includeUsage: false }],
+    });
+    const result = await client.chat({ lane, messages });
+    expect(result.usage.source).toBe("estimated");
+    expect(result.usage.prompt).toBeGreaterThan(0);
+    expect(result.usage.completion).toBeGreaterThan(0);
+  });
+
   it("asks for strict structured output when a schema is given", async () => {
     const { mock, client } = await start({
       script: [{ kind: "reply", content: '{"kind":"none","reason":"x"}' }],
     });
     const schema = { type: "object", properties: { kind: { type: "string" } } };
-    await client.chat({ lane, messages, jsonSchema: { name: "lucid_command", schema } });
+    await client.chat({
+      lane,
+      messages,
+      jsonSchema: { name: "lucid_command", schema },
+      reasoning: "low",
+    });
     expect(mock.requests[0]?.body["response_format"]).toEqual({
       type: "json_schema",
       json_schema: { name: "lucid_command", strict: true, schema },
     });
+    expect(mock.requests[0]?.body["reasoning_effort"]).toBe("low");
   });
 
   it("retries a reasoning leak once and succeeds", async () => {
     const { mock, client } = await start({
       script: [{ kind: "empty-with-reasoning" }, { kind: "reply", content: "ok" }],
     });
-    expect((await client.chat({ lane, messages })).content).toBe("ok");
+    const result = await client.chat({ lane, messages });
+    expect(result.content).toBe("ok");
+    expect(result.repairAttempts).toBe(1);
     expect(mock.requests).toHaveLength(2);
   });
 

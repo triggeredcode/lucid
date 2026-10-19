@@ -21,7 +21,16 @@ import {
   useBlockNoteEditor,
   useCreateBlockNote,
 } from "@blocknote/react";
-import { applyPatch, makeRevert, type BlockPatch, type LucidDoc, type Revert } from "@lucid/core";
+import {
+  applyPatch,
+  DocumentContextIndexStore,
+  makeRevert,
+  patchedIds,
+  type BlockPatch,
+  type DocumentContextIndex,
+  type LucidDoc,
+  type Revert,
+} from "@lucid/core";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BlockNumbers } from "./BlockNumbers";
 import { fromBn, toBn } from "./adapter";
@@ -82,6 +91,8 @@ function Toolbar() {
 export interface EditorApi {
   /** The document as it is right now. */
   getDoc(): LucidDoc;
+  /** Disposable structure used to select compact AI context for the current document. */
+  getContextIndex(): DocumentContextIndex;
   /** The block the cursor is in (it may not be in the saved document yet, e.g. an empty paragraph). */
   cursorBlockId(): string | undefined;
   /** Applies an AI change as ONE undo step. Throws PatchError if a block it needs has gone. Returns the new document. */
@@ -104,6 +115,7 @@ interface Props {
 /** One page's editor. Mounted once per page (keyed by page id); reports the whole document on every edit. */
 export function PageEditor({ initial, onChange, onReady, editable = true }: Props) {
   const current = useRef<LucidDoc>(initial);
+  const contextIndex = useRef(new DocumentContextIndexStore(initial));
   // The page as it is now, for the block numbers beside it.
   const [live, setLive] = useState<LucidDoc>(initial);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -126,6 +138,7 @@ export function PageEditor({ initial, onChange, onReady, editable = true }: Prop
   useEffect(() => {
     onReadyRef.current?.({
       getDoc: () => current.current,
+      getContextIndex: () => contextIndex.current.current,
       cursorBlockId: () => {
         try {
           return editor.getTextCursorPosition().block.id;
@@ -149,6 +162,7 @@ export function PageEditor({ initial, onChange, onReady, editable = true }: Prop
         // status on a code block, say) would not make it announce anything by itself.
         const actual = fromBn(editor.document, expected);
         current.current = actual;
+        contextIndex.current.update(actual, patchedIds(patch));
         setLive(actual);
         lastRevert.current = makeRevert(previous, patch, actual);
         onChangeRef.current(actual);
@@ -213,6 +227,7 @@ export function PageEditor({ initial, onChange, onReady, editable = true }: Prop
         onChange={() => {
           const next = fromBn(editor.document, current.current);
           current.current = next;
+          contextIndex.current.update(next);
           setLive(next);
           onChange(next);
         }}

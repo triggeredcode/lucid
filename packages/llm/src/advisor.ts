@@ -1,12 +1,14 @@
 import { FORMATS, pickFormat } from "@lucid/kit";
-import type { LmStudioClient } from "./client";
+import type { AiClient, ChatResult } from "./provider";
 import { DEFAULT_LANES, type Lane } from "./lanes";
 import { advisorJsonSchema, buildAdvisorMessages } from "./prompts/advisor";
 
 export interface AdvisorDeps {
-  client: LmStudioClient;
+  client: AiClient;
   lane?: Lane | undefined;
   signal?: AbortSignal | undefined;
+  /** Development/eval telemetry hook. It receives counts and timings, never credentials. */
+  onResult?: ((result: ChatResult) => void) | undefined;
 }
 
 export interface Advice {
@@ -76,6 +78,7 @@ export async function runAdvisor(description: string, deps: AdvisorDeps): Promis
       jsonSchema: { name: "lucid_format", schema: advisorJsonSchema() },
       signal: deps.signal,
     });
+    deps.onResult?.(result);
     const answer = readAnswer(result.content);
     if (!answer) return fallback("the answer was not in the expected shape");
     if (!FORMATS.some((f) => f.id === answer.formatId))

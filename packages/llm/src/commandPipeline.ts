@@ -1,5 +1,6 @@
 import {
   commandJsonSchema,
+  buildRefMap,
   destructiveOps,
   diagramLabels,
   inventedNumbers,
@@ -14,12 +15,13 @@ import {
   type Op,
 } from "@lucid/core";
 import { compileOps, OpError } from "@lucid/kit";
-import type { ChatMessage, ChatResult, LmStudioClient } from "./client";
+import type { AiClient, ChatMessage, ChatResult } from "./provider";
 import { DEFAULT_LANES, type Lane } from "./lanes";
 import { buildCommandMessages, endsWithAnswer, type CommandContext } from "./prompts/command";
+import { deterministicCommand } from "./deterministicCommand";
 
 export interface CommandDeps {
-  client: LmStudioClient;
+  client: AiClient;
   lane?: Lane | undefined;
   signal?: AbortSignal | undefined;
   onDelta?: ((text: string) => void) | undefined;
@@ -31,6 +33,7 @@ export type CommandJob = CommandContext & { vocabulary?: readonly string[] | und
 interface Common {
   calls: ChatResult[];
   raw: string;
+  execution: "deterministic" | "model";
 }
 
 interface Change {
@@ -44,6 +47,8 @@ interface Change {
 }
 
 export type CommandOutcome =
+  /** The selected provider cannot safely produce checked Command operations. No request was sent. */
+  | { kind: "unavailable"; message: string; calls: []; raw: ""; execution: "none" }
   /** A change, ready to apply. */
   | (Common & Change & { kind: "edit" })
   /** A change that throws something away without the user having said so: show it and wait for a yes. */
@@ -64,6 +69,16 @@ const repairMessage = (problems: string[]): ChatMessage => ({
   content: `Your answer had these problems:\n${problems.map((p) => `- ${p}`).join("\n")}\nReturn the corrected, complete JSON object and nothing else.`,
 });
 
+const promptedSchemaMessage = (schema: { name: string; schema: object }): ChatMessage => ({
+  role: "user",
+  content: [
+    "STRUCTURED OUTPUT CONTRACT:",
+    "Return exactly one JSON object and no prose or markdown.",
+    "It must satisfy this JSON Schema. Lucid will reject the response before making any change if it does not.",
+    JSON.stringify(schema.schema),
+  ].join("\n"),
+});
+
 /**
  * Command Mode for one utterance: ask the model for ops, compile them on a copy of the document, and
  * report an edit, a proposal (destructive without a removal word), a question, or "nothing to do". At most one
@@ -71,6 +86,32 @@ const repairMessage = (problems: string[]): ChatMessage => ({
  */
 export async function runCommand(job: CommandJob, deps: CommandDeps): Promise<CommandOutcome> {
   const lane = deps.lane ?? DEFAULT_LANES.command;
+  const fast = deterministicCommand(job.doc, job.utterance, job.cursorBlockId);
+  if (fast) {
+    const compiled = compileOps(job.doc, fast.ops, { ids: deps.ids });
+    const change: Change = {
+      summary: fast.summary,
+      ops: fast.ops,
+      patch: compiled.patch,
+      next: compiled.next,
+      affected: compiled.affected,
+      warnings: compiled.warnings,
+      repaired: false,
+    };
+    const common = { calls: [] as ChatResult[], raw: "", execution: "deterministic" as const };
+    const refMap = buildRefMap(job.doc);
+    const destructive = destructiveOps(fast.ops, {
+      textOf: (ref) => {
+        const resolved = refMap.resolve(ref);
+        if (!resolved) return undefined;
+        const ids = resolved.kind === "list" ? resolved.ids : [resolved.id];
+        return plainTextOfBlocks(job.doc.blocks.filter((block) => ids.includes(block.id)));
+      },
+    });
+    if (needsConfirmation(job.utterance, destructive))
+      return { kind: "proposal", destructive, ...change, ...common };
+    return { kind: "edit", ...change, ...common };
+  }
   const { messages, refMap } = buildCommandMessages(job);
   const calls: ChatResult[] = [];
   // Once the person has answered a question, the model must act: "clarify" is not an answer it can give.
@@ -78,11 +119,22 @@ export async function runCommand(job: CommandJob, deps: CommandDeps): Promise<Co
     name: "lucid_command",
     schema: commandJsonSchema({ allowClarify: !endsWithAnswer(job.utterance) }),
   };
+  const structuredOutput = deps.client.capabilities.structuredOutput;
+  if (structuredOutput === "unavailable") {
+    return {
+      kind: "unavailable",
+      message: `${deps.client.provider} cannot safely produce structured Command operations. Choose a provider with structured output support. No edit was applied.`,
+      calls: [],
+      raw: "",
+      execution: "none",
+    };
+  }
+  if (structuredOutput === "prompted") messages.push(promptedSchemaMessage(schema));
   const ask = async (): Promise<string> => {
     const result = await deps.client.chat({
       lane,
       messages,
-      jsonSchema: schema,
+      jsonSchema: structuredOutput === "native" ? schema : undefined,
       signal: deps.signal,
       onDelta: deps.onDelta,
     });
@@ -106,7 +158,7 @@ export async function runCommand(job: CommandJob, deps: CommandDeps): Promise<Co
 
   let raw = await ask();
   for (let attempt = 0; ; attempt++) {
-    const common = { calls, raw };
+    const common = { calls, raw, execution: "model" as const };
     const problems: string[] = [];
     const parsed = parseCommandResponse(raw);
     if (!parsed.ok) problems.push(...parsed.errors);

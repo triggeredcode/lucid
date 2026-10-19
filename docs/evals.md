@@ -6,6 +6,7 @@ and says which ones still work. Prompt changes must not make it worse.
 ```bash
 pnpm eval --label my-change                    # every case, one request at a time (~15 minutes)
 pnpm eval --category diagram_edit,table_edit   # some categories
+pnpm eval --mode command --structured prompted # exercise prompt-plus-validation providers
 pnpm eval --id diag-add-redis --no-variants    # one case
 pnpm eval --compare packages/evals/reports/2026-10-11-baseline packages/evals/reports/2026-10-12-my-change
 ```
@@ -13,6 +14,20 @@ pnpm eval --compare packages/evals/reports/2026-10-11-baseline packages/evals/re
 The model must be loaded first (`lms load qwen/qwen3.8-27b --context-length 32768 --parallel 1 -y`, or the model pill in the
 app). A run writes `packages/evals/reports/<date>-<label>/results.json` and `report.md` (pass rates per category against the
 bars, and every failure with what was said, what was expected and what the model wrote). `--strict` exits 1 below a bar.
+
+Each trial also records its provider, model, lane, execution route (`deterministic`, `model`, or `none`), time to first token,
+total time, model and repair call counts, final outcome, affected blocks, and unrelated blocks changed. Reports count
+deterministic trials separately from model calls. Token totals use provider-reported usage when available; otherwise Lucid stores
+character-based estimates and marks them `estimated` rather than presenting them as exact. This measurement data contains
+counts and identifiers only—never API keys, full prompts, or document text. Failure examples shown by the eval reporter come
+only from this repository's synthetic fixtures and scripted utterances.
+
+Targeted-context changes use those same request-character/token and edit-isolation fields for before/after runs. The offline
+regression in `packages/kit/src/outline/context.test.ts` also compares a narrow request against the legacy broad outline on a
+large synthetic page, requires a substantial prompt-size reduction, and verifies that unrelated body text is absent. Whole-page,
+ambiguous-target, missing-target, stable-prefix, and Input/Command prompt cases run in normal CI. A real-model comparison is
+still required before release whenever the configured model can run; mocked or structural tests are not reported as live-model
+quality evidence.
 
 ## The bars
 

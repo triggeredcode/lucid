@@ -1,16 +1,17 @@
-import type { LucidDoc } from "@lucid/core";
+import type { DocumentContextIndex, LucidDoc } from "@lucid/core";
 import {
   LMD_REFERENCE,
   OPS_REFERENCE,
   SAMPLE_DOC,
   blockMentionNotes,
+  buildDocumentContext,
   buildHints,
   buildOutline,
   registry,
 } from "@lucid/kit";
 import type { ChatMessage } from "../client";
 
-export const COMMAND_PROMPT_VERSION = 1;
+export const COMMAND_PROMPT_VERSION = 2;
 
 /** Static for every request, so the model server can reuse its cache of this part. */
 export function commandSystemPrompt(): string {
@@ -58,6 +59,7 @@ ${(
 
 export interface CommandContext {
   doc: LucidDoc;
+  contextIndex?: DocumentContextIndex | undefined;
   title?: string | undefined;
   format?: string | undefined;
   cursorBlockId?: string | undefined;
@@ -69,6 +71,8 @@ export interface CommandContext {
   collisions?: boolean | undefined;
   /** Extra lines for the model after the hints (the guided builder tells it how the person numbers things). */
   extra?: string | undefined;
+  /** Internal: the measured few-shot prefix retains its legacy document rendering. */
+  targetedContext?: boolean | undefined;
 }
 
 /**
@@ -84,27 +88,35 @@ export function commandUserMessage(ctx: CommandContext): {
   text: string;
   refMap: ReturnType<typeof buildOutline>["refMap"];
 } {
-  // The outline must depend on the DOCUMENT only, never on the cursor or the words just said: then consecutive requests
-  // share everything up to the hints, and the model server can reuse its work on the long prefix (a request whose
-  // outline differs from the last one's pays for the whole prompt again, ~12 s). So the blocks the model needs to
-  // address precisely (diagrams, tables, charts) are always shown in full; only a very large page falls back to
-  // summaries, and then the cursor and the last changes decide what stays in detail.
-  const always = ctx.doc.blocks
-    .filter((b) => b.type === "diagram" || b.type === "table" || b.type === "chart")
-    .map((b) => b.id);
-  const near = [
-    ...(ctx.cursorBlockId ? [ctx.cursorBlockId] : []),
-    ...(ctx.touched ?? []).slice(0, 3).map((t) => t.blockId),
-  ];
-  const small = buildOutline(ctx.doc, {
-    title: ctx.title,
-    format: ctx.format,
-    full: always,
-    maxChars: 24_000,
-  });
-  const outline = small.text.includes("(collapsed)")
-    ? buildOutline(ctx.doc, { title: ctx.title, format: ctx.format, full: [...always, ...near] })
-    : small;
+  let outline: ReturnType<typeof buildOutline>;
+  if (ctx.targetedContext === false) {
+    // Keep the examples byte-for-byte stable: they form the measured, cacheable prefix.
+    const always = ctx.doc.blocks
+      .filter(
+        (block) => block.type === "diagram" || block.type === "table" || block.type === "chart",
+      )
+      .map((block) => block.id);
+    const small = buildOutline(ctx.doc, {
+      title: ctx.title,
+      format: ctx.format,
+      full: always,
+      maxChars: 24_000,
+    });
+    outline = small.text.includes("(collapsed)")
+      ? buildOutline(ctx.doc, { title: ctx.title, format: ctx.format, full: always })
+      : small;
+  } else {
+    const bundle = buildDocumentContext({
+      doc: ctx.doc,
+      index: ctx.contextIndex,
+      utterance: ctx.utterance,
+      title: ctx.title,
+      format: ctx.format,
+      cursorBlockId: ctx.cursorBlockId,
+      recentTouched: (ctx.touched ?? []).map((touch) => touch.blockId),
+    });
+    outline = { text: bundle.text, refMap: bundle.refMap };
+  }
   const hints = buildHints({
     doc: ctx.doc,
     refMap: outline.refMap,
@@ -265,6 +277,7 @@ export function buildCommandMessages(ctx: CommandContext): {
       title: "Example",
       // The examples stay as they were measured: the server reuses its work on them (see prefix.ts).
       collisions: false,
+      targetedContext: false,
     });
     messages.push(
       { role: "user", content: user.text },

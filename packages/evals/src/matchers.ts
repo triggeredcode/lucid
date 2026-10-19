@@ -335,6 +335,18 @@ function idsOf(doc: LucidDoc, sel: Sel): string[] {
 }
 
 /** Every block except the named ones is exactly as it was. */
+export function unrelatedChangedCount(o: Observed, sels: readonly Sel[]): number {
+  const allowed = new Set(sels.flatMap((s) => idsOf(o.before, s)));
+  let count = 0;
+  for (const b of o.before.blocks) {
+    if (allowed.has(b.id)) continue;
+    const now = o.after.blocks.find((x) => x.id === b.id);
+    if (!now || JSON.stringify(now) !== JSON.stringify(b)) count += 1;
+  }
+  return count;
+}
+
+/** Every block except the named ones is exactly as it was. */
 function checkTouchedOnly(o: Observed, sels: readonly Sel[]): string[] {
   const allowed = new Set(sels.flatMap((s) => idsOf(o.before, s)));
   const out: string[] = [];

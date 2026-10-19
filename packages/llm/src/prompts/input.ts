@@ -1,8 +1,8 @@
-import { LMD_REFERENCE, buildOutline, getFormat, registry } from "@lucid/kit";
-import type { Block, LucidDoc } from "@lucid/core";
+import { LMD_REFERENCE, buildDocumentContext, buildOutline, getFormat, registry } from "@lucid/kit";
+import type { Block, DocumentContextIndex, LucidDoc } from "@lucid/core";
 import type { ChatMessage } from "../client";
 
-export const INPUT_PROMPT_VERSION = 1;
+export const INPUT_PROMPT_VERSION = 2;
 
 const BLOCK_ORDER = [
   "heading",
@@ -177,6 +177,7 @@ $$`,
 
 export interface InputContext {
   doc: LucidDoc;
+  contextIndex?: DocumentContextIndex | undefined;
   title?: string | undefined;
   format?: string | undefined;
   cursorBlockId?: string | undefined;
@@ -185,6 +186,8 @@ export interface InputContext {
   utterance: string;
   /** Block ids the utterance or the user's recent work points at; shown in full in the outline. */
   focusIds?: readonly string[] | undefined;
+  /** Internal: few-shot examples retain their stable legacy outline. */
+  targetedContext?: boolean | undefined;
 }
 
 /** The part of the request that changes every time: the document as an outline, where the cursor is, what was said. */
@@ -192,14 +195,25 @@ export function inputUserMessage(ctx: InputContext): {
   text: string;
   refMap: ReturnType<typeof buildOutline>["refMap"];
 } {
-  // The outline depends on the document only (not on the cursor or the words), so the model server can reuse its work on
-  // everything before the cursor line; the Input lane only needs references, not details.
+  // Few-shot examples retain their document-only outline for a stable prefix. The live request intentionally uses the
+  // cursor and utterance to select a smaller context bundle.
   const format = getFormat(ctx.format);
-  const outline = buildOutline(ctx.doc, {
-    title: ctx.title,
-    format: format?.name ?? ctx.format,
-    full: ctx.focusIds,
-  });
+  const outline =
+    ctx.targetedContext === false
+      ? buildOutline(ctx.doc, {
+          title: ctx.title,
+          format: format?.name ?? ctx.format,
+          full: ctx.focusIds,
+        })
+      : buildDocumentContext({
+          doc: ctx.doc,
+          index: ctx.contextIndex,
+          utterance: ctx.utterance,
+          title: ctx.title,
+          format: format?.name ?? ctx.format,
+          cursorBlockId: ctx.cursorBlockId,
+          focusIds: ctx.focusIds,
+        });
   const cursorRef = ctx.cursorBlockId ? outline.refMap.refOf(ctx.cursorBlockId) : undefined;
   const lines = [
     "OUTLINE",
@@ -233,6 +247,7 @@ export function buildInputMessages(ctx: InputContext): {
       utterance: ex.utterance,
       cursorBlockId: ex.focus,
       title: "Example",
+      targetedContext: false,
     });
     messages.push({ role: "user", content: user.text }, { role: "assistant", content: ex.answer });
   }

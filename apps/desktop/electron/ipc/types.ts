@@ -112,6 +112,7 @@ export interface PublicSettings {
   dictation: { autoSendMs: AutoSendMs };
   vocabulary: string[];
   llm: { baseUrl: string; model: string; contextLength: number };
+  ai: AiSettings;
   /** The address comes from the LUCID_LLM_URL environment variable (tests, development) and is not changed here. */
   llmUrlLocked: boolean;
 }
@@ -119,20 +120,133 @@ export type SettingsInput = Omit<PublicSettings, "llmUrlLocked">;
 export type SettingsSaveResult =
   { ok: true; settings: PublicSettings } | { ok: false; problems: string[] };
 
-/** A request for LM Studio, made by the main process because LM Studio sends no CORS headers. */
-export interface LlmRequest {
-  id: number;
-  url: string;
-  method: string;
-  headers: Record<string, string>;
-  body?: string | undefined;
+export const AI_PROVIDER_CATALOG = [
+  {
+    kind: "lmstudio",
+    label: "LM Studio",
+    credential: "none",
+    customBaseUrl: true,
+    cloud: false,
+    defaultBaseUrl: "http://127.0.0.1:1234",
+  },
+  {
+    kind: "ollama",
+    label: "Ollama",
+    credential: "none",
+    customBaseUrl: true,
+    cloud: false,
+    defaultBaseUrl: "http://127.0.0.1:11434",
+  },
+  {
+    kind: "openai",
+    label: "OpenAI API",
+    credential: "required",
+    customBaseUrl: false,
+    cloud: true,
+    defaultBaseUrl: "https://api.openai.com/v1",
+  },
+  {
+    kind: "anthropic",
+    label: "Anthropic API",
+    credential: "required",
+    customBaseUrl: false,
+    cloud: true,
+    defaultBaseUrl: "https://api.anthropic.com/v1",
+  },
+  {
+    kind: "openrouter",
+    label: "OpenRouter",
+    credential: "required",
+    customBaseUrl: false,
+    cloud: true,
+    defaultBaseUrl: "https://openrouter.ai/api/v1",
+  },
+  {
+    kind: "ollama-cloud",
+    label: "Ollama Cloud",
+    credential: "required",
+    customBaseUrl: false,
+    cloud: true,
+    defaultBaseUrl: "https://ollama.com/v1",
+  },
+  {
+    kind: "custom",
+    label: "OpenAI-compatible",
+    credential: "optional",
+    customBaseUrl: true,
+    cloud: true,
+    defaultBaseUrl: "https://api.example.com/v1",
+  },
+] as const;
+export type AiProviderKind = (typeof AI_PROVIDER_CATALOG)[number]["kind"];
+export interface ProviderProfile {
+  id: string;
+  name: string;
+  kind: AiProviderKind;
+  baseUrl: string;
+  model: string;
 }
-export type LlmHead =
-  { ok: true; status: number; headers: Record<string, string> } | { ok: false; message: string };
-export type LlmEvent =
-  | { id: number; type: "chunk"; data: Uint8Array }
-  | { id: number; type: "end" }
-  | { id: number; type: "error"; message: string };
+export interface AiSettings {
+  defaultProfileId: string;
+  profiles: ProviderProfile[];
+}
+export interface ProviderConnectionResult {
+  ok: boolean;
+  message: string;
+  models?: string[] | undefined;
+}
+
+export const providerCredentialId = (profileId: string): string => `provider.${profileId}`;
+
+export interface AiStartRequest {
+  id: number;
+  /** Resolves to main-process configuration; it is not an endpoint or credential. */
+  providerId: string;
+  model: string;
+  messages: { role: "system" | "user" | "assistant"; content: string }[];
+  lane: {
+    temperature: number;
+    topP: number;
+    topK: number;
+    presencePenalty: number;
+    maxTokens: number;
+  };
+  jsonSchema?: { name: string; schema: object } | undefined;
+  reasoning?: "none" | "minimal" | "low" | "medium" | "high" | undefined;
+}
+export type AiStartResult = { ok: true } | { ok: false; message: string };
+export type AiEvent =
+  | { id: number; type: "delta"; text: string }
+  | {
+      id: number;
+      type: "complete";
+      result: {
+        usage: {
+          prompt: number;
+          completion: number;
+          reasoning: number;
+          source: "provider" | "estimated";
+        };
+        characters: { request: number; response: number };
+        timings: { sentAt: number; firstTokenAt: number | null; doneAt: number };
+        model: string;
+        provider: string;
+        repairAttempts: number;
+      };
+    }
+  | { id: number; type: "error"; code: string; message: string };
+
+export interface CredentialSaveRequest {
+  id: string;
+  secret: string;
+  /** When secure persistence is unavailable, the result reports session storage instead. */
+  persist: boolean;
+}
+export interface CredentialStatus {
+  present: boolean;
+  storage: "secure" | "session" | "none";
+  securePersistenceAvailable: boolean;
+}
 
 /** The PDF template (`lucid.sty`): the person's own, or the one that comes with Lucid. */
 export interface TemplateState {
@@ -165,14 +279,19 @@ export const IPC = {
   templateGet: "lucid:template-get",
   templateSave: "lucid:template-save",
   templateReset: "lucid:template-reset",
-  llmStart: "lucid:llm-start",
-  llmAbort: "lucid:llm-abort",
   lmStatus: "lucid:lm-status",
   lmLoad: "lucid:lm-load",
   agentRequest: "lucid:agent-request",
   agentReply: "lucid:agent-reply",
   pagesChanged: "lucid:pages-changed",
-  llmEvent: "lucid:llm-event",
+  aiStart: "lucid:ai-start",
+  aiAbort: "lucid:ai-abort",
+  aiEvent: "lucid:ai-event",
+  credentialSave: "lucid:credential-save",
+  credentialDelete: "lucid:credential-delete",
+  credentialStatus: "lucid:credential-status",
+  providerTest: "lucid:provider-test",
+  providerModels: "lucid:provider-models",
 } as const;
 
 export interface LucidApi {
@@ -205,12 +324,22 @@ export interface LucidApi {
     /** Back to the template that comes with Lucid. */
     reset(): Promise<TemplateState>;
   };
-  llm: {
-    /** Starts the request; resolves when the response headers are in. The body then arrives as events. */
-    start(req: LlmRequest): Promise<LlmHead>;
+  ai: {
+    start(request: AiStartRequest): Promise<AiStartResult>;
     abort(id: number): Promise<void>;
-    /** Returns a function that stops listening. */
-    onEvent(listener: (event: LlmEvent) => void): () => void;
+    onEvent(listener: (event: AiEvent) => void): () => void;
+  };
+  credentials: {
+    /** Saves a secret but never returns it. */
+    save(request: CredentialSaveRequest): Promise<CredentialStatus>;
+    delete(id: string): Promise<void>;
+    status(id: string): Promise<CredentialStatus>;
+  };
+  providers: {
+    /** Tests the saved profile. Main resolves its URL and credential by id. */
+    test(id: string): Promise<ProviderConnectionResult>;
+    /** Returns model ids from the saved profile without exposing credentials. */
+    models(id: string): Promise<ProviderConnectionResult>;
   };
   lm: {
     status(): Promise<LmStatus>;

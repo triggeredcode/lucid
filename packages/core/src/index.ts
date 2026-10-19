@@ -23,3 +23,4 @@ export { titleCase, parseNumber } from "./guided/words";
 export { inferKind, refineKind, refineNewNodeKinds, specificKind } from "./model/nodeKinds";
 export * from "./guided/table";
 export type { Step } from "./guided/step";
+export * from "./context/documentIndex";

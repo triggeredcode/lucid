@@ -12,6 +12,8 @@ export interface OutlineOptions {
   format?: string | undefined;
   /** Block ids shown in full detail (the cursor block, last-touched blocks, blocks the utterance mentions). */
   full?: Iterable<string> | undefined;
+  /** Render only entries containing one of these ids. References still come from the complete document. */
+  include?: Iterable<string> | undefined;
   /** Size budget in characters (about 4 per token). Default 24000, i.e. roughly 6000 tokens. */
   maxChars?: number | undefined;
   registry?: Registry | undefined;
@@ -37,6 +39,8 @@ interface Entry {
   summary: string;
 }
 
+const idsOf = (block: Block): string[] => [block.id, ...(block.children ?? []).flatMap(idsOf)];
+
 function itemText(block: Block, max: number): string {
   const checked =
     block.type === "checkListItem" ? (block.props["checked"] === true ? "[x] " : "[ ] ") : "";
@@ -55,6 +59,7 @@ export function buildOutline(doc: LucidDoc, options: OutlineOptions = {}): Outli
   const registry = options.registry ?? defaultRegistry;
   const refMap = buildRefMap(doc);
   const fullIds = new Set(options.full ?? []);
+  const includeIds = options.include ? new Set(options.include) : undefined;
   const maxChars = options.maxChars ?? 24_000;
 
   const entries: Entry[] = [];
@@ -73,7 +78,7 @@ export function buildOutline(doc: LucidDoc, options: OutlineOptions = {}): Outli
         `[${groupRef}] ${label}: ${run.map((b) => itemWithChildren(refMap, b, max)).join(" | ")}`;
       entries.push({
         ref: groupRef,
-        blockIds: run.map((b) => b.id),
+        blockIds: run.flatMap(idsOf),
         heading: false,
         full: render(300),
         summary: render(80),
@@ -83,7 +88,7 @@ export function buildOutline(doc: LucidDoc, options: OutlineOptions = {}): Outli
       const spec = registry.get(block.type);
       entries.push({
         ref,
-        blockIds: [block.id],
+        blockIds: idsOf(block),
         heading: block.type === "heading",
         full: `[${ref}] ${spec.outline(block, "full")}`,
         summary: `[${ref}] ${spec.outline(block, "summary")}`,
@@ -92,20 +97,23 @@ export function buildOutline(doc: LucidDoc, options: OutlineOptions = {}): Outli
     }
   }
 
+  const visible = includeIds
+    ? entries.filter((entry) => entry.blockIds.some((id) => includeIds.has(id)))
+    : entries;
   const isFull = (e: Entry) => e.blockIds.some((id) => fullIds.has(id));
   const header = `DOCUMENT "${options.title ?? "Untitled"}"${options.format ? ` (format: ${options.format})` : ""}`;
-  const chosen = entries.map((e) => (isFull(e) ? e.full : e.summary));
+  const chosen = visible.map((e) => (isFull(e) ? e.full : e.summary));
   const size = () => header.length + chosen.reduce((n, line) => n + line.length + 1, 0);
 
   // Over budget: collapse the blocks farthest from the focus first. Headings always stay.
   const collapsed = new Set<number>();
   if (size() > maxChars) {
-    const anchors = entries.flatMap((e, i) => (isFull(e) ? [i] : []));
-    if (anchors.length === 0) anchors.push(entries.length - 1);
+    const anchors = visible.flatMap((e, i) => (isFull(e) ? [i] : []));
+    if (anchors.length === 0) anchors.push(visible.length - 1);
     const distance = (i: number) => Math.min(...anchors.map((a) => Math.abs(a - i)));
-    const order = entries
+    const order = visible
       .map((_, i) => i)
-      .filter((i) => !entries[i]?.heading && !isFull(entries[i] as Entry))
+      .filter((i) => !visible[i]?.heading && !isFull(visible[i] as Entry))
       .sort((a, b) => distance(b) - distance(a));
     let saved = 0;
     for (const i of order) {
@@ -116,15 +124,15 @@ export function buildOutline(doc: LucidDoc, options: OutlineOptions = {}): Outli
   }
 
   const lines: string[] = [header];
-  for (let i = 0; i < entries.length; i++) {
+  for (let i = 0; i < visible.length; i++) {
     if (!collapsed.has(i)) {
       lines.push(chosen[i] ?? "");
       continue;
     }
     let j = i;
     while (collapsed.has(j + 1)) j += 1;
-    const first = entries[i]?.ref ?? "";
-    const last = entries[j]?.ref ?? "";
+    const first = visible[i]?.ref ?? "";
+    const last = visible[j]?.ref ?? "";
     lines.push(`[${first}–${last}] ${String(j - i + 1)} blocks (collapsed)`);
     i = j;
   }

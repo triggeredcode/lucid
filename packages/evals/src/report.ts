@@ -6,6 +6,7 @@ import {
   type Category,
 } from "./types";
 import type { Trial } from "./run";
+import type { ProviderCapabilities } from "@lucid/llm";
 
 export interface RunMeta {
   model: string;
@@ -13,6 +14,8 @@ export interface RunMeta {
   /** Names the prompt version or experiment, for comparing runs. */
   label: string;
   baseUrl: string;
+  /** Structured-output contract exercised by Command trials in this run. */
+  structuredOutput?: ProviderCapabilities["structuredOutput"] | undefined;
 }
 
 export interface Results {
@@ -43,7 +46,17 @@ export interface Summary {
   categories: (Rate & { category: Category; threshold: number; ok: boolean; p50Ms: number })[];
   /** Trials where the pipeline itself failed (the model could not be reached, bad JSON after repair...). */
   errors: number;
+  cancellations: number;
   p50Ms: number;
+  p50FirstTokenMs: number;
+  promptTokens: number;
+  outputTokens: number;
+  estimatedTokenTrials: number;
+  modelCalls: number;
+  deterministicTrials: number;
+  repairCalls: number;
+  affectedBlocks: number;
+  unrelatedBlocksModified: number;
 }
 
 export function summarise(results: Results): Summary {
@@ -62,7 +75,19 @@ export function summarise(results: Results): Summary {
     overall: { ...overall, ok: overall.rate >= OVERALL_THRESHOLD },
     categories,
     errors: trials.filter((t) => t.outcome === "error").length,
+    cancellations: trials.filter((t) => t.cancelled).length,
     p50Ms: median(trials.map((t) => t.ms)),
+    p50FirstTokenMs: median(
+      trials.flatMap((t) => (t.firstTokenMs === null ? [] : [t.firstTokenMs])),
+    ),
+    promptTokens: trials.reduce((n, t) => n + t.promptTokens, 0),
+    outputTokens: trials.reduce((n, t) => n + t.outputTokens, 0),
+    estimatedTokenTrials: trials.filter((t) => t.tokenSource === "estimated").length,
+    modelCalls: trials.reduce((n, t) => n + t.modelCalls, 0),
+    deterministicTrials: trials.filter((t) => t.execution === "deterministic").length,
+    repairCalls: trials.reduce((n, t) => n + t.repairCalls, 0),
+    affectedBlocks: trials.reduce((n, t) => n + t.affectedBlocks, 0),
+    unrelatedBlocksModified: trials.reduce((n, t) => n + (t.unrelatedBlocksModified ?? 0), 0),
   };
 }
 
@@ -75,9 +100,13 @@ export function toMarkdown(results: Results): string {
   const lines: string[] = [
     `# Eval report: ${results.meta.label}`,
     "",
-    `Model \`${results.meta.model}\`, ${results.meta.date}, ${String(results.trials.length)} trials.`,
+    `Model \`${results.meta.model}\`, ${results.meta.date}, ${String(results.trials.length)} trials. Structured output: \`${results.meta.structuredOutput ?? "native"}\`.`,
     "",
-    `**Overall ${pct(s.overall.rate)}** (${String(s.overall.pass)} of ${String(s.overall.total)}), needs ${pct(OVERALL_THRESHOLD)}: ${s.overall.ok ? "met" : "NOT met"}. Median ${secs(s.p50Ms)} per trial. Pipeline errors: ${String(s.errors)}.`,
+    `**Overall ${pct(s.overall.rate)}** (${String(s.overall.pass)} of ${String(s.overall.total)}), needs ${pct(OVERALL_THRESHOLD)}: ${s.overall.ok ? "met" : "NOT met"}. Median ${secs(s.p50Ms)} per trial. Pipeline errors: ${String(s.errors)}; cancellations: ${String(s.cancellations)}.`,
+    "",
+    `Model work: ${String(s.modelCalls)} calls (${String(s.repairCalls)} repairs), ${String(s.promptTokens)} input tokens and ${String(s.outputTokens)} output tokens${s.estimatedTokenTrials > 0 ? `; ${String(s.estimatedTokenTrials)} trial(s) used clearly marked estimates` : ""}. Median first token ${secs(s.p50FirstTokenMs)}. Deterministic execution: ${String(s.deterministicTrials)} trial(s).`,
+    "",
+    `Edit isolation: ${String(s.affectedBlocks)} affected blocks; ${String(s.unrelatedBlocksModified)} unrelated blocks modified in cases that define an allowed change set.`,
     "",
     "| Category | Pass | Rate | Needs | | Median |",
     "|---|---|---|---|---|---|",

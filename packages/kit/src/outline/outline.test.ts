@@ -71,6 +71,14 @@ describe("buildOutline", () => {
     expect(refMap.resolve("b8")).toEqual({ kind: "block", id: "fx-table-1" });
   });
 
+  it("can render a selected entry without renumbering document references", () => {
+    const d = sample();
+    const { text, refMap } = buildOutline(d, { include: ["p1"], full: ["p1"] });
+    expect(text).toContain('[b4] p "Redis stores hot keys');
+    expect(text).not.toContain("Database options");
+    expect(refMap.resolve("b8")).toEqual({ kind: "block", id: "fx-table-1" });
+  });
+
   it("shows nested list items and checkbox state", () => {
     const d = doc(bullets({ text: "Caches", children: ["CDN", "Redis"] }), {
       id: "c1",

@@ -225,7 +225,11 @@ export function DictationBar({
 
   return (
     <div className="dictation" data-status={status.kind} data-mode={mode}>
-      <div className={card ? "dictation-card" : "dictation-line"} role="status">
+      <div
+        className={card ? "dictation-card" : "dictation-line"}
+        data-card={card ? status.kind : undefined}
+        role="status"
+      >
         {status.kind === "working" && (
           <>
             <Dots />
@@ -276,6 +280,19 @@ export function DictationBar({
             </button>
           </>
         )}
+        {status.kind === "unavailable" && (
+          <>
+            <span className="bang" aria-hidden="true">
+              !
+            </span>
+            <span>
+              <strong>Command unavailable.</strong> {status.message}
+            </span>
+            <button type="button" className="link" onClick={onDismiss}>
+              Dismiss
+            </button>
+          </>
+        )}
         {status.kind === "proposal" && (
           <>
             <div className="card-text">
@@ -300,7 +317,7 @@ export function DictationBar({
               <strong>{status.question}</strong>
               <span className="card-sub">Click one, or say “the first one”, “the second one”…</span>
             </div>
-            <div className="card-actions">
+            <div className="card-actions" role="group" aria-label="Choose an answer">
               {status.options.map((o, i) => (
                 <button
                   key={`${o.label}-${String(i)}`}

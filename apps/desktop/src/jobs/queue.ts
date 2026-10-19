@@ -4,6 +4,7 @@ import {
   type Block,
   type BlockPatch,
   type ChangeEntry,
+  type DocumentContextIndex,
   type IdGenerator,
   type LucidDoc,
   type TranscriptEntry,
@@ -14,7 +15,7 @@ import {
   runInput,
   unprocessedPatch,
   type CommandOutcome,
-  type LmStudioClient,
+  type AiClient,
   type Lane,
   type LlmError,
 } from "@lucid/llm";
@@ -42,17 +43,20 @@ export type JobStatus =
   | { kind: "clarify"; question: string; options: { label: string; ref: string | null }[] }
   /** A Command Mode utterance that was really notes. */
   | { kind: "content"; text: string }
+  /** Command is disabled because the selected provider cannot meet the checked-operations contract. */
+  | { kind: "unavailable"; message: string }
   | { kind: "failed"; message: string; text: string };
 
 /** The open page's editor, as the queue needs it. */
 export interface EditorPort {
   getDoc(): LucidDoc;
+  getContextIndex?(): DocumentContextIndex;
   cursorBlockId(): string | undefined;
   apply(patch: BlockPatch): LucidDoc;
 }
 
 export interface QueueOptions {
-  client: LmStudioClient;
+  client: AiClient;
   lanes: { input: Lane; command: Lane };
   /** Shown when the model is not loaded. */
   modelName: string;
@@ -200,7 +204,16 @@ export class JobQueue {
       }
       throw error;
     }
-    this.finish(p.job, "applied", p.outcome.summary, undefined, p.outcome.affected, "command");
+    this.finish(
+      p.job,
+      "applied",
+      p.outcome.summary,
+      undefined,
+      p.outcome.affected,
+      "command",
+      undefined,
+      p.outcome.execution === "deterministic" ? "deterministic" : "local-model",
+    );
   }
 
   /** The user said no. */
@@ -318,6 +331,7 @@ export class JobQueue {
         runInput(
           {
             doc,
+            contextIndex: editor.getContextIndex?.(),
             utterance: text,
             cursorBlockId: cursor,
             title: this.options.title(),
@@ -377,6 +391,7 @@ export class JobQueue {
         runCommand(
           {
             doc,
+            contextIndex: editor.getContextIndex?.(),
             utterance: text,
             cursorBlockId: editor.cursorBlockId(),
             title: this.options.title(),
@@ -397,10 +412,23 @@ export class JobQueue {
     );
     this.report("command", outcome.calls);
     switch (outcome.kind) {
+      case "unavailable":
+        this.log(job, "rejected");
+        this.options.onStatus({ kind: "unavailable", message: outcome.message });
+        return;
       case "edit": {
         editor.apply(outcome.patch);
         const notice = outcome.warnings.length > 0 ? outcome.warnings.join(" ") : undefined;
-        this.finish(job, "applied", outcome.summary, notice, outcome.affected, "command");
+        this.finish(
+          job,
+          "applied",
+          outcome.summary,
+          notice,
+          outcome.affected,
+          "command",
+          undefined,
+          outcome.execution === "deterministic" ? "deterministic" : "local-model",
+        );
         return;
       }
       case "proposal":
@@ -510,6 +538,7 @@ export class JobQueue {
     affected: readonly string[] | undefined,
     mode: Mode,
     recentText?: string,
+    source = "local-model",
   ): void {
     this.log(job, status);
     this.recent = [...this.recent, { mode, text: recentText ?? joined(job) }].slice(-3);
@@ -521,7 +550,7 @@ export class JobQueue {
       id: job.utterances[0]?.id ?? (this.options.ids ?? newId)(),
       at: new Date(at).toISOString(),
       summary,
-      source: "local-model",
+      source,
       affected: [...(affected ?? [])],
       reverted: false,
     });

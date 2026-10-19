@@ -7,7 +7,13 @@ import {
   type LucidDoc,
   type TranscriptEntry,
 } from "@lucid/core";
-import { COMMAND_DOC, DEFAULT_LANES, LmStudioClient } from "@lucid/llm";
+import {
+  COMMAND_DOC,
+  DEFAULT_LANES,
+  LmStudioClient,
+  type AiClient,
+  type ProviderCapabilities,
+} from "@lucid/llm";
 import { startMockLmStudio, type Behaviour, type MockLmStudio } from "@lucid/mock-lmstudio";
 import { afterEach, describe, expect, it } from "vitest";
 import { JobQueue, type EditorPort, type JobStatus, type Utterance } from "./queue";
@@ -47,7 +53,12 @@ class FakeEditor implements EditorPort {
 
 async function setup(
   script: Behaviour[] | undefined,
-  options: { fetch?: typeof fetch; models?: string[]; firstTokenTimeoutMs?: number } = {},
+  options: {
+    fetch?: typeof fetch;
+    models?: string[];
+    firstTokenTimeoutMs?: number;
+    structuredOutput?: ProviderCapabilities["structuredOutput"];
+  } = {},
 ) {
   mock = await startMockLmStudio({
     script: script ?? [],
@@ -57,12 +68,22 @@ async function setup(
   const statuses: JobStatus[] = [];
   const transcripts: TranscriptEntry[] = [];
   const changes: ChangeEntry[] = [];
+  const nativeClient = new LmStudioClient({
+    baseUrl: mock.url,
+    ...(options.fetch ? { fetch: options.fetch } : {}),
+    ...(options.firstTokenTimeoutMs ? { firstTokenTimeoutMs: options.firstTokenTimeoutMs } : {}),
+  });
+  const client: AiClient = options.structuredOutput
+    ? {
+        provider: nativeClient.provider,
+        capabilities: { ...nativeClient.capabilities, structuredOutput: options.structuredOutput },
+        localModels: nativeClient.localModels,
+        chat: (request) => nativeClient.chat(request),
+        health: (signal) => nativeClient.health(signal),
+      }
+    : nativeClient;
   const queue = new JobQueue({
-    client: new LmStudioClient({
-      baseUrl: mock.url,
-      ...(options.fetch ? { fetch: options.fetch } : {}),
-      ...(options.firstTokenTimeoutMs ? { firstTokenTimeoutMs: options.firstTokenTimeoutMs } : {}),
-    }),
+    client,
     lanes: { input: DEFAULT_LANES.input, command: DEFAULT_LANES.command },
     modelName: "qwen3.8-27b",
     editor: () => editor,
@@ -106,6 +127,20 @@ async function setup(
 }
 
 describe("JobQueue", () => {
+  it("shows an explicit unavailable state and applies nothing when Command is unsupported", async () => {
+    const t = await setup([], { structuredOutput: "unavailable" });
+    t.editor.doc = COMMAND_DOC;
+    t.say("delete the table", "typed", "command");
+    await t.settled();
+    const last = t.last();
+    expect(last?.kind).toBe("unavailable");
+    if (last?.kind !== "unavailable") throw new Error("Expected unavailable status");
+    expect(last.message).toContain("No edit was applied");
+    expect(t.editor.applied).toHaveLength(0);
+    expect(t.mock.requests).toHaveLength(0);
+    expect(t.transcripts.at(-1)?.status).toBe("rejected");
+  });
+
   it("turns an utterance into notes in the page and records what happened", async () => {
     const t = await setup([reply(good)]);
     t.say(said, "wispr");
@@ -323,6 +358,17 @@ describe("JobQueue in Command mode", () => {
   };
   const props = (t: Awaited<ReturnType<typeof withDoc>>, id: string) =>
     t.editor.doc.blocks.find((b) => b.id === id)?.props;
+
+  it("routes an exact selected-block command without a model call and records its source", async () => {
+    const t = await withDoc([]);
+    t.editor.cursor = "t1";
+    t.say("delete this block", "typed", "command");
+    await t.settled();
+    expect(t.mock.requests).toHaveLength(0);
+    expect(t.editor.doc.blocks.some((block) => block.id === "t1")).toBe(false);
+    expect(t.last()).toMatchObject({ kind: "done", summary: "Deleted selected block" });
+    expect(t.changes.at(-1)).toMatchObject({ source: "deterministic" });
+  });
 
   it("carries out a command on the page and records it", async () => {
     const t = await withDoc([reply(strike)]);

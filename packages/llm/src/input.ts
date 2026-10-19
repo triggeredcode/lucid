@@ -17,12 +17,12 @@ import {
   PlacementError,
   type Placement,
 } from "@lucid/kit";
-import { LmStudioClient, type ChatMessage, type ChatResult } from "./client";
+import type { AiClient, ChatMessage, ChatResult } from "./provider";
 import { DEFAULT_LANES, type Lane } from "./lanes";
 import { buildInputMessages, type InputContext } from "./prompts/input";
 
 export interface InputDeps {
-  client: LmStudioClient;
+  client: AiClient;
   lane?: Lane | undefined;
   signal?: AbortSignal | undefined;
   /** Streamed text, for the ghost preview. */

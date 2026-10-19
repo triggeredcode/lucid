@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { LmStatus } from "../../electron/ipc/types";
 
 const POLL_MS = 8000;
@@ -9,10 +9,22 @@ export function useLmStatus() {
   const [status, setStatus] = useState<LmStatus | undefined>();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
+  const refreshId = useRef(0);
 
   const refresh = useCallback(async () => {
+    const id = ++refreshId.current;
     try {
-      setStatus(await window.lucid.lm.status());
+      const settings = await window.lucid.settings.get();
+      if (id !== refreshId.current) return;
+      const selected = settings.ai.profiles.find(
+        (profile) => profile.id === settings.ai.defaultProfileId,
+      );
+      if (selected?.kind !== "lmstudio") {
+        setStatus(undefined);
+        return;
+      }
+      const next = await window.lucid.lm.status();
+      if (id === refreshId.current) setStatus(next);
     } catch {
       // The status is a convenience; a failed check shows nothing new.
     }

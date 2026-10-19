@@ -1,8 +1,8 @@
-import { DEFAULT_LANES, LmStudioClient, type Lane } from "@lucid/llm";
-import { bridgeFetch } from "./bridgeFetch";
+import { DEFAULT_LANES, type AiClient, type Lane } from "@lucid/llm";
+import { MainProcessAiClient } from "./mainProcessClient";
 
 export interface Model {
-  client: LmStudioClient;
+  client: AiClient;
   lanes: { input: Lane; command: Lane; advisor: Lane };
   /** The model's short name, for messages. */
   name: string;
@@ -15,16 +15,22 @@ export function resetModel(): void {
   cached = undefined;
 }
 
-/** The LM Studio client and lanes for this window, built from the settings. */
+/** The selected provider and lanes for this window, built from public settings without secrets. */
 export function getModel(): Promise<Model> {
-  cached ??= window.lucid.settings.get().then((settings) => ({
-    client: new LmStudioClient({ baseUrl: settings.llm.baseUrl, fetch: bridgeFetch }),
-    lanes: {
-      input: { ...DEFAULT_LANES.input, model: settings.llm.model },
-      command: { ...DEFAULT_LANES.command, model: settings.llm.model },
-      advisor: { ...DEFAULT_LANES.advisor, model: settings.llm.model },
-    },
-    name: settings.llm.model.split("/").pop() ?? settings.llm.model,
-  }));
+  cached ??= window.lucid.settings.get().then((settings) => {
+    const profile =
+      settings.ai.profiles.find((candidate) => candidate.id === settings.ai.defaultProfileId) ??
+      settings.ai.profiles[0];
+    if (!profile) throw new Error("Choose an AI provider in Settings.");
+    return {
+      client: new MainProcessAiClient(profile),
+      lanes: {
+        input: { ...DEFAULT_LANES.input, model: profile.model },
+        command: { ...DEFAULT_LANES.command, model: profile.model },
+        advisor: { ...DEFAULT_LANES.advisor, model: profile.model },
+      },
+      name: profile.model.split("/").pop() ?? profile.model,
+    };
+  });
   return cached;
 }
