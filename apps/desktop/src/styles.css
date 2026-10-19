@@ -1277,6 +1277,31 @@ select:focus-visible,
   gap: 6px;
   max-width: 55%;
 }
+.dictation-card[data-card="clarify"] {
+  flex-direction: column;
+  align-items: stretch;
+}
+.dictation-card[data-card="clarify"] .card-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  width: 100%;
+  max-width: none;
+  align-items: stretch;
+  justify-content: stretch;
+}
+.dictation-card[data-card="clarify"] .card-actions button:not(.link) {
+  justify-content: flex-start;
+  min-width: 0;
+  min-height: 32px;
+  height: auto;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.dictation-card[data-card="clarify"] .card-actions .link {
+  grid-column: 1 / -1;
+  justify-self: end;
+}
 .card-actions b {
   margin-right: 2px;
 }

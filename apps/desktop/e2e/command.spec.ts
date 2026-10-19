@@ -196,6 +196,66 @@ test("an unclear command asks which one, and the answer is sent back to the mode
   }
 });
 
+test("a long clarification with four long choices stays readable in a narrow window", async () => {
+  test.setTimeout(90_000);
+  const ask = json({
+    kind: "clarify",
+    question:
+      "Which of these similarly named connections should be removed from the request-processing diagram?",
+    options: [
+      { label: "The web server connection to the primary Redis cache", ref: "e2" },
+      { label: "The web server connection to the fallback Redis cache", ref: "e3" },
+      { label: "The API gateway connection to the primary application server", ref: "e4" },
+      { label: "The API gateway connection to the secondary application server", ref: "e5" },
+    ],
+  });
+  const { app, page } = await launch([reply(ask)]);
+  try {
+    await modeButton(page, "Command").click();
+    await say(page, "remove the connection");
+    const card = page.locator('.dictation-card[data-card="clarify"]');
+    await expect(card).toBeVisible({ timeout: 20_000 });
+    await app.evaluate(({ BrowserWindow }) => {
+      const win = BrowserWindow.getAllWindows()[0];
+      win?.unmaximize();
+      win?.setSize(820, 760);
+    });
+    await expect.poll(() => page.evaluate(() => window.innerWidth)).toBeLessThanOrEqual(820);
+    await expect(
+      card.getByRole("group", { name: "Choose an answer" }).getByRole("button"),
+    ).toHaveCount(5);
+    await expect(card).toContainText("secondary application server");
+
+    const layout = await card.evaluate((element) => {
+      const text = element.querySelector(".card-text")?.getBoundingClientRect();
+      const actions = element.querySelector(".card-actions")?.getBoundingClientRect();
+      const buttons = [...element.querySelectorAll("button")].map((button) => {
+        const box = button.getBoundingClientRect();
+        return { left: box.left, right: box.right, top: box.top, bottom: box.bottom };
+      });
+      return {
+        contained: element.scrollWidth <= element.clientWidth,
+        separated: Boolean(text && actions && text.bottom <= actions.top),
+        buttons,
+      };
+    });
+    expect(layout.contained).toBe(true);
+    expect(layout.separated).toBe(true);
+    for (let i = 0; i < layout.buttons.length; i++) {
+      for (let j = i + 1; j < layout.buttons.length; j++) {
+        const a = layout.buttons[i];
+        const b = layout.buttons[j];
+        if (!a || !b) continue;
+        const overlaps =
+          a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+        expect(overlaps).toBe(false);
+      }
+    }
+  } finally {
+    await app.close();
+  }
+});
+
 test("'Lucid, ...' in Input mode and holding the right Option key both send one command", async () => {
   test.setTimeout(90_000);
   const { app, page } = await launch([
