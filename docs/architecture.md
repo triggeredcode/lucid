@@ -41,6 +41,15 @@ flowchart TD
 - A page is saved as one JSON file (validated with Zod, versioned and migrated). The `.lucid` export is the same file; its
   importer checks every block and never overwrites.
 
+### Rebuildable document context
+
+`packages/core/src/context/documentIndex.ts` derives a compact index from the current `LucidDoc`: heading ranges, block
+positions and short summaries, table/chart/diagram component references, diagram relationships, and a bounded list of recent
+blocks. The document remains the only source of truth. The index has no database or independent persistence; loading a page
+builds it fresh, and every complete editor update rebuilds it in memory. That same update path covers typing, patch insert/update/remove/move,
+undo, redo, and Revert, so deleted IDs cannot survive. This metadata is the deterministic input to targeted prompt selection,
+not a second document model.
+
 ## From words to blocks
 
 - **Input mode:** the model is given the page outline, the note format's section hints and your words, and writes Lucid
