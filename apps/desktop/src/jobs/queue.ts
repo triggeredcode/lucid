@@ -4,6 +4,7 @@ import {
   type Block,
   type BlockPatch,
   type ChangeEntry,
+  type DocumentContextIndex,
   type IdGenerator,
   type LucidDoc,
   type TranscriptEntry,
@@ -47,6 +48,7 @@ export type JobStatus =
 /** The open page's editor, as the queue needs it. */
 export interface EditorPort {
   getDoc(): LucidDoc;
+  getContextIndex?(): DocumentContextIndex;
   cursorBlockId(): string | undefined;
   apply(patch: BlockPatch): LucidDoc;
 }
@@ -318,6 +320,7 @@ export class JobQueue {
         runInput(
           {
             doc,
+            contextIndex: editor.getContextIndex?.(),
             utterance: text,
             cursorBlockId: cursor,
             title: this.options.title(),
@@ -377,6 +380,7 @@ export class JobQueue {
         runCommand(
           {
             doc,
+            contextIndex: editor.getContextIndex?.(),
             utterance: text,
             cursorBlockId: editor.cursorBlockId(),
             title: this.options.title(),

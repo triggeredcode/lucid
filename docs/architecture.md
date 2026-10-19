@@ -50,6 +50,13 @@ builds it fresh, and every complete editor update rebuilds it in memory. That sa
 undo, redo, and Revert, so deleted IDs cannot survive. This metadata is the deterministic input to targeted prompt selection,
 not a second document model.
 
+Live Input and Command requests use that index to send a compact section/component overview plus the focused section, nearby
+blocks, explicitly named references, recent touches, and the full details of only the structured components they require.
+Whole-page language expands the bundle deterministically. Missing block references and unfocused references to one of several
+tables, charts, or diagrams are marked as unresolved with all candidates kept in summary form, so Command asks instead of
+guessing. The system prompt and measured few-shot examples stay byte-for-byte stable for provider prompt caching. Selection is
+lexical and structural only; it makes no router-model call and stores no vectors.
+
 ## From words to blocks
 
 - **Input mode:** the model is given the page outline, the note format's section hints and your words, and writes Lucid

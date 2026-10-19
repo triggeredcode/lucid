@@ -20,6 +20,13 @@ character-based estimates and marks them `estimated` rather than presenting them
 counts and identifiers only—never API keys, full prompts, or document text. Failure examples shown by the eval reporter come
 only from this repository's synthetic fixtures and scripted utterances.
 
+Targeted-context changes use those same request-character/token and edit-isolation fields for before/after runs. The offline
+regression in `packages/kit/src/outline/context.test.ts` also compares a narrow request against the legacy broad outline on a
+large synthetic page, requires a substantial prompt-size reduction, and verifies that unrelated body text is absent. Whole-page,
+ambiguous-target, missing-target, stable-prefix, and Input/Command prompt cases run in normal CI. A real-model comparison is
+still required before release whenever the configured model can run; mocked or structural tests are not reported as live-model
+quality evidence.
+
 ## The bars
 
 Overall 90%. Each category 80%, and 95% for `non_destructive` and `mode_separation` (a mistake there loses the person's

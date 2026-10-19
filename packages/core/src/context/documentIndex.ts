@@ -119,13 +119,17 @@ function blockSummary(block: Block): string {
   const chart = parsedChart(block);
   const graph = parsedGraph(block);
   const structural = table
-    ? `${String(table.rows.length)} rows × ${String(table.columns.length)} columns`
+    ? [
+        `${String(table.rows.length)} rows × ${String(table.columns.length)} columns`,
+        ...table.columns.map((column) => column.name),
+        ...table.rows.map((row) => row.cells[0] ?? ""),
+      ]
+        .filter(Boolean)
+        .join("; ")
     : chart
       ? [chart.title, ...chart.series.map((series) => series.name)].filter(Boolean).join("; ")
       : graph
-        ? [graph.title ?? "", ...graph.nodes.slice(0, 4).map((node) => node.label)]
-            .filter(Boolean)
-            .join("; ")
+        ? [graph.title ?? "", ...graph.nodes.map((node) => node.label)].filter(Boolean).join("; ")
         : "";
   return clipped([text, title, caption, code, latex, structural].filter(Boolean).join(" — "));
 }
