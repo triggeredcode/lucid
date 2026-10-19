@@ -55,7 +55,7 @@ flowchart TD
 ## AI provider boundary
 
 Input, Command, Advisor, the desktop job queue, and evals depend on Lucid's `AiClient` interface in
-`packages/llm/src/provider.ts`; Electron main-process composition constructs `LmStudioClient`. The contract covers streamed text,
+`packages/llm/src/provider.ts`; Electron main-process composition constructs the selected provider adapter. The contract covers streamed text,
 `AbortSignal` cancellation, optional JSON Schema output, usage and timing results, model discovery, and optional local-model
 controls. Every adapter publishes a capability record, so unsupported behavior is data rather than an assumption. LM Studio
 currently advertises JSON Schema, streaming, cancellation, discovery, reasoning controls, and custom base URLs; it does not
@@ -85,6 +85,12 @@ HTTP-shaped bridge has been removed. Ollama uses its native loopback API through
 discovery, NDJSON streaming, cancellation, JSON Schema output, and provider-reported token counts; it never falls back to
 LM Studio or a cloud provider. Local Ollama profiles exclude and reject `:cloud` model aliases; cloud use requires its own
 explicit provider profile.
+Native OpenAI and Anthropic adapters use their respective Responses and Messages streaming APIs. Their request translations
+stay inside `packages/llm/src/cloud.ts`: both map the lane's model and output-token ceiling, while controls with uncertain
+model support are omitted. Command and Advisor send provider-specific JSON Schema settings; unsupported Anthropic schema
+constraints are removed from the wire copy, and Lucid still validates the original response before applying edits. A rejected
+schema is never retried as unstructured output. Cloud credentials are read from the encrypted/session vault only in Electron
+main, are included in main-only error redaction, and are never returned to the renderer.
 
 ## PDF
 

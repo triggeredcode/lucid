@@ -1,4 +1,5 @@
 export * from "./client";
+export * from "./cloud";
 export * from "./ollama";
 export * from "./provider";
 export * from "./errors";

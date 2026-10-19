@@ -62,7 +62,7 @@ describe("createRuntimeResolver", () => {
     });
   });
 
-  it("does not resolve providers whose production adapter has not landed yet", async () => {
+  it("resolves cloud providers only when main can read the saved credential", async () => {
     const dir = await mkdtemp(join(tmpdir(), "lucid-runtime-"));
     await mkdir(join(dir, ".lucid"));
     await writeFile(
@@ -84,5 +84,54 @@ describe("createRuntimeResolver", () => {
       "utf8",
     );
     expect(await createRuntimeResolver(dir)("openai")).toBeUndefined();
+    const read = vi.fn(() => Promise.resolve("main-only-secret"));
+    const runtime = await createRuntimeResolver(
+      dir,
+      vi.fn<typeof fetch>(),
+      undefined,
+      read,
+    )("openai");
+    expect(runtime).toMatchObject({
+      endpoint: "https://api.openai.com/v1",
+      client: { provider: "openai" },
+      secrets: ["main-only-secret"],
+    });
+    expect(read).toHaveBeenCalledWith("provider.openai");
+  });
+
+  it("resolves Anthropic with only its saved main-process key", async () => {
+    const dir = await mkdtemp(join(tmpdir(), "lucid-runtime-"));
+    await mkdir(join(dir, ".lucid"));
+    await writeFile(
+      join(dir, ".lucid", "settings.json"),
+      JSON.stringify({
+        ai: {
+          defaultProfileId: "claude",
+          profiles: [
+            {
+              id: "claude",
+              name: "Claude",
+              kind: "anthropic",
+              baseUrl: "https://api.anthropic.com/v1",
+              model: "claude-sonnet-4-5",
+            },
+          ],
+        },
+      }),
+      "utf8",
+    );
+    const read = vi.fn(() => Promise.resolve("main-only-secret"));
+    const runtime = await createRuntimeResolver(
+      dir,
+      vi.fn<typeof fetch>(),
+      undefined,
+      read,
+    )("claude");
+    expect(runtime).toMatchObject({
+      endpoint: "https://api.anthropic.com/v1",
+      client: { provider: "anthropic" },
+      secrets: ["main-only-secret"],
+    });
+    expect(read).toHaveBeenCalledWith("provider.claude");
   });
 });

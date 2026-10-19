@@ -27,7 +27,12 @@ export function registerSecureAiIpc(
   resolve?: AiRuntimeResolver,
 ): CredentialVault {
   const vault = new CredentialVault(join(libraryDir, ".lucid"), encryption);
-  const service = new MainAiService(resolve ?? createRuntimeResolver(libraryDir));
+  const service = new MainAiService(
+    resolve ??
+      createRuntimeResolver(libraryDir, fetch, process.env["LUCID_LLM_URL"], (id) =>
+        vault.read(id),
+      ),
+  );
   ipcMain.handle(IPC.aiStart, async (event, request: AiStartRequest) =>
     service.start(request, (aiEvent: AiEvent) => {
       if (!event.sender.isDestroyed()) event.sender.send(IPC.aiEvent, aiEvent);

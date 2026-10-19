@@ -70,7 +70,9 @@ export class MainProcessAiClient implements AiClient {
     this.capabilities =
       profile.kind === "lmstudio"
         ? { ...LOCAL_CAPABILITIES, reasoningControl: true }
-        : LOCAL_CAPABILITIES;
+        : profile.kind === "openai" || profile.kind === "anthropic"
+          ? { ...LOCAL_CAPABILITIES, customBaseUrl: false }
+          : LOCAL_CAPABILITIES;
   }
 
   async health(signal?: AbortSignal): Promise<ProviderHealth> {
