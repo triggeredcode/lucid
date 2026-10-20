@@ -8,6 +8,9 @@ import { ImportNotice } from "./pages/ImportNotice";
 import { Sidebar } from "./pages/Sidebar";
 import { Workspace } from "./pages/Workspace";
 import { usePages } from "./pages/usePages";
+import { FirstRun } from "./onboarding/FirstRun";
+import { ProductTour } from "./onboarding/ProductTour";
+import { completeOnboarding, onboardingComplete } from "./onboarding/state";
 
 export function App() {
   if (typeof window.lucid === "undefined") {
@@ -32,6 +35,8 @@ function Shell() {
   }, []);
   const [settings, setSettings] = useState<PublicSettings | undefined>();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
+  const [tourOpen, setTourOpen] = useState(false);
   const [newPageOpen, setNewPageOpen] = useState(false);
   const [imported, setImported] = useState<NoteImportResult | undefined>();
 
@@ -68,7 +73,10 @@ function Shell() {
     });
   };
   useEffect(() => {
-    void loadSettings();
+    void loadSettings().then((loaded) => {
+      setSettings(loaded);
+      if (!loaded.onboardingDisabled && !onboardingComplete()) setOnboardingOpen(true);
+    });
     // ⌘, opens Settings, as in most Mac apps.
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === ",") {
@@ -97,6 +105,17 @@ function Shell() {
       }
       return !open;
     });
+  };
+  const finishOnboarding = (startTour: boolean) => {
+    completeOnboarding();
+    setOnboardingOpen(false);
+    if (!startTour) return;
+    void (async () => {
+      if (!pages.current) await pages.create();
+      requestAnimationFrame(() => {
+        setTourOpen(true);
+      });
+    })();
   };
   return (
     <div className="app" data-sidebar={sidebarOpen ? "open" : "closed"}>
@@ -183,6 +202,20 @@ function Shell() {
           settings={settings}
           onClose={() => {
             setSettingsOpen(false);
+          }}
+          onOpenOnboarding={() => {
+            setSettingsOpen(false);
+            setOnboardingOpen(true);
+          }}
+        />
+      )}
+      {onboardingOpen && settings && (
+        <FirstRun settings={settings} onSettingsChange={setSettings} onFinish={finishOnboarding} />
+      )}
+      {tourOpen && (
+        <ProductTour
+          onFinish={() => {
+            setTourOpen(false);
           }}
         />
       )}

@@ -122,8 +122,10 @@ export interface PublicSettings {
   ai: AiSettings;
   /** The address comes from the LUCID_LLM_URL environment variable (tests, development) and is not changed here. */
   llmUrlLocked: boolean;
+  /** Test harnesses can suppress first-run UI without changing a person's saved preference. */
+  onboardingDisabled: boolean;
 }
-export type SettingsInput = Omit<PublicSettings, "llmUrlLocked">;
+export type SettingsInput = Omit<PublicSettings, "llmUrlLocked" | "onboardingDisabled">;
 export type SettingsSaveResult =
   { ok: true; settings: PublicSettings } | { ok: false; problems: string[] };
 

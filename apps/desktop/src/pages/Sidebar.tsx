@@ -58,7 +58,7 @@ export function Sidebar({
   }, [confirming]);
 
   return (
-    <aside className="sidebar">
+    <aside className="sidebar" data-tour="pages">
       <div className="brand">
         <BrandMark />
         Lucid

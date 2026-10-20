@@ -354,7 +354,7 @@ export function DictationBar({
         )}
       </div>
       <div className="dictation-box">
-        <div className="mode" role="group" aria-label="Mode">
+        <div className="mode" role="group" aria-label="Mode" data-tour="modes">
           {(["input", "command", "edit"] as const).map((m) => (
             <button
               key={m}
