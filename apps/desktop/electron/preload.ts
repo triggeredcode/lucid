@@ -46,6 +46,12 @@ const api: LucidApi = {
     save: (file) =>
       ipcRenderer.invoke(IPC.pagesSave, file) as ReturnType<LucidApi["pages"]["save"]>,
     trash: (id) => ipcRenderer.invoke(IPC.pagesTrash, id) as Promise<void>,
+    backups: (id) =>
+      ipcRenderer.invoke(IPC.pagesBackups, id) as ReturnType<LucidApi["pages"]["backups"]>,
+    restoreBackup: (id, backupId) =>
+      ipcRenderer.invoke(IPC.pagesRestoreBackup, id, backupId) as ReturnType<
+        LucidApi["pages"]["restoreBackup"]
+      >,
   },
   note: {
     export: (file, options) =>

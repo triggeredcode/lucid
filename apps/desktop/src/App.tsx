@@ -135,6 +135,7 @@ function Shell() {
             key={pages.current.id}
             file={pages.current}
             onSaved={pages.saved}
+            onRestoreBackup={pages.restoreBackup}
             sidebarOpen={sidebarOpen}
             onToggleSidebar={toggleSidebar}
           />

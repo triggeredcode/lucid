@@ -15,6 +15,13 @@ export interface PageProblem {
   fileName: string;
   message: string;
 }
+export interface PageBackup {
+  /** Opaque backup name. It is safe to pass back to `restoreBackup`; it is not a path. */
+  id: string;
+  createdAt: string;
+  title: string;
+  blockCount: number;
+}
 
 /** What the File menu asks of the window. */
 export type MenuAction = "export-note" | "import-note";
@@ -263,6 +270,8 @@ export const IPC = {
   pagesLoad: "lucid:pages-load",
   pagesSave: "lucid:pages-save",
   pagesTrash: "lucid:pages-trash",
+  pagesBackups: "lucid:pages-backups",
+  pagesRestoreBackup: "lucid:pages-restore-backup",
   pdfCompile: "lucid:pdf-compile",
   pdfSave: "lucid:pdf-save",
   pdfOpen: "lucid:pdf-open",
@@ -311,6 +320,9 @@ export interface LucidApi {
     load(id: string): Promise<LucidFile>;
     save(file: LucidFile): Promise<LucidFile>;
     trash(id: string): Promise<void>;
+    backups(id: string): Promise<{ backups: PageBackup[]; problems: PageProblem[] }>;
+    /** Restores an automatic snapshot as a new page, without replacing the current page. */
+    restoreBackup(id: string, backupId: string): Promise<LucidFile>;
   };
   settings: {
     get(): Promise<PublicSettings>;

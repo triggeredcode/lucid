@@ -205,6 +205,62 @@ select:focus-visible,
   margin: 12px 0 0;
   line-height: 1.55;
 }
+.backup-dialog {
+  width: min(680px, 100%);
+}
+.backup-dialog > p {
+  line-height: 1.5;
+}
+.backup-list {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.backup-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.backup-list li > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+.backup-list span,
+.backup-empty {
+  color: var(--ink-2);
+  font-size: 12.5px;
+}
+.backup-list .ghost {
+  flex: none;
+}
+.backup-warning,
+.backup-error {
+  margin: 12px 0 0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 12.5px;
+}
+.backup-warning {
+  color: var(--ink-2);
+  background: var(--panel);
+}
+.backup-error {
+  color: var(--red);
+  background: var(--red-bg);
+}
+@media (max-width: 560px) {
+  .backup-list li {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
 .first-steps {
   max-width: 46ch;
   margin: 28px auto 0;
