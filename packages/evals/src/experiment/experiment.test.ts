@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { currentBaseline } from "./baseline";
 import { CONTEXT_CASES, ROUTING_CASES, validateExperimentCases } from "./cases";
+import { currentContextStrategy, focusedContextStrategy } from "./contextStrategies";
 import {
   experimentToMarkdown,
   passesExperimentGates,
@@ -54,12 +55,25 @@ describe("the current routing baseline", () => {
 
 describe("targeted agent context", () => {
   it("freezes the current planner's strengths and known over-selection", () => {
-    const trials = CONTEXT_CASES.map(runContextCase);
+    const trials = CONTEXT_CASES.map((testCase) =>
+      runContextCase(testCase, currentContextStrategy),
+    );
     const summary = summariseContext(trials);
     expect(summary.passRate).toBe(0.625);
     expect(summary.meanTargetRecall).toBe(1);
     expect(summary.forbiddenSelections).toBe(3);
     expect(summary.medianEligibleContextReduction).toBeGreaterThan(0.8);
+  });
+
+  it("focused reads remove the baseline over-selection without losing targets", () => {
+    const trials = CONTEXT_CASES.map((testCase) =>
+      runContextCase(testCase, focusedContextStrategy),
+    );
+    const summary = summariseContext(trials);
+    expect(summary.passRate).toBe(1);
+    expect(summary.meanTargetRecall).toBe(1);
+    expect(summary.forbiddenSelections).toBe(0);
+    expect(summary.medianContextReduction).toBeGreaterThan(0.2);
   });
 });
 
@@ -69,6 +83,7 @@ describe("experiment reports", () => {
       meta: {
         datasetVersion: 1,
         candidate: "current",
+        contextStrategy: "current",
         createdAt: "2026-10-20T00:00:00.000Z",
         sourceRevision: "abc123",
         productVersion: "0.4.0",
@@ -86,7 +101,7 @@ describe("experiment reports", () => {
       routing: await Promise.all(
         ROUTING_CASES.map((testCase) => runRoutingCase(testCase, currentBaseline)),
       ),
-      context: CONTEXT_CASES.map(runContextCase),
+      context: CONTEXT_CASES.map((testCase) => runContextCase(testCase, currentContextStrategy)),
     };
     const markdown = experimentToMarkdown(results);
     expect(markdown).toContain("High-confidence wrong direct actions: 0");
