@@ -1,6 +1,6 @@
 import type { LucidDoc, MetaState } from "@lucid/core";
 
-export const EXPERIMENT_DATASET_VERSION = 1;
+export const EXPERIMENT_DATASET_VERSION = 2;
 
 export type ExperimentSplit = "development" | "calibration" | "holdout";
 export type DecisionLane = "meta" | "guided" | "input" | "command" | "agent-read" | "clarify";
@@ -16,6 +16,7 @@ export interface Decision {
   confidence: number;
   abstained: boolean;
   latencyMs: number;
+  embedding?: { similarity: number; margin: number };
 }
 
 export interface RoutingState extends MetaState {
@@ -36,6 +37,7 @@ export interface RoutingCase {
     scope?: DecisionScope;
     abstained?: boolean;
   };
+  challenge?: "semantic" | "near-miss";
 }
 
 export interface RoutingCandidate {
@@ -78,6 +80,7 @@ export interface RoutingTrial {
   family: string;
   split: ExperimentSplit;
   utterance: string;
+  challenge?: "semantic" | "near-miss";
   expected: RoutingCase["expected"];
   decision: Decision;
   pass: boolean;

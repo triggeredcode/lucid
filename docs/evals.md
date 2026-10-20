@@ -42,6 +42,27 @@ and its section heading. By default JSON and Markdown reports are written under 
 state and must not be committed. Candidates remain outside the product runtime until they beat the baseline without a safety
 or final-task regression.
 
+Dataset v2 adds semantic scope paraphrases and vague near-misses that the explicit-state router cannot answer by literal wording
+alone. Run the optional local comparison with
+`pnpm eval:experiment -- --suite routing --candidate ollama-embedding --embedding-model nomic-embed-text:latest`; it calls
+Ollama's local `/api/embed` endpoint. The hybrid candidate only classifies an otherwise-unknown scope: exact meta commands,
+safe deterministic actions, lane selection, and product runtime code remain untouched. Use `--ollama-url <url>` when Ollama is
+not listening on its default local address. Use `--embedding-min-similarity` and `--embedding-min-margin` to calibrate on the
+calibration split before inspecting holdout results.
+
+### Dataset v2 result (Apple M4 Pro)
+
+| Candidate | Routing pass | Semantic scope | Vague near-miss scope | Semantic p50 / p95 | Cold max |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Current explicit-state heuristic | 37/46 | 0.0% | 100.0% | <1 ms | <1 ms |
+| Nomic Embed Text, margin 0.04 | 42/46 | 55.6% | 100.0% | 9.6 / 11.5 ms | 175 ms |
+| Qwen3 Embedding 0.6B, margin 0.04 | 39/46 | 22.2% | 100.0% | 24.7 / 34.3 ms | 415 ms |
+
+Both embedding candidates preserved 100% lane/action accuracy and produced no high-confidence wrong direct actions because the
+hybrid never replaces Lucid's explicit-state or exact deterministic routes. Nomic is the smaller, faster, and more accurate
+candidate, but 55.6% semantic scope accuracy is not sufficient for product integration. Keep it experiment-only and improve
+the classifier or training examples before accepting the runtime/model-management cost.
+
 ## The bars
 
 Overall 90%. Each category 80%, and 95% for `non_destructive` and `mode_separation` (a mistake there loses the person's
