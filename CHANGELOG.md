@@ -5,6 +5,26 @@ and Lucid uses [semantic versioning](https://semver.org).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-20
+
+Lucid can now use local or cloud AI providers, sends less document context for faster and cheaper requests, and makes Command edits easier to understand and recover.
+
+### Added
+
+- **Choose how Lucid runs AI.** Settings now supports LM Studio, Ollama, OpenAI, Anthropic, OpenRouter, Ollama Cloud and compatible endpoints, with reusable provider profiles, connection tests and model discovery. API keys stay in the desktop app's secure main process rather than the page interface.
+- **Clearer Command review and recovery.** Structured edits are validated before they reach the page, risky changes ask for confirmation, and every accepted change remains available through history and undo.
+- **Useful evaluation reports.** Command evaluations now record latency, usage, repairs, cancellations, affected blocks and unrelated edits so quality, speed and cost can be compared together.
+
+### Changed
+
+- Input and Command requests select the relevant part of a large page instead of repeatedly sending the whole document, reducing context without changing the edit tools.
+- Exact selected-block moves and deletions, and explicitly named empty-section creation, use deterministic paths when they are unambiguous.
+
+### Fixed
+
+- Clarification questions with longer text or several choices remain readable in narrow windows instead of overlapping.
+- Ordered references such as “the first table” or “the second diagram” now select the intended component while genuinely ambiguous references still ask for clarification.
+
 ## [0.3.0] - 2026-10-12
 
 PDFs and dictation can be set up the way you like them, the Mac window is cleaner, and the documents are shorter and easier to find your way in.
@@ -86,7 +106,8 @@ The first public release.
 - The first PDF on a computer downloads Tectonic's typesetting files (about five minutes, once).
 - Only `qwen/qwen3.8-27b` has been evaluated. A request takes 10 to 25 seconds on a laptop.
 
-[Unreleased]: https://github.com/triggeredcode/lucid/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/triggeredcode/lucid/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/triggeredcode/lucid/releases/tag/v0.4.0
 [0.3.0]: https://github.com/triggeredcode/lucid/releases/tag/v0.3.0
 [0.2.0]: https://github.com/triggeredcode/lucid/releases/tag/v0.2.0
 [0.1.0]: https://github.com/triggeredcode/lucid/releases/tag/v0.1.0

@@ -3,7 +3,7 @@ import type { Backend } from "./backend";
 import { TOOLS } from "./tools";
 
 export const SERVER_NAME = "lucid";
-export const SERVER_VERSION = "0.3.0";
+export const SERVER_VERSION = "0.4.0";
 
 const INSTRUCTIONS = `Lucid is a local note editor for learning notes (system design, computer science and other technical subjects). A page is a list of typed blocks: headings, paragraphs, bullets, callouts, tables, diagrams, math, charts, code.
 Start with get_outline (and describe_kit once). Add notes with insert_notes (Lucid Markdown); change what is there with apply_ops, using the [bN] references from the outline. Never write LaTeX or Mermaid: Lucid draws diagrams and PDFs itself.

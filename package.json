@@ -1,6 +1,6 @@
 {
   "name": "lucid",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "A structured document built while you think: headings, lists, tables and diagrams from speech or typing, with a local model. A toolbox for AI agents.",
   "type": "module",

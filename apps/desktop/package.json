@@ -1,7 +1,7 @@
 {
   "name": "@lucid/desktop",
   "productName": "Lucid",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "description": "Lucid: structured notes (headings, lists, tables, diagrams) built while you think, with a local model",
   "main": "./out/main/index.js",
