@@ -29,6 +29,17 @@ ambiguous-target, missing-target, stable-prefix, and Input/Command prompt cases 
 still required before release whenever the configured model can run; mocked or structural tests are not reported as live-model
 quality evidence.
 
+## Decision and agent-context experiment
+
+`pnpm eval:experiment -- --strict` runs the offline experiment harness. It does not contact a model or change Lucid's runtime.
+The first candidate (`current`) freezes v0.4.0's exact meta commands, conservative Command fast paths, and targeted document
+context as the baseline. Cases are grouped by intent family into development, calibration, and holdout splits so paraphrases
+cannot leak between them.
+
+Use `--suite routing|context|all`, `--split development|calibration|holdout|all`, or `--out <dir>`. By default the JSON and
+Markdown reports are written under `.docdex/evals/`, which is local experiment state and must not be committed. Candidate
+models remain outside the product runtime until they beat this baseline without a safety or final-task regression.
+
 ## The bars
 
 Overall 90%. Each category 80%, and 95% for `non_destructive` and `mode_separation` (a mistake there loses the person's
