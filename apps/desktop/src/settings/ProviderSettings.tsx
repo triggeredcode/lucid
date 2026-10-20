@@ -144,6 +144,11 @@ export function ProviderSettings({ value, lmStudioUrlLocked, onChange, onPersist
         setModels(result.models);
         if (!active.model && result.models[0]) replace({ model: result.models[0] });
       }
+    } catch {
+      setConnection({
+        ok: false,
+        message: "The connection check could not finish. Try again.",
+      });
     } finally {
       setBusy(undefined);
     }
