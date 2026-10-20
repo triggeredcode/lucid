@@ -274,6 +274,12 @@ pre {
     display: none;
   }
 }
+@media (min-width: 761px) and (max-width: 1100px) {
+  .bar,
+  .nav {
+    gap: var(--s4);
+  }
+}
 
 /* ---- buttons ---- */
 .btn {
@@ -1041,6 +1047,102 @@ details[open] summary::after {
   .two {
     grid-template-columns: minmax(0, 1fr);
     gap: var(--s6);
+  }
+}
+
+/* ---- evaluation evidence ---- */
+.eval-decision {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) minmax(0, 4fr);
+  gap: var(--s5);
+  padding: var(--s5) 0;
+  border-block: 2px solid var(--ink);
+}
+.eval-decision p {
+  max-width: 72ch;
+  color: var(--ink-2);
+}
+.eval-table-wrap {
+  margin-top: var(--s6);
+  overflow-x: auto;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r2);
+  background: var(--bg);
+}
+.eval-table {
+  width: 100%;
+  min-width: 920px;
+  border-collapse: collapse;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.eval-table caption {
+  padding: var(--s4);
+  border-bottom: 1px solid var(--line-strong);
+  color: var(--ink-2);
+  font-weight: 700;
+  text-align: left;
+}
+.eval-table th,
+.eval-table td {
+  padding: var(--s4);
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+.eval-table th:last-child,
+.eval-table td:last-child {
+  border-right: 0;
+}
+.eval-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.eval-table th {
+  background: var(--panel);
+  font-size: var(--t-1);
+}
+.eval-table td:first-child {
+  min-width: 220px;
+  font-weight: 700;
+}
+.eval-table small {
+  display: block;
+  color: var(--ink-3);
+  font-size: 12px;
+  font-weight: 400;
+}
+.eval-verdict {
+  font-weight: 700;
+}
+.eval-foot {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: var(--s7);
+  margin-top: var(--s6);
+}
+.eval-foot p {
+  margin-top: var(--s2);
+  color: var(--ink-2);
+  font-size: 14px;
+}
+.eval-notes {
+  padding-left: var(--s5);
+  border-left: 1px solid var(--line-strong);
+}
+.eval-notes p {
+  margin: 0 0 var(--s3);
+}
+@media (max-width: 680px) {
+  .eval-decision,
+  .eval-foot {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s3);
+  }
+  .eval-notes {
+    padding: var(--s4) 0 0;
+    border-top: 1px solid var(--line-strong);
+    border-left: 0;
   }
 }
 

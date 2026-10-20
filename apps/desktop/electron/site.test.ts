@@ -85,6 +85,28 @@ describe("site/index.html", () => {
       expect(tag).toContain('href="https://github.com/triggeredcode/lucid/releases/latest"');
   });
 
+  it("publishes the routing experiment with its decision and measurement context", () => {
+    const evidence = html.match(/<section\s+id="evals">([\s\S]*?)<\/section>/)?.[1] ?? "";
+    expect(evidence).toContain("Measured before it ships.");
+    expect(evidence).toContain("Routing experiment, dataset v2");
+    expect(evidence).toContain("Current explicit-state heuristic");
+    expect(evidence).toContain("Nomic Embed Text");
+    expect(evidence).toContain("Qwen3 Embedding 0.6B");
+    expect(evidence).toContain("Gemma 3 1B");
+    expect(evidence).toContain("Apple M4 Pro");
+    expect(evidence).toContain("synthetic fixtures");
+    expect(evidence).toContain("not every computer or model");
+    expect(evidence).toContain(
+      'href="https://github.com/triggeredcode/lucid/blob/main/docs/evals.md"',
+    );
+
+    const headings = evidence.match(/<th\s+scope="col">/g) ?? [];
+    const rows = [...evidence.matchAll(/<tr>([\s\S]*?)<\/tr>/g)].slice(1);
+    expect(headings).toHaveLength(7);
+    expect(rows).toHaveLength(3);
+    for (const row of rows) expect(row[1]?.match(/<td(?:\s+class="[^"]+")?>/g)).toHaveLength(7);
+  });
+
   it("keeps every command and its Copy button side by side, with the command written exactly as shown", () => {
     // The commands are in <pre>: any space or line break the formatter adds inside shows on the page, and a Copy button placed over
     // the text hides it. So each box is a <pre><code> that starts at its first character, then the button, never over it.

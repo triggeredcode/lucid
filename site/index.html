@@ -46,6 +46,7 @@
         <nav class="nav" aria-label="Sections">
           <a href="#idea">The idea</a>
           <a href="#how">How it works</a>
+          <a href="#evals">Evals</a>
           <a href="#formats">Formats</a>
           <a class="keep" href="#download">Download</a>
           <a href="guide.html">Guide</a>
@@ -489,6 +490,95 @@
                 style. The PDF engine (Tectonic) comes with the app. Or export Markdown, with
                 diagrams as Mermaid.
               </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ evidence ============ -->
+      <section id="evals">
+        <div class="wrap">
+          <div class="head">
+            <p class="kicker">Evidence</p>
+            <h2>Measured before it ships.</h2>
+            <p class="section-lead">
+              Lucid keeps frozen routing cases in the repository. A candidate stays out of the app
+              until it improves the baseline without weakening safety or the final task.
+            </p>
+          </div>
+
+          <div class="eval-decision reveal">
+            <strong>Current decision</strong>
+            <p>
+              Keep deterministic routing. Nomic handled more requests, but 55.6% semantic-scope
+              accuracy is not reliable enough to add a runtime model and its management cost.
+            </p>
+          </div>
+
+          <div class="eval-table-wrap reveal" style="--d: 0.08s" tabindex="0">
+            <table class="eval-table">
+              <caption>
+                Routing experiment, dataset v2
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Candidate</th>
+                  <th scope="col">Routing pass</th>
+                  <th scope="col">Semantic scope</th>
+                  <th scope="col">Vague near-miss safety</th>
+                  <th scope="col">Warm p50 / p95</th>
+                  <th scope="col">Cold max</th>
+                  <th scope="col">Verdict</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Current explicit-state heuristic</td>
+                  <td>37 / 46</td>
+                  <td>0.0%</td>
+                  <td>100.0%</td>
+                  <td>&lt;1 ms</td>
+                  <td>&lt;1 ms</td>
+                  <td class="eval-verdict">Shipped baseline</td>
+                </tr>
+                <tr>
+                  <td>Nomic Embed Text <small>margin 0.04</small></td>
+                  <td>42 / 46</td>
+                  <td>55.6%</td>
+                  <td>100.0%</td>
+                  <td>9.6 / 11.5 ms</td>
+                  <td>175 ms</td>
+                  <td class="eval-verdict">Experiment only</td>
+                </tr>
+                <tr>
+                  <td>Qwen3 Embedding 0.6B <small>margin 0.04</small></td>
+                  <td>39 / 46</td>
+                  <td>22.2%</td>
+                  <td>100.0%</td>
+                  <td>24.7 / 34.3 ms</td>
+                  <td>415 ms</td>
+                  <td class="eval-verdict">Not advanced</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="eval-foot reveal" style="--d: 0.16s">
+            <div>
+              <strong>Decision model rejected on calibration</strong>
+              <p>
+                Gemma 3 1B passed 12 of 16 routes but scored 0% on vague near-miss safety. It took
+                381 / 483 ms warm and up to 1.69 s cold, so its holdout set was never opened.
+              </p>
+            </div>
+            <div class="eval-notes">
+              <p>
+                Dataset v2 · synthetic fixtures · Apple M4 Pro. These measurements describe this
+                experiment, not every computer or model.
+              </p>
+              <a href="https://github.com/triggeredcode/lucid/blob/main/docs/evals.md"
+                >Read the methodology and reproduce it</a
+              >
             </div>
           </div>
         </div>
