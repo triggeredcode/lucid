@@ -140,5 +140,34 @@ export function usePages() {
     });
   }, []);
 
-  return { pages, problems, current, ready, error, open, create, trash, saved, reload };
+  /** Recover an automatic snapshot as a new page and open it, leaving the current page untouched. */
+  const restoreBackup = useCallback(async (id: string, backupId: string) => {
+    try {
+      const file = await window.lucid.pages.restoreBackup(id, backupId);
+      const listed = await window.lucid.pages.list();
+      opening.current++;
+      setPages(listed.pages);
+      setProblems(listed.problems);
+      setCurrent(file);
+      remember(file.id);
+      setError(undefined);
+    } catch (reason) {
+      setError(reason instanceof Error ? reason.message : String(reason));
+      throw reason;
+    }
+  }, []);
+
+  return {
+    pages,
+    problems,
+    current,
+    ready,
+    error,
+    open,
+    create,
+    trash,
+    saved,
+    reload,
+    restoreBackup,
+  };
 }

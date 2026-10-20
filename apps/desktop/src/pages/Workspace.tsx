@@ -28,6 +28,7 @@ import { peekSettings, useAutoSendMs } from "../settings/settingsStore";
 import { useAppearance } from "../theme/appearance";
 import { HistoryPanel } from "./HistoryPanel";
 import { useAutosave } from "./useAutosave";
+import { BackupDialog } from "./BackupDialog";
 
 const SIDE_KEY = "lucid.history";
 
@@ -64,6 +65,7 @@ interface Props {
   /** Sidebar (page list) state, so the top bar can bring it back. */
   sidebarOpen: boolean;
   onToggleSidebar: () => void;
+  onRestoreBackup: (pageId: string, backupId: string) => Promise<void>;
 }
 
 /**
@@ -71,7 +73,7 @@ interface Props {
  * lists what was said. The page is edited by speaking or typing in the box; Edit mode lets you type in the page
  * itself for the few things the model gets wrong.
  */
-export function Workspace({ file, onSaved, sidebarOpen, onToggleSidebar }: Props) {
+export function Workspace({ file, onSaved, sidebarOpen, onToggleSidebar, onRestoreBackup }: Props) {
   const [title, setTitle] = useState(file.title);
   const [doc, setDoc] = useState<LucidDoc>(file.doc);
   const [transcripts, setTranscripts] = useState<TranscriptEntry[]>(file.transcripts);
@@ -79,6 +81,7 @@ export function Workspace({ file, onSaved, sidebarOpen, onToggleSidebar }: Props
   const [format, setFormat] = useState<string | undefined>(file.meta.format);
   const [info, setInfo] = useState<Record<string, string>>(file.meta.info);
   const [sideOpen, setSideOpen] = useState(sideOpenAtStart);
+  const [backupsOpen, setBackupsOpen] = useState(false);
   const [draft, setDraft] = useState<
     { text: string; mode: "input" | "command"; key: number } | undefined
   >();
@@ -413,6 +416,16 @@ export function Workspace({ file, onSaved, sidebarOpen, onToggleSidebar }: Props
             <button
               type="button"
               className="ghost small"
+              title="Restore an automatic backup as a new page"
+              onClick={() => {
+                setBackupsOpen(true);
+              }}
+            >
+              <Icon name="undo" /> <span className="btn-text">Backups</span>
+            </button>
+            <button
+              type="button"
+              className="ghost small"
               aria-pressed={sideOpen}
               title="Show or hide what you said and the changes to the page"
               onClick={() => {
@@ -544,6 +557,16 @@ export function Workspace({ file, onSaved, sidebarOpen, onToggleSidebar }: Props
             setDraft({ text: entry.text, mode: entry.mode, key: Date.now() });
             jobs.setMode(entry.mode);
           }}
+        />
+      )}
+      {backupsOpen && (
+        <BackupDialog
+          pageId={file.id}
+          title={title}
+          onClose={() => {
+            setBackupsOpen(false);
+          }}
+          onRestore={(backupId) => onRestoreBackup(file.id, backupId)}
         />
       )}
     </div>

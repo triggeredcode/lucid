@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, readdir, utimes, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, utimes, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { LucidFileError } from "@lucid/core";
@@ -153,6 +153,58 @@ describe("Library: save", () => {
       await l.save({ ...page, title: `Notes ${String(i)}` });
     }
     expect(await readdir(join(dir, ".lucid", "backups", page.id))).toHaveLength(3);
+  });
+});
+
+describe("Library: backup recovery", () => {
+  it("lists valid snapshots newest first with useful metadata", async () => {
+    const l = lib({ backupEveryMs: 0 });
+    const page = await l.create("Original");
+    await l.save({ ...page, title: "First edit" });
+    tick(1000);
+    await l.save({ ...page, title: "Second edit" });
+
+    const result = await l.backups(page.id);
+    expect(result.problems).toEqual([]);
+    expect(result.backups.map((backup) => backup.title)).toEqual(["First edit", "Original"]);
+    expect(result.backups[0]).toEqual(
+      expect.objectContaining({
+        id: "2026-10-10T10-00-01-000Z.lucid",
+        createdAt: "2026-10-10T10:00:01.000Z",
+        blockCount: 0,
+      }),
+    );
+  });
+
+  it("restores a snapshot as a new page without changing the current page", async () => {
+    const l = lib({ backupEveryMs: 0 });
+    const page = await l.create("Original");
+    const current = await l.save({ ...page, title: "Current" });
+    const backup = (await l.backups(page.id)).backups[0];
+    expect(backup).toBeDefined();
+
+    const restored = await l.restoreBackup(page.id, backup?.id ?? "");
+    expect(restored.id).not.toBe(page.id);
+    expect(restored.title).toBe("Original (recovered)");
+    expect((await l.load(page.id)).title).toBe(current.title);
+    expect((await l.list()).pages).toHaveLength(2);
+  });
+
+  it("reports damaged snapshots without touching them and refuses unknown backup names", async () => {
+    const l = lib();
+    const page = await l.create("Original");
+    const backupDir = join(dir, ".lucid", "backups", page.id);
+    await mkdir(backupDir, { recursive: true });
+    const damaged = join(backupDir, "2026-10-10T10-00-00-000Z.lucid");
+    await writeFile(damaged, "{ broken", "utf8");
+
+    const result = await l.backups(page.id);
+    expect(result.backups).toEqual([]);
+    expect(result.problems).toHaveLength(1);
+    expect(await readFile(damaged, "utf8")).toBe("{ broken");
+    await expect(l.restoreBackup(page.id, "../outside.lucid")).rejects.toThrow(
+      /no longer available/,
+    );
   });
 });
 

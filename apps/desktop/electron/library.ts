@@ -38,6 +38,14 @@ export interface Problem {
   message: string;
 }
 
+export interface PageBackup {
+  /** Opaque backup name used to restore this snapshot; never a filesystem path. */
+  id: string;
+  createdAt: string;
+  title: string;
+  blockCount: number;
+}
+
 export interface LibraryOptions {
   now?: () => Date;
   /** Move a file to the Trash (the app passes Electron's shell.trashItem). Never hard-deletes. */
@@ -49,7 +57,7 @@ export interface LibraryOptions {
 
 /** Backups are named with their time (`2026-10-10T10-00-00-000Z.lucid`); read it back. Unreadable names count as old. */
 function backupTime(fileName: string): number {
-  const m = /^(\d{4}-\d{2}-\d{2})T(\d{2})-(\d{2})-(\d{2})-(\d{3})Z/.exec(fileName);
+  const m = /^(\d{4}-\d{2}-\d{2})T(\d{2})-(\d{2})-(\d{2})-(\d{3})Z\.lucid$/.exec(fileName);
   return m
     ? Date.parse(`${m[1] ?? ""}T${m[2] ?? ""}:${m[3] ?? ""}:${m[4] ?? ""}.${m[5] ?? ""}Z`)
     : 0;
@@ -71,6 +79,11 @@ export class Library {
 
   private path(fileName: string): string {
     return join(this.dir, fileName);
+  }
+
+  private backupDir(id: string): string {
+    if (!/^[a-z0-9-]+$/i.test(id)) throw new Error("invalid page id");
+    return join(this.dir, ".lucid", "backups", id);
   }
 
   private async ensure(): Promise<void> {
@@ -150,6 +163,61 @@ export class Library {
     return this.read(name);
   }
 
+  /** Valid automatic snapshots for a page, newest first. Damaged snapshots are reported and left untouched. */
+  async backups(id: string): Promise<{ backups: PageBackup[]; problems: Problem[] }> {
+    // A renderer cannot use this endpoint to explore arbitrary backup folders.
+    if (!(await this.findFileName(id))) throw new Error("That page doesn't exist any more.");
+    const dir = this.backupDir(id);
+    let names: string[];
+    try {
+      names = (await readdir(dir, { withFileTypes: true }))
+        .filter((entry) => entry.isFile() && backupTime(entry.name) > 0)
+        .map((entry) => entry.name)
+        .sort()
+        .reverse();
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return { backups: [], problems: [] };
+      throw error;
+    }
+
+    const backups: PageBackup[] = [];
+    const problems: Problem[] = [];
+    for (const name of names) {
+      try {
+        const raw = JSON.parse(await readFile(join(dir, name), "utf8")) as unknown;
+        const file = parseLucidFile(raw);
+        registry.validateDoc(file.doc);
+        if (file.id !== id) throw new Error("This backup belongs to another page.");
+        backups.push({
+          id: name,
+          createdAt: new Date(backupTime(name)).toISOString(),
+          title: file.title,
+          blockCount: file.doc.blocks.length,
+        });
+      } catch (error) {
+        problems.push({
+          fileName: name,
+          message: error instanceof Error ? error.message : String(error),
+        });
+      }
+    }
+    return { backups, problems };
+  }
+
+  /** Restores one automatic snapshot as a new page. The current page and its history are never overwritten. */
+  async restoreBackup(id: string, backupId: string): Promise<LucidFile> {
+    const available = await this.backups(id);
+    if (!available.backups.some((backup) => backup.id === backupId))
+      throw new Error("That backup is no longer available.");
+    const raw = JSON.parse(await readFile(join(this.backupDir(id), backupId), "utf8")) as unknown;
+    const snapshot = parseLucidFile(raw);
+    registry.validateDoc(snapshot.doc);
+    if (snapshot.id !== id) throw new Error("This backup belongs to another page.");
+    const existing = new Set((await this.list()).pages.map((page) => page.id));
+    const { file } = planImport(snapshot, existing);
+    return this.save({ ...file, title: `${file.title.replace(/ \(copy\)$/, "")} (recovered)` });
+  }
+
   /** Save a page. The title decides the file name; when it changes the page moves to its new name. */
   async save(file: LucidFile): Promise<LucidFile> {
     const existing = await this.findFileName(file.id);
@@ -200,7 +268,7 @@ export class Library {
   }
 
   private async backupIfDue(fileName: string, id: string): Promise<void> {
-    const dir = join(this.dir, ".lucid", "backups", id.replace(/[^a-z0-9-]/gi, ""));
+    const dir = this.backupDir(id);
     await mkdir(dir, { recursive: true });
     const names = (await readdir(dir)).filter((n) => n.endsWith(".lucid")).sort();
     const last = names.at(-1);

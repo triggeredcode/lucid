@@ -92,6 +92,15 @@ export function registerIpc(): void {
   ipcMain.handle(IPC.pagesSave, async (_e, file: unknown) =>
     (await library).save(parseLucidFile(file)),
   );
+  ipcMain.handle(IPC.pagesBackups, async (_e, id: unknown) => {
+    if (typeof id !== "string") throw new Error("invalid page id");
+    return (await library).backups(id);
+  });
+  ipcMain.handle(IPC.pagesRestoreBackup, async (_e, id: unknown, backupId: unknown) => {
+    if (typeof id !== "string" || typeof backupId !== "string")
+      throw new Error("invalid backup request");
+    return (await library).restoreBackup(id, backupId);
+  });
   registerSecureAiIpc(libraryDir());
   const lmDeps = async (): Promise<LmDeps> => {
     const s = await loadSettings(libraryDir());
