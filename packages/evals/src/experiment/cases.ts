@@ -1,0 +1,412 @@
+import { SAMPLE_DOC } from "@lucid/kit";
+import { contextFixture } from "./fixtures";
+import type { ContextCase, ExperimentSplit, RoutingCase } from "./types";
+
+const baseState = {
+  proposal: false,
+  clarify: false,
+  running: false,
+} as const;
+
+const route = (
+  id: string,
+  family: string,
+  split: ExperimentSplit,
+  utterance: string,
+  state: RoutingCase["state"],
+  expected: RoutingCase["expected"],
+): RoutingCase => ({ id, family, split, utterance, state, expected, doc: SAMPLE_DOC });
+
+export const ROUTING_CASES: RoutingCase[] = [
+  route(
+    "mode-command",
+    "mode-switch",
+    "development",
+    "command mode",
+    { ...baseState, mode: "input" },
+    { lane: "meta", action: "deterministic", scope: "unknown" },
+  ),
+  route(
+    "mode-input",
+    "mode-switch",
+    "development",
+    "back to notes",
+    { ...baseState, mode: "command" },
+    { lane: "meta", action: "deterministic", scope: "unknown" },
+  ),
+  route(
+    "mode-edit",
+    "mode-switch",
+    "development",
+    "let me edit",
+    { ...baseState, mode: "command" },
+    { lane: "meta", action: "deterministic", scope: "unknown" },
+  ),
+  route(
+    "build-diagram",
+    "guided-builder",
+    "calibration",
+    "start a diagram",
+    { ...baseState, mode: "input" },
+    { lane: "meta", action: "deterministic", scope: "unknown" },
+  ),
+  route(
+    "build-table",
+    "guided-builder",
+    "calibration",
+    "make a table",
+    { ...baseState, mode: "input" },
+    { lane: "meta", action: "deterministic", scope: "unknown" },
+  ),
+  route(
+    "edit-table",
+    "guided-builder",
+    "calibration",
+    "edit this table",
+    { ...baseState, mode: "command" },
+    { lane: "meta", action: "deterministic", scope: "unknown" },
+  ),
+  route(
+    "undo",
+    "history",
+    "holdout",
+    "undo the last change",
+    { ...baseState, mode: "command" },
+    { lane: "meta", action: "deterministic", scope: "unknown" },
+  ),
+  route(
+    "redo",
+    "history",
+    "holdout",
+    "redo that",
+    { ...baseState, mode: "command" },
+    { lane: "meta", action: "deterministic", scope: "unknown" },
+  ),
+  route(
+    "accept-proposal",
+    "proposal-response",
+    "calibration",
+    "looks good",
+    { ...baseState, mode: "command", proposal: true },
+    { lane: "meta", action: "deterministic", scope: "unknown" },
+  ),
+  route(
+    "reject-clarify",
+    "proposal-response",
+    "calibration",
+    "no thanks",
+    { ...baseState, mode: "command", clarify: true },
+    { lane: "meta", action: "deterministic", scope: "unknown" },
+  ),
+  route(
+    "choose-option",
+    "proposal-response",
+    "calibration",
+    "the second one",
+    { ...baseState, mode: "command", clarify: true },
+    { lane: "meta", action: "deterministic", scope: "unknown" },
+  ),
+  route(
+    "stop-running",
+    "running-job",
+    "holdout",
+    "stop that",
+    { ...baseState, mode: "command", running: true },
+    { lane: "meta", action: "deterministic", scope: "unknown" },
+  ),
+  route(
+    "stop-idle",
+    "running-job",
+    "holdout",
+    "stop that",
+    { ...baseState, mode: "command" },
+    { lane: "command", action: "main-model", scope: "unknown" },
+  ),
+  route(
+    "export-pdf",
+    "export",
+    "holdout",
+    "export as pdf",
+    { ...baseState, mode: "input" },
+    { lane: "meta", action: "deterministic", scope: "unknown" },
+  ),
+  route(
+    "export-markdown",
+    "export",
+    "holdout",
+    "save as markdown",
+    { ...baseState, mode: "input" },
+    { lane: "meta", action: "deterministic", scope: "unknown" },
+  ),
+  route(
+    "delete-selected",
+    "fast-delete",
+    "holdout",
+    "delete this block",
+    { ...baseState, mode: "command", cursorBlockId: "p1" },
+    { lane: "command", action: "deterministic", scope: "selection" },
+  ),
+  route(
+    "delete-without-selection",
+    "fast-delete",
+    "holdout",
+    "delete this block",
+    { ...baseState, mode: "command" },
+    { lane: "command", action: "main-model", scope: "selection" },
+  ),
+  route(
+    "move-up",
+    "fast-move",
+    "calibration",
+    "move this block up",
+    { ...baseState, mode: "command", cursorBlockId: "d1" },
+    { lane: "command", action: "deterministic", scope: "selection" },
+  ),
+  route(
+    "move-down",
+    "fast-move",
+    "calibration",
+    "move this block down",
+    { ...baseState, mode: "command", cursorBlockId: "d1" },
+    { lane: "command", action: "deterministic", scope: "selection" },
+  ),
+  route(
+    "move-first-up",
+    "fast-move",
+    "calibration",
+    "move this block up",
+    { ...baseState, mode: "command", cursorBlockId: "h1" },
+    { lane: "command", action: "main-model", scope: "selection" },
+  ),
+  route(
+    "empty-section",
+    "fast-section",
+    "holdout",
+    'create an empty section named "Risks"',
+    { ...baseState, mode: "command" },
+    { lane: "command", action: "deterministic", scope: "document" },
+  ),
+  route(
+    "unquoted-section",
+    "fast-section",
+    "holdout",
+    "create an empty section named Risks",
+    { ...baseState, mode: "command" },
+    { lane: "command", action: "main-model", scope: "document" },
+  ),
+  route(
+    "near-delete",
+    "fast-near-miss",
+    "holdout",
+    "delete the selected block",
+    { ...baseState, mode: "command", cursorBlockId: "p1" },
+    { lane: "command", action: "main-model", scope: "selection" },
+  ),
+  route(
+    "near-move",
+    "fast-near-miss",
+    "holdout",
+    "move this paragraph up",
+    { ...baseState, mode: "command", cursorBlockId: "p1" },
+    { lane: "command", action: "main-model", scope: "selection" },
+  ),
+  route(
+    "input-note",
+    "ordinary-input",
+    "development",
+    "Redis entries expire after thirty days",
+    { ...baseState, mode: "input", cursorBlockId: "p1" },
+    { lane: "input", action: "main-model", scope: "selection" },
+  ),
+  route(
+    "input-table-words",
+    "ordinary-input",
+    "development",
+    "A table has columns latency and cost",
+    { ...baseState, mode: "input" },
+    { lane: "input", action: "main-model", scope: "component" },
+  ),
+  route(
+    "command-block-ref",
+    "ordinary-command",
+    "development",
+    "rewrite block 4 as a shorter comparison",
+    { ...baseState, mode: "command" },
+    { lane: "command", action: "main-model", scope: "block" },
+  ),
+  route(
+    "command-component",
+    "ordinary-command",
+    "development",
+    "add a consistency row to the table",
+    { ...baseState, mode: "command" },
+    { lane: "command", action: "main-model", scope: "component" },
+  ),
+  route(
+    "command-document",
+    "ordinary-command",
+    "development",
+    "summarize the whole document",
+    { ...baseState, mode: "command" },
+    { lane: "command", action: "main-model", scope: "document" },
+  ),
+  route(
+    "command-section",
+    "ordinary-command",
+    "development",
+    "shorten the Database options section",
+    { ...baseState, mode: "command" },
+    { lane: "command", action: "main-model", scope: "section" },
+  ),
+  route(
+    "guided-answer",
+    "active-guided",
+    "development",
+    "service",
+    { ...baseState, mode: "guided" },
+    { lane: "guided", action: "deterministic", scope: "component" },
+  ),
+  route(
+    "guided-long-answer",
+    "active-guided",
+    "development",
+    "The web server sends cache misses to PostgreSQL",
+    { ...baseState, mode: "guided" },
+    { lane: "guided", action: "deterministic", scope: "component" },
+  ),
+  route(
+    "agent-find-table",
+    "agent-read",
+    "calibration",
+    "find the SQL comparison table",
+    { ...baseState, mode: "agent-read" },
+    { lane: "agent-read", action: "read-more", scope: "component" },
+  ),
+  route(
+    "agent-whole-page",
+    "agent-read",
+    "calibration",
+    "read the entire page",
+    { ...baseState, mode: "agent-read" },
+    { lane: "agent-read", action: "read-more", scope: "document" },
+  ),
+];
+
+const sectionIds = (n: number): string[] => [
+  `section-${String(n)}`,
+  ...Array.from({ length: 8 }, (_, i) => `topic-${String(n)}-${String(i + 1)}`),
+];
+const otherSections = (n: number): string[] =>
+  Array.from({ length: 8 }, (_, i) => i + 1)
+    .filter((section) => section !== n)
+    .flatMap(sectionIds);
+
+export const CONTEXT_CASES: ContextCase[] = [
+  {
+    id: "first-table",
+    family: "ordered-component",
+    split: "holdout",
+    fixture: "two-tables",
+    utterance: "add a row to the first table",
+    requiredIds: ["t1"],
+    forbiddenIds: ["t2"],
+    expectedScope: "targeted",
+  },
+  {
+    id: "second-table",
+    family: "ordered-component",
+    split: "holdout",
+    fixture: "two-tables",
+    utterance: "change the second table",
+    requiredIds: ["t2"],
+    forbiddenIds: ["t1"],
+    expectedScope: "targeted",
+  },
+  {
+    id: "ambiguous-table",
+    family: "ambiguous-component",
+    split: "calibration",
+    fixture: "two-tables",
+    utterance: "change the table",
+    requiredIds: ["t1", "t2"],
+    forbiddenIds: [],
+    expectedScope: "targeted",
+    expectedAmbiguityKinds: ["table"],
+  },
+  {
+    id: "missing-ref",
+    family: "missing-reference",
+    split: "holdout",
+    fixture: "sample",
+    utterance: "rewrite block 99",
+    requiredIds: [],
+    forbiddenIds: ["h1", "p1", "d1", "t1", "h2", "o1", "o2", "o3"],
+    expectedScope: "targeted",
+    expectedMissingRefs: ["b99"],
+  },
+  {
+    id: "explicit-diagram-ref",
+    family: "explicit-reference",
+    split: "development",
+    fixture: "sample",
+    utterance: "make block 3 horizontal",
+    requiredIds: ["d1"],
+    forbiddenIds: ["t1"],
+    expectedScope: "targeted",
+  },
+  {
+    id: "lexical-large-document",
+    family: "large-lexical",
+    split: "holdout",
+    fixture: "large-sections",
+    utterance: "change Quasar retention to one hundred days",
+    requiredIds: sectionIds(6),
+    forbiddenIds: otherSections(6),
+    expectedScope: "targeted",
+  },
+  {
+    id: "cursor-large-document",
+    family: "large-cursor",
+    split: "calibration",
+    fixture: "large-sections",
+    utterance: "make this clearer",
+    cursorBlockId: "topic-3-4",
+    requiredIds: sectionIds(3),
+    forbiddenIds: otherSections(3),
+    expectedScope: "targeted",
+  },
+  {
+    id: "whole-large-document",
+    family: "whole-document",
+    split: "development",
+    fixture: "large-sections",
+    utterance: "summarize the whole document",
+    requiredIds: Array.from({ length: 8 }, (_, i) => sectionIds(i + 1)).flat(),
+    forbiddenIds: [],
+    expectedScope: "document",
+  },
+];
+
+export function validateExperimentCases(): string[] {
+  const problems: string[] = [];
+  const ids = new Set<string>();
+  const familySplits = new Map<string, ExperimentSplit>();
+  for (const testCase of [...ROUTING_CASES, ...CONTEXT_CASES]) {
+    if (ids.has(testCase.id)) problems.push(`duplicate case id ${testCase.id}`);
+    ids.add(testCase.id);
+    const prior = familySplits.get(testCase.family);
+    if (prior && prior !== testCase.split)
+      problems.push(`family ${testCase.family} crosses ${prior} and ${testCase.split}`);
+    familySplits.set(testCase.family, testCase.split);
+    if (testCase.utterance.trim().length === 0) problems.push(`${testCase.id}: empty utterance`);
+  }
+  for (const testCase of CONTEXT_CASES) {
+    const docIds = new Set(contextFixture(testCase.fixture).blocks.map((block) => block.id));
+    for (const id of [...testCase.requiredIds, ...testCase.forbiddenIds])
+      if (!docIds.has(id)) problems.push(`${testCase.id}: unknown block id ${id}`);
+    for (const id of testCase.requiredIds)
+      if (testCase.forbiddenIds.includes(id))
+        problems.push(`${testCase.id}: ${id} is both required and forbidden`);
+  }
+  return problems;
+}

@@ -24,6 +24,7 @@
     "mcp:build": "pnpm --filter @lucid/mcp bundle",
     "notices": "node scripts/notices.mjs",
     "eval": "node packages/evals/scripts/eval.mjs",
+    "eval:experiment": "node packages/evals/scripts/experiment.mjs",
     "dist": "pnpm --filter @lucid/desktop dist",
     "e2e:packaged": "pnpm --filter @lucid/desktop e2e:packaged",
     "dist:dir": "pnpm --filter @lucid/desktop dist:dir"
