@@ -60,6 +60,19 @@ export interface ContextCase {
   expectedAmbiguityKinds?: Array<"table" | "chart" | "diagram">;
 }
 
+export interface ContextStrategyResult {
+  text: string;
+  selectedIds: string[];
+  scope: "targeted" | "document";
+  missingRefs: string[];
+  ambiguityKinds: Array<"table" | "chart" | "diagram">;
+}
+
+export interface ContextStrategy {
+  id: string;
+  select(testCase: ContextCase, doc: LucidDoc): ContextStrategyResult;
+}
+
 export interface RoutingTrial {
   caseId: string;
   family: string;
@@ -73,6 +86,7 @@ export interface RoutingTrial {
 }
 
 export interface ContextTrial {
+  strategy: string;
   caseId: string;
   family: string;
   split: ExperimentSplit;
@@ -96,6 +110,7 @@ export interface ContextTrial {
 export interface ExperimentMeta {
   datasetVersion: number;
   candidate: string;
+  contextStrategy: string;
   createdAt: string;
   sourceRevision: string;
   productVersion: string;

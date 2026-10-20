@@ -1,8 +1,10 @@
-import { buildDocumentContext, buildOutline } from "@lucid/kit";
+import { buildOutline } from "@lucid/kit";
+import { currentContextStrategy } from "./contextStrategies";
 import { contextFixture } from "./fixtures";
 import type {
   ContextCase,
   ContextTrial,
+  ContextStrategy,
   RoutingCandidate,
   RoutingCase,
   RoutingTrial,
@@ -54,32 +56,30 @@ export async function runRoutingCase(
   };
 }
 
-export function runContextCase(testCase: ContextCase): ContextTrial {
+export function runContextCase(
+  testCase: ContextCase,
+  strategy: ContextStrategy = currentContextStrategy,
+): ContextTrial {
   const doc = contextFixture(testCase.fixture);
   const allIds = doc.blocks.map((block) => block.id);
   const baseline = buildOutline(doc, { full: allIds, maxChars: 80_000 });
-  const targeted = buildDocumentContext({
-    doc,
-    utterance: testCase.utterance,
-    cursorBlockId: testCase.cursorBlockId,
-    recentTouched: testCase.recentTouched,
-  });
-  const selected = targeted.selection.selectedBlockIds;
+  const targeted = strategy.select(testCase, doc);
+  const selected = targeted.selectedIds;
   const requiredHits = testCase.requiredIds.filter((id) => selected.includes(id)).length;
   const targetRecall =
     testCase.requiredIds.length === 0 ? 1 : requiredHits / testCase.requiredIds.length;
   const targetPrecision = selected.length === 0 ? 1 : requiredHits / selected.length;
   const forbiddenSelected = testCase.forbiddenIds.filter((id) => selected.includes(id));
-  const missingRefs = targeted.selection.missingRefs;
-  const ambiguityKinds = targeted.selection.ambiguities.map(({ kind }) => kind);
+  const missingRefs = targeted.missingRefs;
+  const ambiguityKinds = targeted.ambiguityKinds;
   const expectedMissing = testCase.expectedMissingRefs ?? [];
   const expectedAmbiguity = testCase.expectedAmbiguityKinds ?? [];
   const failures: string[] = [];
   if (targetRecall !== 1) failures.push(`target recall was ${targetRecall.toFixed(3)}`);
   if (forbiddenSelected.length > 0)
     failures.push(`selected forbidden blocks: ${forbiddenSelected.join(", ")}`);
-  if (targeted.selection.scope !== testCase.expectedScope)
-    failures.push(`expected scope ${testCase.expectedScope}, got ${targeted.selection.scope}`);
+  if (targeted.scope !== testCase.expectedScope)
+    failures.push(`expected scope ${testCase.expectedScope}, got ${targeted.scope}`);
   if (!sameStrings(missingRefs, expectedMissing))
     failures.push(
       `expected missing refs ${expectedMissing.join(", ") || "none"}, got ${missingRefs.join(", ") || "none"}`,
@@ -89,6 +89,7 @@ export function runContextCase(testCase: ContextCase): ContextTrial {
       `expected ambiguities ${expectedAmbiguity.join(", ") || "none"}, got ${ambiguityKinds.join(", ") || "none"}`,
     );
   return {
+    strategy: strategy.id,
     caseId: testCase.id,
     family: testCase.family,
     split: testCase.split,
@@ -102,7 +103,7 @@ export function runContextCase(testCase: ContextCase): ContextTrial {
     targetRecall,
     targetPrecision,
     forbiddenSelected,
-    scope: targeted.selection.scope,
+    scope: targeted.scope,
     missingRefs,
     ambiguityKinds,
     pass: failures.length === 0,

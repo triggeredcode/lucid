@@ -4,6 +4,7 @@ import { arch, cpus, platform, release, totalmem } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { currentBaseline } from "./baseline";
 import { CONTEXT_CASES, ROUTING_CASES, validateExperimentCases } from "./cases";
+import { currentContextStrategy, focusedContextStrategy } from "./contextStrategies";
 import { experimentToMarkdown, passesExperimentGates } from "./report";
 import { runContextCase, runRoutingCase } from "./run";
 import { EXPERIMENT_DATASET_VERSION, type ExperimentResults, type ExperimentSplit } from "./types";
@@ -29,6 +30,7 @@ export async function experimentMain(args: string[], cwd = process.cwd()): Promi
   const candidateArg = arg(args, "candidate") ?? "current";
   const suite = arg(args, "suite") ?? "all";
   const splitArg = arg(args, "split") ?? "all";
+  const contextArg = arg(args, "context") ?? "current";
   if (candidateArg !== "current") {
     console.error("Only --candidate current exists in the baseline slice.");
     return 2;
@@ -39,6 +41,10 @@ export async function experimentMain(args: string[], cwd = process.cwd()): Promi
   }
   if (!["development", "calibration", "holdout", "all"].includes(splitArg)) {
     console.error("--split must be development, calibration, holdout, or all.");
+    return 2;
+  }
+  if (contextArg !== "current" && contextArg !== "focused") {
+    console.error("--context must be current or focused.");
     return 2;
   }
   const problems = validateExperimentCases();
@@ -60,7 +66,12 @@ export async function experimentMain(args: string[], cwd = process.cwd()): Promi
             runRoutingCase(testCase, currentBaseline),
           ),
         );
-  const context = suite === "routing" ? [] : CONTEXT_CASES.filter(inSplit).map(runContextCase);
+  const contextStrategy =
+    contextArg === "focused" ? focusedContextStrategy : currentContextStrategy;
+  const context =
+    suite === "routing"
+      ? []
+      : CONTEXT_CASES.filter(inSplit).map((testCase) => runContextCase(testCase, contextStrategy));
   const rootPackage = JSON.parse(readFileSync(join(cwd, "package.json"), "utf8")) as {
     version: string;
   };
@@ -69,6 +80,7 @@ export async function experimentMain(args: string[], cwd = process.cwd()): Promi
     meta: {
       datasetVersion: EXPERIMENT_DATASET_VERSION,
       candidate: currentBaseline.id,
+      contextStrategy: contextStrategy.id,
       createdAt: new Date().toISOString(),
       sourceRevision: revision(cwd),
       productVersion: rootPackage.version,
@@ -89,7 +101,8 @@ export async function experimentMain(args: string[], cwd = process.cwd()): Promi
   const day = new Date().toLocaleDateString("en-CA");
   const output = resolve(
     cwd,
-    arg(args, "out") ?? join(".docdex", "evals", `${day}-decision-context-current`),
+    arg(args, "out") ??
+      join(".docdex", "evals", `${day}-decision-current-context-${contextStrategy.id}`),
   );
   mkdirSync(dirname(join(output, "x")), { recursive: true });
   writeFileSync(join(output, "results.json"), `${JSON.stringify(results, null, 2)}\n`);

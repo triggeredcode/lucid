@@ -93,6 +93,7 @@ export function experimentToMarkdown(results: ExperimentResults): string {
     `# Lucid decision/context experiment: ${results.meta.candidate}`,
     "",
     `- Dataset: v${String(results.meta.datasetVersion)} (${results.meta.split})`,
+    `- Routing/context candidates: ${results.meta.candidate} / ${results.meta.contextStrategy}`,
     `- Source: ${results.meta.sourceRevision} · Lucid ${results.meta.productVersion}`,
     `- System: ${results.meta.hardware.platform} ${results.meta.hardware.release} ${results.meta.hardware.arch}; ${results.meta.hardware.cpu}; ${String(results.meta.hardware.logicalCpus)} logical CPUs; ${(results.meta.hardware.totalMemoryBytes / 1024 ** 3).toFixed(1)} GiB`,
     `- Created: ${results.meta.createdAt}`,
@@ -112,11 +113,11 @@ export function experimentToMarkdown(results: ExperimentResults): string {
     `- Median reduction on eligible large-context tasks: ${percent(context.medianEligibleContextReduction)}`,
     `- Forbidden block selections: ${String(context.forbiddenSelections)}`,
     "",
-    "| Case | Split | Recall | Reduction | Selected | Result |",
-    "|---|---|---:|---:|---:|---|",
+    "| Strategy | Case | Split | Recall | Reduction | Selected | Result |",
+    "|---|---|---|---:|---:|---:|---|",
     ...results.context.map(
       (trial) =>
-        `| ${trial.caseId} | ${trial.split} | ${percent(trial.targetRecall)} | ${percent(trial.reductionRate)} | ${String(trial.selectedIds.length)} | ${trial.pass ? "pass" : "FAIL"} |`,
+        `| ${trial.strategy} | ${trial.caseId} | ${trial.split} | ${percent(trial.targetRecall)} | ${percent(trial.reductionRate)} | ${String(trial.selectedIds.length)} | ${trial.pass ? "pass" : "FAIL"} |`,
     ),
   ];
   const failures = [
