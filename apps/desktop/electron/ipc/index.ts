@@ -182,6 +182,7 @@ export function registerIpc(): void {
       })),
     },
     llmUrlLocked: process.env["LUCID_LLM_URL"] !== undefined,
+    onboardingDisabled: process.env["LUCID_SKIP_ONBOARDING"] === "1",
   });
   ipcMain.handle(IPC.settingsGet, async () => publicSettings(await loadSettings(libraryDir())));
   ipcMain.handle(IPC.settingsSave, async (_e, input: unknown): Promise<SettingsSaveResult> => {

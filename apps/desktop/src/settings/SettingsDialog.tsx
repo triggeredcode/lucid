@@ -99,10 +99,11 @@ const DATE_OPTIONS = [
 interface Props {
   settings: PublicSettings;
   onClose: () => void;
+  onOpenOnboarding: () => void;
 }
 
 /** The few things worth changing: which model Lucid asks, how PDFs are signed, and the words to expect. */
-export function SettingsDialog({ settings, onClose }: Props) {
+export function SettingsDialog({ settings, onClose, onOpenOnboarding }: Props) {
   const [author, setAuthor] = useState(settings.author);
   const [footer, setFooter] = useState(settings.footerRight);
   const [pdf, setPdf] = useState<PdfStyle>(settings.pdf);
@@ -468,6 +469,26 @@ export function SettingsDialog({ settings, onClose }: Props) {
                 are kept as written.
               </small>
             </label>
+          </fieldset>
+
+          <fieldset>
+            <legend>Getting started</legend>
+            <div className="setting-row settings-guide">
+              <span>Setup guide and workspace tour</span>
+              <button
+                type="button"
+                className="ghost"
+                disabled={saving}
+                onClick={() => {
+                  void persist(false).then((saved) => {
+                    if (saved) onOpenOnboarding();
+                  });
+                }}
+              >
+                Open guide…
+              </button>
+            </div>
+            <small>Review AI setup and the main parts of the workspace at any time.</small>
           </fieldset>
 
           {problems.length > 0 && (

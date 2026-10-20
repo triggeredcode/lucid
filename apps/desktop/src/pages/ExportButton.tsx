@@ -154,7 +154,7 @@ export function ExportButton({
   }, [note]);
 
   return (
-    <div className="export">
+    <div className="export" data-tour="export">
       {engineNote && (
         <span className="export-note" data-kind="busy" role="status">
           {engineNote}
