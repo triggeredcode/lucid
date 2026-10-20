@@ -5,6 +5,7 @@ import { dirname, join, resolve } from "node:path";
 import { currentBaseline } from "./baseline";
 import { CONTEXT_CASES, ROUTING_CASES, validateExperimentCases } from "./cases";
 import { currentContextStrategy, focusedContextStrategy } from "./contextStrategies";
+import { createDecisionModelRoutingCandidate } from "./decisionModelRouter";
 import { createEmbeddingRoutingCandidate } from "./embeddingRouter";
 import { experimentToMarkdown, passesExperimentGates } from "./report";
 import { runContextCase, runRoutingCases } from "./run";
@@ -34,10 +35,17 @@ export async function experimentMain(args: string[], cwd = process.cwd()): Promi
   const contextArg = arg(args, "context") ?? "current";
   const minSimilarityArg = arg(args, "embedding-min-similarity");
   const minMarginArg = arg(args, "embedding-min-margin");
+  const decisionConfidenceArg = arg(args, "decision-min-confidence");
   const minSimilarity = minSimilarityArg === undefined ? undefined : Number(minSimilarityArg);
   const minMargin = minMarginArg === undefined ? undefined : Number(minMarginArg);
-  if (candidateArg !== "current" && candidateArg !== "ollama-embedding") {
-    console.error("--candidate must be current or ollama-embedding.");
+  const decisionConfidence =
+    decisionConfidenceArg === undefined ? undefined : Number(decisionConfidenceArg);
+  if (
+    candidateArg !== "current" &&
+    candidateArg !== "ollama-embedding" &&
+    candidateArg !== "ollama-decision"
+  ) {
+    console.error("--candidate must be current, ollama-embedding, or ollama-decision.");
     return 2;
   }
   if (!["routing", "context", "all"].includes(suite)) {
@@ -60,6 +68,13 @@ export async function experimentMain(args: string[], cwd = process.cwd()): Promi
     console.error("--embedding-min-margin must be a non-negative number.");
     return 2;
   }
+  if (
+    decisionConfidence !== undefined &&
+    (!Number.isFinite(decisionConfidence) || decisionConfidence < 0 || decisionConfidence > 1)
+  ) {
+    console.error("--decision-min-confidence must be between 0 and 1.");
+    return 2;
+  }
   const problems = validateExperimentCases();
   if (problems.length > 0) {
     console.error(
@@ -80,7 +95,13 @@ export async function experimentMain(args: string[], cwd = process.cwd()): Promi
           ...(minSimilarity === undefined ? {} : { minSimilarity }),
           ...(minMargin === undefined ? {} : { minMargin }),
         })
-      : currentBaseline;
+      : candidateArg === "ollama-decision"
+        ? createDecisionModelRoutingCandidate({
+            model: arg(args, "decision-model") ?? "gemma3:1b",
+            ...(ollamaUrl ? { baseUrl: ollamaUrl } : {}),
+            ...(decisionConfidence === undefined ? {} : { minConfidence: decisionConfidence }),
+          })
+        : currentBaseline;
   const routing =
     suite === "context"
       ? []

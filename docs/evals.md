@@ -63,6 +63,17 @@ hybrid never replaces Lucid's explicit-state or exact deterministic routes. Nomi
 candidate, but 55.6% semantic scope accuracy is not sufficient for product integration. Keep it experiment-only and improve
 the classifier or training examples before accepting the runtime/model-management cost.
 
+The decision-model arm uses the same safety boundary and frozen cases. With an already-installed local model, run
+`pnpm eval:experiment -- --suite routing --candidate ollama-decision --decision-model gemma3:1b`. The default confidence gate
+is 0.8; calibrate it with `--decision-min-confidence` on the calibration split before reading holdout results. This path is also
+experiment-only and never downloads or configures a model.
+
+`gemma3:1b` (815 MB) was eliminated on calibration, so its holdout was not opened. After one calibration-only prompt correction,
+it passed 12/16 routes, reached 50.0% semantic scope accuracy, and scored 0.0% on vague near-miss safety. The wrong scopes were
+reported at 95% confidence, so a confidence threshold could not preserve safety without abstaining on every useful answer.
+Semantic challenge latency was 381 ms p50 / 483 ms p95 after warm-up, and the first cold run reached 1.69 s. This is slower,
+larger, and less safely calibrated than Nomic; keep deterministic routing and reject this decision-model candidate.
+
 ## The bars
 
 Overall 90%. Each category 80%, and 95% for `non_destructive` and `mode_separation` (a mistake there loses the person's
