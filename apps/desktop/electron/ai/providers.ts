@@ -5,6 +5,8 @@ import {
 } from "../ipc/types";
 import { redactSensitive, secureProviderFetch } from "./security";
 
+const INSPECTION_TIMEOUT_MS = 10_000;
+
 const providerFor = (profile: ProviderProfile) =>
   AI_PROVIDER_CATALOG.find((provider) => provider.kind === profile.kind);
 
@@ -58,15 +60,20 @@ export async function inspectProvider(
   profile: ProviderProfile,
   secret?: string,
   doFetch: typeof fetch = fetch,
+  timeoutMs = INSPECTION_TIMEOUT_MS,
 ): Promise<ProviderConnectionResult> {
   const provider = providerFor(profile);
   if (!provider) return { ok: false, message: "That provider type is not supported." };
   if (provider.credential === "required" && !secret)
     return { ok: false, message: `Add an API key for ${provider.label}, then try again.` };
+  const controller = new AbortController();
+  const timeout = setTimeout(() => {
+    controller.abort();
+  }, timeoutMs);
   try {
     const response = await secureProviderFetch(
       modelsUrl(profile),
-      { headers: headersFor(profile, secret) },
+      { headers: headersFor(profile, secret), signal: controller.signal },
       doFetch,
     );
     if (!response.ok)
@@ -89,6 +96,14 @@ export async function inspectProvider(
       models,
     };
   } catch (error) {
+    if (controller.signal.aborted)
+      return {
+        ok: false,
+        message:
+          profile.kind === "lmstudio" || profile.kind === "ollama"
+            ? `Connection check timed out. Check the address and make sure ${provider.label} is running, then try again.`
+            : "Connection check timed out. Check the address and your network, then try again.",
+      };
     return {
       ok: false,
       message:
@@ -96,5 +111,7 @@ export async function inspectProvider(
           ? `Could not connect to Ollama. Start it with “ollama serve”, then try again. ${redactSensitive(error)}`
           : `Could not connect to ${provider.label}: ${redactSensitive(error, secret ? [secret] : [])}`,
     };
+  } finally {
+    clearTimeout(timeout);
   }
 }

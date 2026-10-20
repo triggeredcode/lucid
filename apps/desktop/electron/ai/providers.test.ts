@@ -62,6 +62,30 @@ describe("inspectProvider", () => {
     expect(offline.message).toContain("ollama serve");
   });
 
+  it("aborts a provider check that exceeds its timeout", async () => {
+    const request = vi.fn<typeof fetch>().mockImplementation(
+      (_input, init) =>
+        new Promise((_resolve, reject) => {
+          init?.signal?.addEventListener(
+            "abort",
+            () => {
+              reject(new DOMException("Aborted", "AbortError"));
+            },
+            { once: true },
+          );
+        }),
+    );
+
+    const result = await inspectProvider(profile(), undefined, request, 5);
+
+    expect(result).toEqual({
+      ok: false,
+      message:
+        "Connection check timed out. Check the address and make sure LM Studio is running, then try again.",
+    });
+    expect(request.mock.calls[0]?.[1]?.signal?.aborted).toBe(true);
+  });
+
   it("requires credentials before contacting a cloud provider", async () => {
     const request = vi.fn<typeof fetch>();
     const result = await inspectProvider(
