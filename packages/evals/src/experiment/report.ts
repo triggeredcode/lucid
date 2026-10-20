@@ -107,6 +107,12 @@ export function summariseContext(trials: readonly ContextTrial[]): ContextSummar
 }
 
 const percent = (value: number): string => `${(value * 100).toFixed(1)}%`;
+const routingEvidence = (trial: RoutingTrial): string => {
+  if (trial.decision.embedding) return `margin ${trial.decision.embedding.margin.toFixed(4)}`;
+  if (trial.decision.decisionModel)
+    return `${trial.decision.decisionModel.rawScope} @ ${percent(trial.decision.decisionModel.rawConfidence)}`;
+  return "-";
+};
 
 export function experimentToMarkdown(results: ExperimentResults): string {
   const routing = summariseRouting(results.routing);
@@ -129,13 +135,13 @@ export function experimentToMarkdown(results: ExperimentResults): string {
     `- Decision latency p50/p95/max: ${routing.p50LatencyMs.toFixed(3)} / ${routing.p95LatencyMs.toFixed(3)} / ${routing.maxLatencyMs.toFixed(3)} ms`,
     `- Semantic challenge latency p50/p95: ${routing.challengeP50LatencyMs.toFixed(3)} / ${routing.challengeP95LatencyMs.toFixed(3)} ms`,
     "",
-    "| Challenge | Expected | Predicted | Confidence | Margin | Result |",
+    "| Challenge | Expected | Predicted | Confidence | Evidence | Result |",
     "|---|---|---|---:|---:|---|",
     ...results.routing
       .filter(({ challenge }) => challenge !== undefined)
       .map(
         (trial) =>
-          `| ${trial.caseId} | ${trial.expected.scope ?? "-"} | ${trial.decision.scope} | ${percent(trial.decision.confidence)} | ${trial.decision.embedding?.margin.toFixed(4) ?? "-"} | ${trial.pass ? "pass" : "FAIL"} |`,
+          `| ${trial.caseId} | ${trial.expected.scope ?? "-"} | ${trial.decision.scope} | ${percent(trial.decision.confidence)} | ${routingEvidence(trial)} | ${trial.pass ? "pass" : "FAIL"} |`,
       ),
     "",
     "## Context selection",

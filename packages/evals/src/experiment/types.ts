@@ -17,6 +17,7 @@ export interface Decision {
   abstained: boolean;
   latencyMs: number;
   embedding?: { similarity: number; margin: number };
+  decisionModel?: { rawScope: DecisionScope; rawConfidence: number };
 }
 
 export interface RoutingState extends MetaState {

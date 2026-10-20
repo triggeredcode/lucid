@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { currentBaseline } from "./baseline";
 import { CONTEXT_CASES, ROUTING_CASES, validateExperimentCases } from "./cases";
 import { currentContextStrategy, focusedContextStrategy } from "./contextStrategies";
+import { createDecisionModelRoutingCandidate } from "./decisionModelRouter";
 import { classifyScope, createEmbeddingRoutingCandidate } from "./embeddingRouter";
 import {
   experimentToMarkdown,
@@ -90,6 +91,28 @@ describe("the optional embedding routing candidate", () => {
     if (!testCase) throw new Error("mode-command fixture is missing");
     const trial = await runRoutingCase(testCase, candidate);
     expect(trial.pass).toBe(true);
+  });
+});
+
+describe("the optional local decision-model candidate", () => {
+  it("never invokes the model for an existing deterministic route", async () => {
+    const candidate = createDecisionModelRoutingCandidate({
+      model: "test",
+      decideScope: () => Promise.reject(new Error("decision model should not run")),
+    });
+    const testCase = ROUTING_CASES.find(({ id }) => id === "mode-command");
+    if (!testCase) throw new Error("mode-command fixture is missing");
+    expect((await runRoutingCase(testCase, candidate)).pass).toBe(true);
+  });
+
+  it("accepts a confident scope classification for an unknown baseline scope", async () => {
+    const candidate = createDecisionModelRoutingCandidate({
+      model: "test",
+      decideScope: () => Promise.resolve({ scope: "section", confidence: 0.9 }),
+    });
+    const testCase = ROUTING_CASES.find(({ id }) => id === "semantic-section-database");
+    if (!testCase) throw new Error("semantic-section-database fixture is missing");
+    expect((await runRoutingCase(testCase, candidate)).pass).toBe(true);
   });
 });
 
