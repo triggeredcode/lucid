@@ -40,6 +40,12 @@ export interface DocumentContextRequest {
 const WHOLE_DOCUMENT =
   /\b(?:whole|entire)\s+(?:document|page|note|notes)\b|\b(?:all|every)\s+(?:section|sections|block|blocks|heading|headings|paragraph|paragraphs|table|tables|diagram|diagrams|chart|charts|item|items)\b|\b(?:summari[sz]e|rewrite|reorganize|review)\s+(?:the\s+)?(?:document|page|whole thing)\b/i;
 const COMPONENT_KINDS = ["table", "diagram", "chart"] as const;
+const COMPONENT_ORDINALS: Record<string, number> = {
+  first: 0,
+  second: 1,
+  third: 2,
+  fourth: 3,
+};
 const STOP_WORDS = new Set([
   "about",
   "after",
@@ -193,14 +199,29 @@ export function buildDocumentContext(request: DocumentContextRequest): DocumentC
   for (const kind of COMPONENT_KINDS) {
     if (!new RegExp(`\\b${kind}s?\\b`, "i").test(utterance)) continue;
     const candidates = index.components.filter((component) => component.kind === kind);
+    if (scope === "document") {
+      for (const candidate of candidates) roots.add(candidate.blockId);
+      continue;
+    }
+    const ordinalMatch = new RegExp(
+      `\\b(first|second|third|fourth|last)\\s+${kind}s?\\b`,
+      "i",
+    ).exec(utterance);
+    if (ordinalMatch) {
+      const word = ordinalMatch[1]?.toLowerCase() ?? "";
+      const position = word === "last" ? candidates.length - 1 : COMPONENT_ORDINALS[word];
+      const candidate = position === undefined ? undefined : candidates[position];
+      if (candidate) roots.add(candidate.blockId);
+      else missingRefs.push(`${word} ${kind}`);
+      continue;
+    }
     const focused = candidates.find(
       (component) =>
         component.blockId === request.cursorBlockId ||
         roots.has(component.blockId) ||
         recent.includes(component.blockId),
     );
-    if (scope === "document") for (const candidate of candidates) roots.add(candidate.blockId);
-    else if (focused) roots.add(focused.blockId);
+    if (focused) roots.add(focused.blockId);
     else if (candidates.length === 1) roots.add(candidates[0]?.blockId ?? "");
     else if (candidates.length > 1)
       ambiguities.push({ kind, blockIds: candidates.map((component) => component.blockId) });

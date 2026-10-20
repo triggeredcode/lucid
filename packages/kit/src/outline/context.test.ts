@@ -117,6 +117,30 @@ describe("targeted document context", () => {
     expect(missing.text).toContain("TARGET_STATUS: missing b99");
   });
 
+  it("expands an explicitly ordered component without treating it as ambiguous", () => {
+    const source = doc(
+      fixture("table", "fx-table-1", "table-a"),
+      fixture("table", "fx-table-1", "table-b"),
+      fixture("table", "fx-table-1", "table-c"),
+    );
+
+    for (const [utterance, expected] of [
+      ["Change a cell in the first table", "table-a"],
+      ["Change a cell in the second table", "table-b"],
+      ["Change a cell in the last table", "table-c"],
+    ] as const) {
+      const bundle = buildDocumentContext({ doc: source, utterance });
+      expect(bundle.selection.fullBlockIds).toEqual([expected]);
+      expect(bundle.selection.ambiguities).toEqual([]);
+    }
+
+    const ambiguous = buildDocumentContext({ doc: source, utterance: "Change the table" });
+    expect(ambiguous.selection.fullBlockIds).toEqual([]);
+    expect(ambiguous.selection.ambiguities).toEqual([
+      { kind: "table", blockIds: ["table-a", "table-b", "table-c"] },
+    ]);
+  });
+
   it("expands document-wide requests and remains deterministic", () => {
     const source = sectioned();
     const request = { doc: source, utterance: "Review the entire document" };
