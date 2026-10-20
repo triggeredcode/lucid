@@ -22,9 +22,14 @@ export interface RoutingSummary {
   laneAccuracy: number;
   actionAccuracy: number;
   scopeAccuracy: number;
+  semanticScopeAccuracy: number;
+  nearMissScopeAccuracy: number;
   highConfidenceWrongDirectActions: number;
   p50LatencyMs: number;
   p95LatencyMs: number;
+  maxLatencyMs: number;
+  challengeP50LatencyMs: number;
+  challengeP95LatencyMs: number;
 }
 
 export interface ContextSummary {
@@ -40,6 +45,9 @@ export interface ContextSummary {
 export function summariseRouting(trials: readonly RoutingTrial[]): RoutingSummary {
   const passed = trials.filter(({ pass }) => pass).length;
   const scopeTrials = trials.filter(({ expected }) => expected.scope !== undefined);
+  const semanticTrials = trials.filter(({ challenge }) => challenge === "semantic");
+  const nearMissTrials = trials.filter(({ challenge }) => challenge === "near-miss");
+  const challengeTrials = [...semanticTrials, ...nearMissTrials];
   return {
     total: trials.length,
     passed,
@@ -56,12 +64,26 @@ export function summariseRouting(trials: readonly RoutingTrial[]): RoutingSummar
       scopeTrials.filter(({ decision, expected }) => decision.scope === expected.scope).length,
       scopeTrials.length,
     ),
+    semanticScopeAccuracy: rate(
+      semanticTrials.filter(({ decision, expected }) => decision.scope === expected.scope).length,
+      semanticTrials.length,
+    ),
+    nearMissScopeAccuracy: rate(
+      nearMissTrials.filter(({ decision, expected }) => decision.scope === expected.scope).length,
+      nearMissTrials.length,
+    ),
     highConfidenceWrongDirectActions: trials.filter(
       ({ highConfidenceWrongDirectAction }) => highConfidenceWrongDirectAction,
     ).length,
     p50LatencyMs: median(trials.map(({ decision }) => decision.latencyMs)),
     p95LatencyMs: percentile(
       trials.map(({ decision }) => decision.latencyMs),
+      0.95,
+    ),
+    maxLatencyMs: Math.max(0, ...trials.map(({ decision }) => decision.latencyMs)),
+    challengeP50LatencyMs: median(challengeTrials.map(({ decision }) => decision.latencyMs)),
+    challengeP95LatencyMs: percentile(
+      challengeTrials.map(({ decision }) => decision.latencyMs),
       0.95,
     ),
   };
@@ -102,8 +124,19 @@ export function experimentToMarkdown(results: ExperimentResults): string {
     "",
     `- Pass: ${String(routing.passed)}/${String(routing.total)} (${percent(routing.passRate)})`,
     `- Lane/action/scope accuracy: ${percent(routing.laneAccuracy)} / ${percent(routing.actionAccuracy)} / ${percent(routing.scopeAccuracy)}`,
+    `- Semantic/near-miss scope accuracy: ${percent(routing.semanticScopeAccuracy)} / ${percent(routing.nearMissScopeAccuracy)}`,
     `- High-confidence wrong direct actions: ${String(routing.highConfidenceWrongDirectActions)}`,
-    `- Decision latency p50/p95: ${routing.p50LatencyMs.toFixed(3)} / ${routing.p95LatencyMs.toFixed(3)} ms`,
+    `- Decision latency p50/p95/max: ${routing.p50LatencyMs.toFixed(3)} / ${routing.p95LatencyMs.toFixed(3)} / ${routing.maxLatencyMs.toFixed(3)} ms`,
+    `- Semantic challenge latency p50/p95: ${routing.challengeP50LatencyMs.toFixed(3)} / ${routing.challengeP95LatencyMs.toFixed(3)} ms`,
+    "",
+    "| Challenge | Expected | Predicted | Confidence | Margin | Result |",
+    "|---|---|---|---:|---:|---|",
+    ...results.routing
+      .filter(({ challenge }) => challenge !== undefined)
+      .map(
+        (trial) =>
+          `| ${trial.caseId} | ${trial.expected.scope ?? "-"} | ${trial.decision.scope} | ${percent(trial.decision.confidence)} | ${trial.decision.embedding?.margin.toFixed(4) ?? "-"} | ${trial.pass ? "pass" : "FAIL"} |`,
+      ),
     "",
     "## Context selection",
     "",

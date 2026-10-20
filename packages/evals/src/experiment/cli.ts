@@ -5,8 +5,9 @@ import { dirname, join, resolve } from "node:path";
 import { currentBaseline } from "./baseline";
 import { CONTEXT_CASES, ROUTING_CASES, validateExperimentCases } from "./cases";
 import { currentContextStrategy, focusedContextStrategy } from "./contextStrategies";
+import { createEmbeddingRoutingCandidate } from "./embeddingRouter";
 import { experimentToMarkdown, passesExperimentGates } from "./report";
-import { runContextCase, runRoutingCase } from "./run";
+import { runContextCase, runRoutingCases } from "./run";
 import { EXPERIMENT_DATASET_VERSION, type ExperimentResults, type ExperimentSplit } from "./types";
 
 const arg = (args: string[], name: string): string | undefined => {
@@ -31,8 +32,12 @@ export async function experimentMain(args: string[], cwd = process.cwd()): Promi
   const suite = arg(args, "suite") ?? "all";
   const splitArg = arg(args, "split") ?? "all";
   const contextArg = arg(args, "context") ?? "current";
-  if (candidateArg !== "current") {
-    console.error("Only --candidate current exists in the baseline slice.");
+  const minSimilarityArg = arg(args, "embedding-min-similarity");
+  const minMarginArg = arg(args, "embedding-min-margin");
+  const minSimilarity = minSimilarityArg === undefined ? undefined : Number(minSimilarityArg);
+  const minMargin = minMarginArg === undefined ? undefined : Number(minMarginArg);
+  if (candidateArg !== "current" && candidateArg !== "ollama-embedding") {
+    console.error("--candidate must be current or ollama-embedding.");
     return 2;
   }
   if (!["routing", "context", "all"].includes(suite)) {
@@ -47,6 +52,14 @@ export async function experimentMain(args: string[], cwd = process.cwd()): Promi
     console.error("--context must be current or focused.");
     return 2;
   }
+  if (minSimilarity !== undefined && (!Number.isFinite(minSimilarity) || minSimilarity < 0)) {
+    console.error("--embedding-min-similarity must be a non-negative number.");
+    return 2;
+  }
+  if (minMargin !== undefined && (!Number.isFinite(minMargin) || minMargin < 0)) {
+    console.error("--embedding-min-margin must be a non-negative number.");
+    return 2;
+  }
   const problems = validateExperimentCases();
   if (problems.length > 0) {
     console.error(
@@ -58,14 +71,20 @@ export async function experimentMain(args: string[], cwd = process.cwd()): Promi
   const split = splitArg as ExperimentSplit | "all";
   const inSplit = (testCase: { split: ExperimentSplit }): boolean =>
     split === "all" || testCase.split === split;
+  const ollamaUrl = arg(args, "ollama-url");
+  const routingCandidate =
+    candidateArg === "ollama-embedding"
+      ? createEmbeddingRoutingCandidate({
+          model: arg(args, "embedding-model") ?? "nomic-embed-text:latest",
+          ...(ollamaUrl ? { baseUrl: ollamaUrl } : {}),
+          ...(minSimilarity === undefined ? {} : { minSimilarity }),
+          ...(minMargin === undefined ? {} : { minMargin }),
+        })
+      : currentBaseline;
   const routing =
     suite === "context"
       ? []
-      : await Promise.all(
-          ROUTING_CASES.filter(inSplit).map((testCase) =>
-            runRoutingCase(testCase, currentBaseline),
-          ),
-        );
+      : await runRoutingCases(ROUTING_CASES.filter(inSplit), routingCandidate);
   const contextStrategy =
     contextArg === "focused" ? focusedContextStrategy : currentContextStrategy;
   const context =
@@ -79,7 +98,7 @@ export async function experimentMain(args: string[], cwd = process.cwd()): Promi
   const results: ExperimentResults = {
     meta: {
       datasetVersion: EXPERIMENT_DATASET_VERSION,
-      candidate: currentBaseline.id,
+      candidate: routingCandidate.id,
       contextStrategy: contextStrategy.id,
       createdAt: new Date().toISOString(),
       sourceRevision: revision(cwd),
@@ -99,10 +118,11 @@ export async function experimentMain(args: string[], cwd = process.cwd()): Promi
     context,
   };
   const day = new Date().toLocaleDateString("en-CA");
+  const candidateSlug = routingCandidate.id.replace(/[^a-z0-9.-]+/gi, "-");
   const output = resolve(
     cwd,
     arg(args, "out") ??
-      join(".docdex", "evals", `${day}-decision-current-context-${contextStrategy.id}`),
+      join(".docdex", "evals", `${day}-decision-${candidateSlug}-context-${contextStrategy.id}`),
   );
   mkdirSync(dirname(join(output, "x")), { recursive: true });
   writeFileSync(join(output, "results.json"), `${JSON.stringify(results, null, 2)}\n`);

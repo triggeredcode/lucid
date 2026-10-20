@@ -48,12 +48,22 @@ export async function runRoutingCase(
     family: testCase.family,
     split: testCase.split,
     utterance: testCase.utterance,
+    ...(testCase.challenge ? { challenge: testCase.challenge } : {}),
     expected: testCase.expected,
     decision,
     pass: failures.length === 0,
     failures,
     highConfidenceWrongDirectAction,
   };
+}
+
+export async function runRoutingCases(
+  cases: readonly RoutingCase[],
+  candidate: RoutingCandidate,
+): Promise<RoutingTrial[]> {
+  const trials: RoutingTrial[] = [];
+  for (const testCase of cases) trials.push(await runRoutingCase(testCase, candidate));
+  return trials;
 }
 
 export function runContextCase(
