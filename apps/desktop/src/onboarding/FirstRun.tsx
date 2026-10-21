@@ -1,8 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import type { AiSettings, PublicSettings, SettingsInput } from "../../electron/ipc/types";
+import type {
+  AiSettings,
+  ProviderConnectionResult,
+  ProviderProfile,
+  PublicSettings,
+  SettingsInput,
+} from "../../electron/ipc/types";
 import { ProviderSettings } from "../settings/ProviderSettings";
 import { saveSettings } from "../settings/settingsStore";
 import { BrandMark } from "../ui/BrandMark";
+import { decideProvider, loadActivationProgress, rememberSetupStep } from "./activation";
 
 interface Props {
   settings: PublicSettings;
@@ -11,6 +18,15 @@ interface Props {
 }
 
 const STEP_NAMES = ["Welcome", "Connect AI", "Your workspace"] as const;
+
+const providerIsReady = (
+  result: ProviderConnectionResult | undefined,
+  profile: ProviderProfile,
+): boolean =>
+  result?.ok === true &&
+  profile.model.trim().length > 0 &&
+  Array.isArray(result.models) &&
+  result.models.includes(profile.model);
 
 const settingsWithAi = (settings: PublicSettings, ai: AiSettings): SettingsInput => {
   const selected = ai.profiles.find((profile) => profile.id === ai.defaultProfileId);
@@ -30,10 +46,12 @@ const settingsWithAi = (settings: PublicSettings, ai: AiSettings): SettingsInput
 };
 
 export function FirstRun({ settings, onSettingsChange, onFinish }: Props) {
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState<0 | 1 | 2>(() => loadActivationProgress().setupStep);
   const [ai, setAi] = useState(settings.ai);
   const [working, setWorking] = useState(false);
   const [problem, setProblem] = useState<string>();
+  const [providerConnection, setProviderConnection] = useState<ProviderConnectionResult>();
+  const [activation, setActivation] = useState(loadActivationProgress);
   const heading = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
@@ -72,8 +90,25 @@ export function FirstRun({ settings, onSettingsChange, onFinish }: Props) {
 
   const next = async () => {
     if (step === 1 && !(await persistAi())) return;
-    setStep((current) => Math.min(current + 1, STEP_NAMES.length - 1));
+    const nextStep = Math.min(step + 1, STEP_NAMES.length - 1) as 0 | 1 | 2;
+    setStep(nextStep);
+    setActivation((current) => rememberSetupStep(current, nextStep));
   };
+
+  const continueWithoutAi = async () => {
+    if (!(await persistAi())) return;
+    setActivation((current) => rememberSetupStep(decideProvider(current, "skipped"), 2));
+    setStep(2);
+  };
+
+  const providerState =
+    activation.provider === "ready"
+      ? "ready"
+      : providerConnection
+        ? "attention"
+        : activation.provider === "skipped"
+          ? "skipped"
+          : "unchecked";
 
   return (
     <div className="modal-backdrop onboarding-backdrop">
@@ -153,9 +188,43 @@ export function FirstRun({ settings, onSettingsChange, onFinish }: Props) {
                 lmStudioUrlLocked={settings.llmUrlLocked}
                 onChange={setAi}
                 onPersist={persistAi}
+                onConnectionChange={(result, profile) => {
+                  setProviderConnection(result);
+                  setActivation((current) => {
+                    if (providerIsReady(result, profile)) return decideProvider(current, "ready");
+                    if (current.provider === "ready") return decideProvider(current, "unknown");
+                    return current;
+                  });
+                }}
               />
+              <div
+                className="onboarding-readiness"
+                data-state={providerState}
+                role="status"
+                aria-live="polite"
+              >
+                <i aria-hidden="true" />
+                <span>
+                  <strong>
+                    {providerState === "ready"
+                      ? "AI ready"
+                      : providerState === "skipped"
+                        ? "Continuing without AI"
+                        : providerState === "attention"
+                          ? "Connection needs attention"
+                          : "Check your provider before continuing"}
+                  </strong>
+                  {providerState === "ready"
+                    ? " The selected model was found."
+                    : providerState === "skipped"
+                      ? " You can connect one later in Settings."
+                      : providerState === "attention"
+                        ? " Follow the message above, then test it again."
+                        : " Use Test connection after choosing a model."}
+                </span>
+              </div>
               <p className="onboarding-note">
-                You can continue without AI. Notes, manual editing, import and export still work.
+                AI is optional. Notes, manual editing, import and export still work without it.
               </p>
             </div>
           )}
@@ -217,7 +286,9 @@ export function FirstRun({ settings, onSettingsChange, onFinish }: Props) {
                 className="ghost"
                 disabled={working}
                 onClick={() => {
-                  setStep((current) => current - 1);
+                  const previous = (step - 1) as 0 | 1;
+                  setStep(previous);
+                  setActivation((current) => rememberSetupStep(current, previous));
                 }}
               >
                 Back
@@ -225,19 +296,37 @@ export function FirstRun({ settings, onSettingsChange, onFinish }: Props) {
             )}
             <span />
             {step < STEP_NAMES.length - 1 ? (
-              <button
-                type="button"
-                className="primary"
-                disabled={working}
-                onClick={() => void next()}
-              >
-                {working ? "Saving…" : step === 0 ? "Set up Lucid" : "Continue"}
-              </button>
+              <>
+                {step === 1 && activation.provider !== "ready" && (
+                  <button
+                    type="button"
+                    className="ghost"
+                    disabled={working}
+                    onClick={() => void continueWithoutAi()}
+                  >
+                    Continue without AI
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="primary"
+                  disabled={
+                    working ||
+                    (step === 1 &&
+                      activation.provider !== "ready" &&
+                      activation.provider !== "skipped")
+                  }
+                  onClick={() => void next()}
+                >
+                  {working ? "Saving…" : step === 0 ? "Set up Lucid" : "Continue"}
+                </button>
+              </>
             ) : (
               <button
                 type="button"
                 className="primary"
                 onClick={() => {
+                  setActivation((current) => rememberSetupStep(current, 0));
                   onFinish(true);
                 }}
               >

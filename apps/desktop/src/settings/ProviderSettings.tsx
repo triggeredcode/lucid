@@ -30,9 +30,18 @@ interface Props {
   lmStudioUrlLocked: boolean;
   onChange: (value: AiSettings) => void;
   onPersist: () => Promise<boolean>;
+  /** Lets first-run setup distinguish a verified provider from one that still needs attention. */
+  onConnectionChange?:
+    ((result: ProviderConnectionResult | undefined, profile: ProviderProfile) => void) | undefined;
 }
 
-export function ProviderSettings({ value, lmStudioUrlLocked, onChange, onPersist }: Props) {
+export function ProviderSettings({
+  value,
+  lmStudioUrlLocked,
+  onChange,
+  onPersist,
+  onConnectionChange,
+}: Props) {
   const [activeId, setActiveId] = useState(value.defaultProfileId);
   const [addKind, setAddKind] = useState<AiProviderKind>("ollama");
   const [credential, setCredential] = useState<CredentialStatus>(emptyCredential);
@@ -40,6 +49,8 @@ export function ProviderSettings({ value, lmStudioUrlLocked, onChange, onPersist
   const [busy, setBusy] = useState<"key" | "test" | "models">();
   const [models, setModels] = useState<string[]>([]);
   const secret = useRef<HTMLInputElement>(null);
+  const connectionChange = useRef(onConnectionChange);
+  connectionChange.current = onConnectionChange;
   const active =
     value.profiles.find((profile) => profile.id === activeId) ??
     value.profiles.find((profile) => profile.id === value.defaultProfileId) ??
@@ -47,13 +58,21 @@ export function ProviderSettings({ value, lmStudioUrlLocked, onChange, onPersist
   const provider = AI_PROVIDER_CATALOG.find((candidate) => candidate.kind === active?.kind);
   const credentialId = active ? providerCredentialId(active.id) : "";
   const modelListId = useMemo(() => `provider-models-${active?.id ?? "none"}`, [active?.id]);
+  const connectionSignature = `${active?.id ?? ""}\n${active?.kind ?? ""}\n${active?.baseUrl ?? ""}\n${active?.model ?? ""}`;
+  const previousConnectionSignature = useRef(connectionSignature);
 
   useEffect(() => {
-    setConnection(undefined);
-    setModels([]);
     if (!active) return;
     void window.lucid.credentials.status(providerCredentialId(active.id)).then(setCredential);
   }, [active?.id]);
+
+  useEffect(() => {
+    const changed = previousConnectionSignature.current !== connectionSignature;
+    previousConnectionSignature.current = connectionSignature;
+    setConnection(undefined);
+    setModels([]);
+    if (active && changed) connectionChange.current?.(undefined, active);
+  }, [active, connectionSignature]);
 
   const replace = (change: Partial<ProviderProfile>) => {
     if (!active) return;
@@ -97,6 +116,7 @@ export function ProviderSettings({ value, lmStudioUrlLocked, onChange, onPersist
     if (!entered) return;
     setBusy("key");
     setConnection(undefined);
+    connectionChange.current?.(undefined, active);
     try {
       setCredential(
         await window.lucid.credentials.save({
@@ -117,6 +137,8 @@ export function ProviderSettings({ value, lmStudioUrlLocked, onChange, onPersist
 
   const clearKey = async () => {
     setBusy("key");
+    setConnection(undefined);
+    if (active) connectionChange.current?.(undefined, active);
     try {
       await window.lucid.credentials.delete(credentialId);
       setCredential(await window.lucid.credentials.status(credentialId));
@@ -140,15 +162,18 @@ export function ProviderSettings({ value, lmStudioUrlLocked, onChange, onPersist
           ? await window.lucid.providers.test(active.id)
           : await window.lucid.providers.models(active.id);
       setConnection(result);
+      connectionChange.current?.(result, active);
       if (result.ok && result.models) {
         setModels(result.models);
         if (!active.model && result.models[0]) replace({ model: result.models[0] });
       }
     } catch {
-      setConnection({
+      const result: ProviderConnectionResult = {
         ok: false,
         message: "The connection check could not finish. Try again.",
-      });
+      };
+      setConnection(result);
+      connectionChange.current?.(result, active);
     } finally {
       setBusy(undefined);
     }

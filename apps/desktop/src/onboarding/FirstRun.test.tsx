@@ -5,6 +5,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { PublicSettings } from "../../electron/ipc/types";
+import { decideProvider, loadActivationProgress, rememberSetupStep } from "./activation";
 import { FirstRun } from "./FirstRun";
 
 const settings: PublicSettings = {
@@ -45,6 +46,7 @@ afterEach(() => {
   container?.remove();
   root = undefined;
   container = undefined;
+  localStorage.clear();
 });
 
 describe("FirstRun", () => {
@@ -92,5 +94,140 @@ describe("FirstRun", () => {
       skip?.click();
     });
     expect(finish).toHaveBeenCalledWith(false);
+  });
+
+  it("makes continuing without AI explicit and remembers that choice", async () => {
+    Object.defineProperty(window, "lucid", {
+      configurable: true,
+      value: {
+        credentials: {
+          status: vi.fn().mockResolvedValue({
+            present: false,
+            storage: "none",
+            securePersistenceAvailable: true,
+          }),
+        },
+        settings: {
+          save: vi.fn().mockResolvedValue({ ok: true, settings }),
+        },
+      },
+    });
+    container = document.createElement("div");
+    document.body.append(container);
+    root = createRoot(container);
+    const view = container;
+
+    await act(async () => {
+      root?.render(<FirstRun settings={settings} onSettingsChange={vi.fn()} onFinish={vi.fn()} />);
+      await Promise.resolve();
+    });
+    await act(async () => {
+      [...view.querySelectorAll("button")]
+        .find((button) => button.textContent === "Set up Lucid")
+        ?.click();
+      await Promise.resolve();
+    });
+
+    const normalContinue = [...container.querySelectorAll("button")].find(
+      (button) => button.textContent === "Continue",
+    );
+    expect(normalContinue?.disabled).toBe(true);
+    await act(async () => {
+      [...view.querySelectorAll("button")]
+        .find((button) => button.textContent === "Continue without AI")
+        ?.click();
+      await Promise.resolve();
+    });
+
+    expect(container.querySelector("h1")?.textContent).toBe("Everything happens around one page");
+    expect(loadActivationProgress().provider).toBe("skipped");
+  });
+
+  it("continues after the selected provider and model are verified", async () => {
+    Object.defineProperty(window, "lucid", {
+      configurable: true,
+      value: {
+        credentials: {
+          status: vi.fn().mockResolvedValue({
+            present: false,
+            storage: "none",
+            securePersistenceAvailable: true,
+          }),
+        },
+        settings: {
+          save: vi.fn().mockResolvedValue({ ok: true, settings }),
+        },
+        providers: {
+          test: vi.fn().mockResolvedValue({
+            ok: true,
+            message: "Connected to LM Studio. 1 model available.",
+            models: ["qwen/qwen3.8-27b"],
+          }),
+          models: vi.fn(),
+        },
+      },
+    });
+    container = document.createElement("div");
+    document.body.append(container);
+    root = createRoot(container);
+    const view = container;
+
+    await act(async () => {
+      root?.render(<FirstRun settings={settings} onSettingsChange={vi.fn()} onFinish={vi.fn()} />);
+      await Promise.resolve();
+    });
+    await act(async () => {
+      [...view.querySelectorAll("button")]
+        .find((button) => button.textContent === "Set up Lucid")
+        ?.click();
+      await Promise.resolve();
+    });
+    await act(async () => {
+      [...view.querySelectorAll("button")]
+        .find((button) => button.textContent === "Test connection")
+        ?.click();
+      await Promise.resolve();
+    });
+
+    expect(
+      container.querySelector('.onboarding-readiness[data-state="ready"]')?.textContent,
+    ).toContain("AI ready");
+    const normalContinue = [...container.querySelectorAll("button")].find(
+      (button) => button.textContent === "Continue",
+    );
+    expect(normalContinue?.disabled).toBe(false);
+    expect(loadActivationProgress().provider).toBe("ready");
+  });
+
+  it("resumes an unfinished verified setup after a restart", async () => {
+    const ready = decideProvider(loadActivationProgress(), "ready");
+    rememberSetupStep(ready, 1);
+    Object.defineProperty(window, "lucid", {
+      configurable: true,
+      value: {
+        credentials: {
+          status: vi.fn().mockResolvedValue({
+            present: false,
+            storage: "none",
+            securePersistenceAvailable: true,
+          }),
+        },
+      },
+    });
+    container = document.createElement("div");
+    document.body.append(container);
+    root = createRoot(container);
+
+    await act(async () => {
+      root?.render(<FirstRun settings={settings} onSettingsChange={vi.fn()} onFinish={vi.fn()} />);
+      await Promise.resolve();
+    });
+
+    expect(container.querySelector("h1")?.textContent).toBe("Connect an AI provider");
+    expect(container.querySelector('.onboarding-readiness[data-state="ready"]')).not.toBeNull();
+    expect(
+      [...container.querySelectorAll("button")].find((button) => button.textContent === "Continue")
+        ?.disabled,
+    ).toBe(false);
   });
 });
