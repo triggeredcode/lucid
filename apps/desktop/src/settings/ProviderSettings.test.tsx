@@ -53,6 +53,7 @@ describe("ProviderSettings", () => {
     container = document.createElement("div");
     document.body.append(container);
     root = createRoot(container);
+    const connectionChanged = vi.fn();
 
     await act(async () => {
       root?.render(
@@ -61,6 +62,7 @@ describe("ProviderSettings", () => {
           lmStudioUrlLocked={false}
           onChange={vi.fn()}
           onPersist={vi.fn().mockResolvedValue(true)}
+          onConnectionChange={connectionChanged}
         />,
       );
       await Promise.resolve();
@@ -78,6 +80,60 @@ describe("ProviderSettings", () => {
     expect(container.querySelector('[role="status"]')?.textContent).toBe(
       "The connection check could not finish. Try again.",
     );
+    expect(connectionChanged).toHaveBeenLastCalledWith(
+      { ok: false, message: "The connection check could not finish. Try again." },
+      settings.profiles[0],
+    );
     expect(button?.disabled).toBe(false);
+  });
+
+  it("reports a successful model inspection to its parent", async () => {
+    const result = {
+      ok: true,
+      message: "Connected to LM Studio. 1 model available.",
+      models: ["local/model"],
+    };
+    Object.defineProperty(window, "lucid", {
+      configurable: true,
+      value: {
+        credentials: {
+          status: vi.fn().mockResolvedValue({
+            present: false,
+            storage: "none",
+            securePersistenceAvailable: true,
+          }),
+        },
+        providers: {
+          test: vi.fn().mockResolvedValue(result),
+          models: vi.fn(),
+        },
+      },
+    });
+    const connectionChanged = vi.fn();
+    container = document.createElement("div");
+    document.body.append(container);
+    root = createRoot(container);
+
+    await act(async () => {
+      root?.render(
+        <ProviderSettings
+          value={settings}
+          lmStudioUrlLocked={false}
+          onChange={vi.fn()}
+          onPersist={vi.fn().mockResolvedValue(true)}
+          onConnectionChange={connectionChanged}
+        />,
+      );
+      await Promise.resolve();
+    });
+    const test = [...container.querySelectorAll("button")].find(
+      (candidate) => candidate.textContent === "Test connection",
+    );
+    await act(async () => {
+      test?.click();
+      await Promise.resolve();
+    });
+
+    expect(connectionChanged).toHaveBeenLastCalledWith(result, settings.profiles[0]);
   });
 });

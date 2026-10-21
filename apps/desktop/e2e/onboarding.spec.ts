@@ -30,7 +30,7 @@ test("a first run explains setup and points out the workspace", async () => {
 
     await expect(window.getByRole("heading", { name: "Connect an AI provider" })).toBeVisible();
     await expect(window.getByText("LM Studio or Ollama", { exact: false })).toBeVisible();
-    await window.getByRole("button", { name: "Continue" }).click();
+    await window.getByRole("button", { name: "Continue without AI" }).click();
 
     await expect(
       window.getByRole("heading", { name: "Everything happens around one page" }),

@@ -1951,6 +1951,42 @@ select:focus-visible,
 .onboarding-lead {
   margin-bottom: 0;
 }
+.onboarding-readiness {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-top: 16px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: var(--bg-2);
+  color: var(--ink-2);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.onboarding-readiness i {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--ink-3);
+}
+.onboarding-readiness[data-state="ready"] {
+  border-color: color-mix(in srgb, var(--ok) 42%, var(--line));
+}
+.onboarding-readiness[data-state="ready"] i {
+  background: var(--ok);
+}
+.onboarding-readiness[data-state="attention"] i {
+  background: var(--danger);
+}
+.onboarding-readiness[data-state="skipped"] i {
+  background: var(--accent);
+}
+.onboarding-readiness strong {
+  color: var(--ink);
+}
 .onboarding-note {
   margin: 18px 0 0;
   padding: 10px 12px;
