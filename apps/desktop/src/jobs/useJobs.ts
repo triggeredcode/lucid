@@ -15,6 +15,7 @@ interface Options {
   format: () => string | undefined;
   onTranscript: (entry: TranscriptEntry) => void;
   onChange: (entry: ChangeEntry) => void;
+  onApplied?: ((mode: Mode) => void) | undefined;
   onExportPdf?: (() => void) | undefined;
   onExportMarkdown?: (() => void) | undefined;
   /** "diagram mode", "edit this diagram", "table mode": open the guided builder. */
@@ -63,6 +64,9 @@ export function useJobs(options: Options) {
         },
         onChange: (e) => {
           opts.current.onChange(e);
+        },
+        onApplied: (mode) => {
+          opts.current.onApplied?.(mode);
         },
       });
       setReady(true);

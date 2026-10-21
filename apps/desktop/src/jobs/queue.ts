@@ -68,6 +68,8 @@ export interface QueueOptions {
   onStatus: (status: JobStatus) => void;
   onTranscript: (entry: TranscriptEntry) => void;
   onChange: (entry: ChangeEntry) => void;
+  /** A real input or command change was successfully applied to the page. */
+  onApplied?: (mode: Mode) => void;
   /** Timing of every model call (for the developer console and, later, the job log). */
   onCall?: (call: CallInfo) => void;
   /** How often to look for LM Studio again while it is down. */
@@ -554,6 +556,7 @@ export class JobQueue {
       affected: [...(affected ?? [])],
       reverted: false,
     });
+    this.options.onApplied?.(mode);
     this.options.onStatus({ kind: "done", summary, notice, at, undoable: true });
   }
 

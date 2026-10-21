@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { _electron as electron, expect, test } from "@playwright/test";
 import { maximizeWindow } from "./helpers";
 
-test("a first run explains setup and points out the workspace", async () => {
+test("a first run leads into a real first-success task", async () => {
   const app = await electron.launch({
     args: [join(__dirname, "../out/main/index.js")],
     env: {
@@ -20,6 +20,7 @@ test("a first run explains setup and points out the workspace", async () => {
     await maximizeWindow(app, window);
     await window.evaluate(() => {
       localStorage.removeItem("lucid.onboarding");
+      localStorage.removeItem("lucid.firstSuccess");
     });
     await window.reload();
 
@@ -37,25 +38,28 @@ test("a first run explains setup and points out the workspace", async () => {
     ).toBeVisible();
     await window.getByRole("button", { name: "Open my workspace" }).click();
 
-    const tour = window.getByRole("dialog", { name: "Lucid workspace tour" });
-    await expect(tour.getByRole("heading", { name: "Your pages live here" })).toBeVisible();
-    await tour.getByRole("button", { name: "Next" }).click();
-    await expect(tour.getByRole("heading", { name: "Change how Lucid listens" })).toBeVisible();
-    await expect
-      .poll(async () => {
-        const card = await window.locator(".tour-card").boundingBox();
-        const modes = await window.locator('[data-tour="modes"]').boundingBox();
-        return card && modes ? card.y + card.height <= modes.y : false;
-      })
-      .toBe(true);
-    await tour.getByRole("button", { name: "Next" }).click();
-    await expect(tour.getByRole("heading", { name: "Take the result with you" })).toBeVisible();
-    await tour.getByRole("button", { name: "Done" }).click();
-
-    await expect(tour).toBeHidden();
+    const guide = window.getByRole("complementary", { name: "First success guide" });
+    await expect(guide.getByRole("heading", { name: "Create your first page" })).toBeVisible();
+    await guide.getByRole("button", { name: "Create my page" }).click();
+    await expect(guide.getByRole("heading", { name: "Add your first thought" })).toBeVisible();
+    await expect(guide.getByText("Choose Edit mode", { exact: false })).toBeVisible();
+    await guide.getByRole("button", { name: "Skip for now", exact: true }).last().click();
+    await expect(guide).toBeHidden();
     await expect
       .poll(() => window.evaluate(() => localStorage.getItem("lucid.onboarding")))
       .toBe("1");
+    await expect
+      .poll(() =>
+        window.evaluate(() => {
+          const stored = localStorage.getItem("lucid.firstSuccess");
+          return Boolean(
+            stored?.includes('"provider":"skipped"') &&
+            stored.includes('"paused":true') &&
+            stored.includes('"page-created"'),
+          );
+        }),
+      )
+      .toBe(true);
   } finally {
     await app.close();
   }

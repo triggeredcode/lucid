@@ -4,10 +4,14 @@ import {
   ACTIVATION_VERSION,
   decideProvider,
   finishActivation,
+  hasAiFirstSuccess,
+  hasBasicFirstSuccess,
   loadActivationProgress,
+  pauseActivation,
   recordMilestone,
   rememberActivationPage,
   rememberSetupStep,
+  resumeActivation,
 } from "./activation";
 
 const memory = (initial?: string) => {
@@ -30,6 +34,7 @@ describe("first-success activation progress", () => {
       setupStep: 0,
       milestones: [],
       finished: false,
+      paused: false,
     });
   });
 
@@ -57,6 +62,7 @@ describe("first-success activation progress", () => {
       setupStep: 0,
       milestones: ["page-created"],
       finished: false,
+      paused: false,
     });
   });
 
@@ -67,6 +73,8 @@ describe("first-success activation progress", () => {
     progress = rememberActivationPage(progress, "page-1", storage);
     progress = recordMilestone(progress, "page-created", storage);
     progress = recordMilestone(progress, "page-created", storage);
+    progress = pauseActivation(progress, storage);
+    progress = resumeActivation(progress, storage);
     finishActivation(progress, storage);
 
     expect(loadActivationProgress(storage)).toEqual({
@@ -76,7 +84,24 @@ describe("first-success activation progress", () => {
       milestones: ["page-created"],
       pageId: "page-1",
       finished: true,
+      paused: false,
     });
+  });
+
+  it("distinguishes a basic offline success from the full AI flow", () => {
+    const base = loadActivationProgress(memory().storage);
+    const basic: ReturnType<typeof loadActivationProgress> = {
+      ...base,
+      milestones: ["page-created", "content-added", "export-saved"],
+    };
+    expect(hasBasicFirstSuccess(basic)).toBe(true);
+    expect(hasAiFirstSuccess(basic)).toBe(false);
+    expect(
+      hasAiFirstSuccess({
+        ...basic,
+        milestones: [...basic.milestones, "command-applied", "visual-created"],
+      }),
+    ).toBe(true);
   });
 
   it("never blocks the app when storage throws", () => {

@@ -90,8 +90,10 @@ export function usePages() {
       setCurrent(file);
       remember(file.id);
       setError(undefined);
+      return file;
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
+      return undefined;
     }
   }, []);
 

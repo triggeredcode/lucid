@@ -21,6 +21,7 @@ interface Props {
   /** Lets the page start an export (the voice commands "export PDF" and "export Markdown", the File menu). */
   register?:
     ((start: { pdf: () => void; markdown: () => void; note: () => void }) => void) | undefined;
+  onSaved?: ((kind: "pdf" | "markdown" | "note", path: string) => void) | undefined;
 }
 
 /** What went wrong, without the "Error invoking remote method ..." that Electron puts in front. */
@@ -41,6 +42,7 @@ export function ExportButton({
   said,
   changes,
   register,
+  onSaved,
 }: Props) {
   const [busy, setBusy] = useState(false);
   const [noteOpen, setNoteOpen] = useState(false);
@@ -91,6 +93,7 @@ export function ExportButton({
       if (path) {
         const warning = made.warnings.length > 0 ? ` ${made.warnings.join(" ")}` : "";
         setNote({ kind: "saved", text: `Saved ${baseName(path)}.${warning}`, path });
+        onSaved?.("pdf", path);
       }
     } finally {
       setBusy(false);
@@ -104,14 +107,20 @@ export function ExportButton({
       docToMarkdown(current, { title: name }),
       pdfFileName(name).replace(/\.pdf$/, ".md"),
     );
-    if (path) setNote({ kind: "saved", text: `Saved ${baseName(path)}` });
+    if (path) {
+      setNote({ kind: "saved", text: `Saved ${baseName(path)}` });
+      onSaved?.("markdown", path);
+    }
   };
   const runNote = async (history: boolean) => {
     setNoteOpen(false);
     setNote(undefined);
     try {
       const path = await window.lucid.note.export(getNote(), { history });
-      if (path) setNote({ kind: "saved", text: `Saved ${baseName(path)}.` });
+      if (path) {
+        setNote({ kind: "saved", text: `Saved ${baseName(path)}.` });
+        onSaved?.("note", path);
+      }
     } catch (error) {
       setNote({ kind: "error", text: `The note couldn’t be exported. ${plain(error)}` });
     }
