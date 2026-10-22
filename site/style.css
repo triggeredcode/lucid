@@ -1,7 +1,7 @@
 /*
  * The Lucid site. One page, no framework, no third-party requests: the typeface is served from here.
  *
- * Design rules (the same language as the app: black and white, hairlines, one filled button, iA Writer Mono):
+ * Design rules (the same language as the app: neutral surfaces, hairlines, one filled button, iA Writer Mono):
  *  - Spacing is a 4 px scale (--s1 .. --s10), type is a ratio scale of about 1.25 (--t-1 .. --t6); nothing else is used.
  *  - Colours are tokens; text on every surface keeps at least 4.5:1 (body) and 3:1 (tertiary), in both themes.
  *  - Radii: 8 (controls), 12 (cards), 16 (the window picture). Borders are 1 px.
@@ -37,6 +37,12 @@
   --inverse-ink: #ffffff;
   --ok: #3f8a69;
   --red: #b8453d;
+  --structure: #315eba;
+  --structure-bg: #e8f0ff;
+  --data: #6d4e9c;
+  --data-bg: #f1ebf8;
+  --decision: #2f7657;
+  --decision-bg: #e8f3ed;
   --shadow-1: 0 1px 2px rgb(15 15 15 / 6%), 0 6px 20px rgb(15 15 15 / 6%);
   --shadow-window: 0 2px 4px rgb(15 15 15 / 6%), 0 24px 64px -12px rgb(15 15 15 / 22%);
 
@@ -80,6 +86,12 @@
   --inverse-ink: #191919;
   --ok: #5fb892;
   --red: #e56458;
+  --structure: #8cb4ff;
+  --structure-bg: #202f49;
+  --data: #c2a7e6;
+  --data-bg: #322940;
+  --decision: #75c7a4;
+  --decision-bg: #20352c;
   --shadow-1: 0 1px 2px rgb(0 0 0 / 40%), 0 6px 24px rgb(0 0 0 / 35%);
   --shadow-window: 0 2px 4px rgb(0 0 0 / 40%), 0 24px 64px -12px rgb(0 0 0 / 70%);
 }
@@ -98,6 +110,12 @@
     --inverse-ink: #191919;
     --ok: #5fb892;
     --red: #e56458;
+    --structure: #8cb4ff;
+    --structure-bg: #202f49;
+    --data: #c2a7e6;
+    --data-bg: #322940;
+    --decision: #75c7a4;
+    --decision-bg: #20352c;
     --shadow-1: 0 1px 2px rgb(0 0 0 / 40%), 0 6px 24px rgb(0 0 0 / 35%);
     --shadow-window: 0 2px 4px rgb(0 0 0 / 40%), 0 24px 64px -12px rgb(0 0 0 / 70%);
   }
@@ -460,9 +478,9 @@ h3 {
 /* ---- the idea: say, then structure ---- */
 .demo {
   display: grid;
-  grid-template-columns: minmax(0, 5fr) auto minmax(0, 6fr);
-  gap: var(--s5);
-  align-items: stretch;
+  grid-template-columns: minmax(240px, 0.82fr) 132px minmax(460px, 1.35fr);
+  gap: var(--s4);
+  align-items: center;
 }
 .card {
   background: var(--bg);
@@ -471,8 +489,7 @@ h3 {
   box-shadow: var(--shadow-1);
 }
 .say {
-  align-self: start;
-  padding: var(--s5);
+  padding: var(--s6);
 }
 .say .label,
 .doc .label {
@@ -487,80 +504,237 @@ h3 {
   font-size: var(--t0);
   line-height: 1.7;
 }
-.say blockquote span {
-  background: linear-gradient(transparent 62%, var(--panel-2) 62%);
+.thought {
+  border-radius: 3px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding: 1px 2px;
 }
-.arrow {
-  align-self: center;
-  color: var(--ink-3);
+.thought-flow {
+  background: var(--structure-bg);
+  color: var(--structure);
 }
-.arrow svg {
-  width: 36px;
-  height: 36px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.thought-data {
+  background: var(--data-bg);
+  color: var(--data);
 }
-.doc {
-  grid-template-columns: minmax(0, 1fr);
-  padding: var(--s5);
+.thought-decision {
+  background: var(--decision-bg);
+  color: var(--decision);
+}
+.thought-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s3);
+  margin-top: var(--s5);
+  padding-top: var(--s4);
+  border-top: 1px solid var(--line);
+  color: var(--ink-2);
+  font-size: var(--t-1);
+}
+.thought-legend span,
+.structure-key span:not(.structure-key-line) {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+}
+.thought-legend i,
+.structure-key i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.thought-legend .flow,
+.structure-key .flow {
+  color: var(--structure);
+}
+.thought-legend .data,
+.structure-key .data {
+  color: var(--data);
+}
+.thought-legend .decision,
+.structure-key .decision {
+  color: var(--decision);
+}
+.structure-key {
+  position: relative;
   display: grid;
   gap: var(--s4);
+  align-content: center;
+  min-height: 210px;
+  color: var(--ink-2);
+  font-size: var(--t-1);
+}
+.structure-key-line {
+  position: absolute;
+  inset: 18px auto 18px 3px;
+  width: 1px;
+  background: var(--line-strong);
+}
+.structure-key-line::before,
+.structure-key-line::after {
+  content: "";
+  position: absolute;
+  left: -3px;
+  width: 7px;
+  height: 7px;
+  border: solid var(--line-strong);
+  border-width: 1px 1px 0 0;
+  transform: rotate(45deg);
+}
+.structure-key-line::before {
+  top: -1px;
+}
+.structure-key-line::after {
+  bottom: -1px;
+}
+.structure-key span:not(.structure-key-line) {
+  position: relative;
+  padding-left: var(--s4);
+}
+.doc {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(150px, 0.42fr);
+  gap: var(--s5);
   align-content: start;
+  padding: var(--s5);
+  border-color: color-mix(in srgb, var(--structure) 36%, var(--line));
+  box-shadow:
+    var(--shadow-1),
+    inset 3px 0 0 var(--structure);
+}
+.doc > .label {
+  grid-column: 1 / -1;
 }
 .doc h3 {
-  font-size: var(--t1);
+  margin-top: var(--s1);
+  font-size: var(--t0);
 }
-.mini-list {
-  display: grid;
-  gap: var(--s1);
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.doc-block {
+  min-width: 0;
+  padding: var(--s4);
+  border: 1px solid var(--line);
+  border-radius: var(--r1);
+  background: var(--panel);
 }
-.mini-list li::before {
-  content: "• ";
-}
-.mini-list .chosen {
+.block-kind {
+  display: flex;
+  gap: var(--s2);
+  align-items: center;
+  color: var(--structure);
+  font-size: var(--t-1);
   font-weight: 700;
 }
-.mini-list .chosen::after {
-  content: " ✓";
+.decision-block .block-kind {
+  color: var(--decision);
 }
-.mini-list .struck {
+.decision-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s2);
+  margin-top: var(--s4);
+  color: var(--ink);
+  font-size: var(--t-1);
+}
+.decision-row > :last-child {
+  color: var(--decision);
+}
+.decision-row.rejected,
+.decision-row.rejected > :last-child {
   color: var(--ink-3);
+}
+.decision-row.rejected > :first-child {
   text-decoration: line-through;
 }
 .mini-diagram {
   width: 100%;
-  max-width: 340px;
+  margin-top: var(--s3);
   color: var(--ink);
 }
-.mini-diagram rect,
-.mini-diagram path,
-.mini-diagram ellipse {
-  fill: var(--panel);
-  stroke: var(--ink-2);
-  stroke-width: 1.2;
+.mini-diagram .node rect,
+.mini-diagram .node path,
+.mini-diagram .node ellipse {
+  stroke-width: 1.5;
 }
-.mini-diagram path.line {
+.mini-diagram .flow-node rect {
+  fill: var(--structure-bg);
+  stroke: var(--structure);
+}
+.mini-diagram .data-node path,
+.mini-diagram .data-node ellipse {
+  fill: var(--data-bg);
+  stroke: var(--data);
+}
+.mini-diagram .connector {
   fill: none;
+  stroke: var(--structure);
+  stroke-width: 1.5;
+}
+.mini-diagram .connector.data-line {
+  stroke: var(--data);
+}
+.mini-diagram .flow-arrow path {
+  fill: var(--structure);
+  stroke: none;
+}
+.mini-diagram .data-arrow path {
+  fill: var(--data);
+  stroke: none;
 }
 .mini-diagram text {
   fill: var(--ink);
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 13px;
   text-anchor: middle;
+}
+.mini-diagram .edge-label {
+  fill: var(--ink-3);
+  font-size: 10px;
 }
 @media (max-width: 860px) {
   .demo {
     grid-template-columns: minmax(0, 1fr);
   }
-  .arrow {
-    justify-self: center;
-    transform: rotate(90deg);
+  .structure-key {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    min-height: auto;
+    padding: var(--s3) var(--s4);
+  }
+  .structure-key-line {
+    inset: 0 var(--s4) auto var(--s4);
+    width: auto;
+    height: 1px;
+  }
+  .structure-key-line::before,
+  .structure-key-line::after {
+    top: -3px;
+  }
+  .structure-key-line::before {
+    left: 0;
+  }
+  .structure-key-line::after {
+    right: 0;
+    bottom: auto;
+    left: auto;
+  }
+  .structure-key span:not(.structure-key-line) {
+    padding: var(--s3) 0 0;
+  }
+}
+@media (max-width: 620px) {
+  .doc {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .structure-key {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s2);
+  }
+  .structure-key-line {
+    display: none;
+  }
+  .structure-key span:not(.structure-key-line) {
+    padding: 0;
   }
 }
 
