@@ -19,9 +19,10 @@ const skip = new Set(["social-preview.png", "poster.png"]);
 const files = readdirSync(from).filter((f) => f.endsWith(".png") && !skip.has(f));
 // The first picture of the README, a dark app with a light page, has a white edge: white, the dark app, the light page.
 const white = ["page-look-light-page.png"];
+const python = process.env.LUCID_ARTIFACT_PYTHON ?? "python3";
 
 execFileSync(
-  "python3",
+  python,
   [
     "-c",
     [
