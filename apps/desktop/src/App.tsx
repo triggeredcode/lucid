@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { startAgentBridge } from "./agent/bridge";
 import { NewPageDialog } from "./pages/NewPageDialog";
 import { SettingsDialog } from "./settings/SettingsDialog";
@@ -9,8 +9,17 @@ import { Sidebar } from "./pages/Sidebar";
 import { Workspace } from "./pages/Workspace";
 import { usePages } from "./pages/usePages";
 import { FirstRun } from "./onboarding/FirstRun";
-import { ProductTour } from "./onboarding/ProductTour";
+import { FirstSuccessGuide } from "./onboarding/FirstSuccessGuide";
 import { completeOnboarding, onboardingComplete } from "./onboarding/state";
+import {
+  finishActivation,
+  loadActivationProgress,
+  pauseActivation,
+  recordMilestone,
+  rememberActivationPage,
+  resumeActivation,
+  type ActivationMilestone,
+} from "./onboarding/activation";
 
 export function App() {
   if (typeof window.lucid === "undefined") {
@@ -36,7 +45,8 @@ function Shell() {
   const [settings, setSettings] = useState<PublicSettings | undefined>();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [onboardingOpen, setOnboardingOpen] = useState(false);
-  const [tourOpen, setTourOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [activation, setActivation] = useState(loadActivationProgress);
   const [newPageOpen, setNewPageOpen] = useState(false);
   const [imported, setImported] = useState<NoteImportResult | undefined>();
 
@@ -75,7 +85,14 @@ function Shell() {
   useEffect(() => {
     void loadSettings().then((loaded) => {
       setSettings(loaded);
-      if (!loaded.onboardingDisabled && !onboardingComplete()) setOnboardingOpen(true);
+      if (loaded.onboardingDisabled) return;
+      if (!onboardingComplete()) {
+        setOnboardingOpen(true);
+        return;
+      }
+      const progress = loadActivationProgress();
+      setActivation(progress);
+      if (!progress.finished && !progress.paused) setGuideOpen(true);
     });
     // ⌘, opens Settings, as in most Mac apps.
     const onKey = (e: KeyboardEvent) => {
@@ -109,14 +126,30 @@ function Shell() {
   const finishOnboarding = (startTour: boolean) => {
     completeOnboarding();
     setOnboardingOpen(false);
-    if (!startTour) return;
-    void (async () => {
-      if (!pages.current) await pages.create();
-      requestAnimationFrame(() => {
-        setTourOpen(true);
-      });
-    })();
+    const latest = loadActivationProgress();
+    setActivation(startTour ? resumeActivation(latest) : pauseActivation(latest));
+    setGuideOpen(startTour);
   };
+  const noteMilestone = useCallback((milestone: ActivationMilestone) => {
+    setActivation((current) => recordMilestone(current, milestone));
+  }, []);
+  const createFirstPage = useCallback(
+    async (options?: { title?: string; format?: string }) => {
+      const file = await pages.create(options);
+      if (!file) return;
+      setActivation((current) =>
+        recordMilestone(rememberActivationPage(current, file.id), "page-created"),
+      );
+    },
+    [pages.create],
+  );
+  useEffect(() => {
+    const currentPage = pages.current;
+    if (!guideOpen || !currentPage || activation.milestones.includes("page-created")) return;
+    setActivation((current) =>
+      recordMilestone(rememberActivationPage(current, currentPage.id), "page-created"),
+    );
+  }, [activation.milestones, guideOpen, pages.current]);
   return (
     <div className="app" data-sidebar={sidebarOpen ? "open" : "closed"}>
       {sidebarOpen && (
@@ -125,7 +158,7 @@ function Shell() {
           problems={pages.problems}
           currentId={pages.current?.id}
           onOpen={(id) => void pages.open(id)}
-          onCreate={() => void pages.create()}
+          onCreate={() => void createFirstPage()}
           onCreateFrom={() => {
             setNewPageOpen(true);
           }}
@@ -157,6 +190,7 @@ function Shell() {
             onRestoreBackup={pages.restoreBackup}
             sidebarOpen={sidebarOpen}
             onToggleSidebar={toggleSidebar}
+            onActivationMilestone={noteMilestone}
           />
         ) : pages.ready ? (
           <div className="blank">
@@ -165,7 +199,7 @@ function Shell() {
               Say or type what you’re learning. Lucid turns it into notes, diagrams and tables, and
               makes the PDF.
             </p>
-            <button className="primary big" type="button" onClick={() => void pages.create()}>
+            <button className="primary big" type="button" onClick={() => void createFirstPage()}>
               + New page
             </button>
             <ol className="first-steps">
@@ -193,7 +227,7 @@ function Shell() {
           }}
           onCreate={(page) => {
             setNewPageOpen(false);
-            void pages.create(page);
+            void createFirstPage(page);
           }}
         />
       )}
@@ -212,10 +246,17 @@ function Shell() {
       {onboardingOpen && settings && (
         <FirstRun settings={settings} onSettingsChange={setSettings} onFinish={finishOnboarding} />
       )}
-      {tourOpen && (
-        <ProductTour
+      {guideOpen && (
+        <FirstSuccessGuide
+          progress={activation}
+          onCreatePage={() => void createFirstPage()}
+          onPause={() => {
+            setActivation((current) => pauseActivation(current));
+            setGuideOpen(false);
+          }}
           onFinish={() => {
-            setTourOpen(false);
+            setActivation((current) => finishActivation(current));
+            setGuideOpen(false);
           }}
         />
       )}

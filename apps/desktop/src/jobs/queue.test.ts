@@ -16,7 +16,7 @@ import {
 } from "@lucid/llm";
 import { startMockLmStudio, type Behaviour, type MockLmStudio } from "@lucid/mock-lmstudio";
 import { afterEach, describe, expect, it } from "vitest";
-import { JobQueue, type EditorPort, type JobStatus, type Utterance } from "./queue";
+import { JobQueue, type EditorPort, type JobStatus, type Mode, type Utterance } from "./queue";
 
 let mock: MockLmStudio | undefined;
 afterEach(async () => {
@@ -68,6 +68,7 @@ async function setup(
   const statuses: JobStatus[] = [];
   const transcripts: TranscriptEntry[] = [];
   const changes: ChangeEntry[] = [];
+  const applied: Mode[] = [];
   const nativeClient = new LmStudioClient({
     baseUrl: mock.url,
     ...(options.fetch ? { fetch: options.fetch } : {}),
@@ -97,6 +98,9 @@ async function setup(
     onChange: (c) => {
       changes.push(c);
     },
+    onApplied: (mode) => {
+      applied.push(mode);
+    },
     pollMs: 20,
     ids: createSequentialIds("n"),
   });
@@ -119,6 +123,7 @@ async function setup(
     statuses,
     transcripts,
     changes,
+    applied,
     queue,
     say,
     settled,
@@ -171,6 +176,7 @@ describe("JobQueue", () => {
       source: "local-model",
       affected: ["n1", "n2", "n3"],
     });
+    expect(t.applied).toEqual(["input"]);
   });
 
   it("gives the model the page and the last things said", async () => {
@@ -386,6 +392,7 @@ describe("JobQueue in Command mode", () => {
       text: "cross out MongoDB",
     });
     expect(t.changes[0]).toMatchObject({ summary: "Crossed out MongoDB", affected: ["o2"] });
+    expect(t.applied).toEqual(["command"]);
   });
 
   it("tells the model what a block number is, when the person numbers blocks, and says nothing otherwise", async () => {

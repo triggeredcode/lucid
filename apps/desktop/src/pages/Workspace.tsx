@@ -29,6 +29,7 @@ import { useAppearance } from "../theme/appearance";
 import { HistoryPanel } from "./HistoryPanel";
 import { useAutosave } from "./useAutosave";
 import { BackupDialog } from "./BackupDialog";
+import type { ActivationMilestone } from "../onboarding/activation";
 
 const SIDE_KEY = "lucid.history";
 
@@ -66,6 +67,7 @@ interface Props {
   sidebarOpen: boolean;
   onToggleSidebar: () => void;
   onRestoreBackup: (pageId: string, backupId: string) => Promise<void>;
+  onActivationMilestone?: ((milestone: ActivationMilestone) => void) | undefined;
 }
 
 /**
@@ -73,7 +75,14 @@ interface Props {
  * lists what was said. The page is edited by speaking or typing in the box; Edit mode lets you type in the page
  * itself for the few things the model gets wrong.
  */
-export function Workspace({ file, onSaved, sidebarOpen, onToggleSidebar, onRestoreBackup }: Props) {
+export function Workspace({
+  file,
+  onSaved,
+  sidebarOpen,
+  onToggleSidebar,
+  onRestoreBackup,
+  onActivationMilestone,
+}: Props) {
   const [title, setTitle] = useState(file.title);
   const [doc, setDoc] = useState<LucidDoc>(file.doc);
   const [transcripts, setTranscripts] = useState<TranscriptEntry[]>(file.transcripts);
@@ -120,10 +129,14 @@ export function Workspace({ file, onSaved, sidebarOpen, onToggleSidebar, onResto
     };
   }, []);
   /** Lists a change in the History, with its way back (what the editor says takes the last change back). */
-  const addChange = useCallback((entry: ChangeEntry) => {
-    const revert = editorApi.current?.takeRevert();
-    setChangeLog((list) => withinRevertWindow([...list, revert ? { ...entry, revert } : entry]));
-  }, []);
+  const addChange = useCallback(
+    (entry: ChangeEntry) => {
+      const revert = editorApi.current?.takeRevert();
+      setChangeLog((list) => withinRevertWindow([...list, revert ? { ...entry, revert } : entry]));
+      if (entry.source === "builder") onActivationMilestone?.("visual-created");
+    },
+    [onActivationMilestone],
+  );
   const builder = useBuilder({
     pageId: file.id,
     editor: () => editorApi.current,
@@ -155,6 +168,9 @@ export function Workspace({ file, onSaved, sidebarOpen, onToggleSidebar, onResto
       setTranscripts((list) => [...list, entry]);
     },
     onChange: addChange,
+    onApplied: (mode) => {
+      onActivationMilestone?.(mode === "command" ? "command-applied" : "content-added");
+    },
     onExportPdf: () => {
       exportRef.current?.pdf();
     },
@@ -445,6 +461,9 @@ export function Workspace({ file, onSaved, sidebarOpen, onToggleSidebar, onResto
               said={transcripts.length}
               changes={changeLog.length}
               register={registerExport}
+              onSaved={() => {
+                onActivationMilestone?.("export-saved");
+              }}
             />
           </div>
         </header>
@@ -476,7 +495,12 @@ export function Workspace({ file, onSaved, sidebarOpen, onToggleSidebar, onResto
             <PageEditor
               initial={file.doc}
               editable={editing}
-              onChange={setDoc}
+              onChange={(next) => {
+                setDoc(next);
+                if (next !== file.doc && next.blocks.length > 0) {
+                  onActivationMilestone?.("content-added");
+                }
+              }}
               onReady={(api) => {
                 editorApi.current = api;
               }}

@@ -12,6 +12,7 @@ export interface ActivationProgress {
   milestones: ActivationMilestone[];
   pageId?: string | undefined;
   finished: boolean;
+  paused: boolean;
 }
 
 type ActivationStorage = Pick<Storage, "getItem" | "setItem">;
@@ -31,6 +32,7 @@ const emptyProgress = (): ActivationProgress => ({
   setupStep: 0,
   milestones: [],
   finished: false,
+  paused: false,
 });
 
 const browserStorage = (): ActivationStorage | undefined => {
@@ -73,6 +75,7 @@ const parseProgress = (value: string | null): ActivationProgress => {
       milestones,
       ...(pageId ? { pageId } : {}),
       finished: parsed["finished"] === true,
+      paused: parsed["paused"] === true,
     };
   } catch {
     return emptyProgress();
@@ -139,5 +142,33 @@ export function finishActivation(
   progress: ActivationProgress,
   storage = browserStorage(),
 ): ActivationProgress {
-  return saveActivationProgress({ ...progress, finished: true }, storage);
+  return saveActivationProgress({ ...progress, finished: true, paused: false }, storage);
+}
+
+export function pauseActivation(
+  progress: ActivationProgress,
+  storage = browserStorage(),
+): ActivationProgress {
+  return saveActivationProgress({ ...progress, paused: true }, storage);
+}
+
+export function resumeActivation(
+  progress: ActivationProgress,
+  storage = browserStorage(),
+): ActivationProgress {
+  return saveActivationProgress({ ...progress, paused: false }, storage);
+}
+
+export function hasBasicFirstSuccess(progress: ActivationProgress): boolean {
+  return ["page-created", "content-added", "export-saved"].every((milestone) =>
+    progress.milestones.includes(milestone as ActivationMilestone),
+  );
+}
+
+export function hasAiFirstSuccess(progress: ActivationProgress): boolean {
+  return (
+    hasBasicFirstSuccess(progress) &&
+    progress.milestones.includes("command-applied") &&
+    progress.milestones.includes("visual-created")
+  );
 }

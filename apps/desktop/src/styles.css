@@ -700,9 +700,19 @@ select:focus-visible,
   gap: 10px;
   margin-left: auto;
 }
+.workspace[data-side="open"] .topbar {
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+.workspace[data-side="open"] .topbar-actions {
+  gap: 6px;
+}
+.workspace[data-side="open"] .save-note {
+  display: none;
+}
 /* Narrow: the buttons keep their pictures and names (for screen readers and as tooltips) and lose the visible words, so the
    bar stays on one line. */
-@container topbar (max-width: 880px) {
+@container topbar (max-width: 1050px) {
   .topbar .btn-text {
     position: absolute;
     width: 1px;
@@ -2116,50 +2126,72 @@ select:focus-visible,
 .onboarding-actions > span {
   flex: 1;
 }
-.product-tour {
+.first-success-guide {
   position: fixed;
-  inset: 0;
-  z-index: 100;
-  pointer-events: none;
-}
-.tour-highlight {
-  position: fixed;
-  border: 2px solid var(--inverse-bg);
-  border-radius: 10px;
-  box-shadow: 0 0 0 9999px var(--backdrop);
-  transition:
-    inset 0.18s ease,
-    width 0.18s ease,
-    height 0.18s ease;
-}
-.tour-card {
-  position: fixed;
-  width: min(320px, calc(100vw - 40px));
+  z-index: 32;
+  top: 58px;
+  right: 18px;
+  width: min(340px, calc(100vw - 36px));
   padding: 16px 17px;
   border: 1px solid var(--line);
-  border-radius: 9px;
+  border-radius: 10px;
   background: var(--bg);
   box-shadow: var(--shadow-pop);
-  pointer-events: auto;
 }
-.tour-count {
+.app:has([role="dialog"][aria-modal="true"]) .first-success-guide,
+.app:has(.dictation-card) .first-success-guide {
+  display: none;
+}
+.first-success-heading,
+.first-success-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.first-success-heading .eyebrow {
   color: var(--ink-3);
+  font-weight: 700;
   font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
-.tour-card h2 {
+.first-success-guide h2 {
   margin: 5px 0 5px;
   font-size: 15px;
 }
-.tour-card p {
+.first-success-guide > p {
   margin: 0 0 14px;
   color: var(--ink-2);
   font-size: 12.5px;
   line-height: 1.5;
 }
-.tour-card > div {
+.first-success-checklist {
+  display: grid;
+  gap: 7px;
+  margin: 0 0 15px;
+  padding: 12px 0;
+  border-block: 1px solid var(--line);
+  list-style: none;
+  color: var(--ink-2);
+  font-size: 12px;
+}
+.first-success-checklist li {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
+}
+.first-success-checklist li[data-done="true"] {
+  color: var(--ink-3);
+  text-decoration: line-through;
+}
+.first-success-checklist li > span {
+  width: 14px;
+  color: var(--accent);
+  text-align: center;
+}
+.first-success-actions {
+  align-items: center;
 }
 .modal-backdrop {
   position: fixed;
@@ -2455,9 +2487,6 @@ select:focus-visible,
   .ordered-page b,
   .lm-pill[data-state="loading"] > i {
     animation: none;
-  }
-  .tour-highlight {
-    transition: none;
   }
 }
 .setting-row > span {
