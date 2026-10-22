@@ -115,6 +115,7 @@ const app = await electron.launch({
     ...process.env,
     LUCID_HOME: mkdtempSync(join(tmpdir(), "lucid-home-")),
     LUCID_PDF_WARMUP: "0",
+    LUCID_SKIP_ONBOARDING: "1",
   },
 });
 try {

@@ -24,7 +24,7 @@ async function launch(home = mkdtempSync(join(tmpdir(), "lucid-home-"))) {
   const app = await electron.launch({
     executablePath: BINARY,
     args: EXTRA_ARGS,
-    env: { ...bare(home), ELECTRON_ENABLE_LOGGING: "1" },
+    env: { ...bare(home), ELECTRON_ENABLE_LOGGING: "1", LUCID_SKIP_ONBOARDING: "1" },
   });
   const child = app.process();
   child.stdout?.on("data", (d: Buffer) => output.push(`[app out] ${d.toString().trimEnd()}`));
