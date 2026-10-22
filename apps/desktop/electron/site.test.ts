@@ -180,6 +180,8 @@ describe.each([
     expect(contrastRatio(get("--structure"), get("--structure-bg"))).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio(get("--data"), get("--data-bg"))).toBeGreaterThanOrEqual(4.5);
     expect(contrastRatio(get("--decision"), get("--decision-bg"))).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(get("--attention"), get("--attention-bg"))).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(get("--structure-ink"), get("--structure"))).toBeGreaterThanOrEqual(4.5);
   });
 });
 

@@ -1,10 +1,10 @@
 /*
- * Lucid's look: Notion's design language in black and white, in a light and a dark theme, set in monospace by default.
+ * Lucid's look: a neutral writing surface with a small semantic palette, in light and dark, set in monospace by default.
  *
  * The colours are Notion's own neutral ramp (text #2c2c2b on white, #f0efed on #191919 in the dark theme; warm greys for
  * lines, hovers and panels). Surfaces are flat and separated by hairlines, buttons are quiet (6 px corners, no gloss),
- * and the one filled button per view is black on light and white on dark. The only other colours are the red of an
- * error and the small status dots.
+ * and the one filled button per view carries the engineering-blue structure colour. Violet identifies commands and AI
+ * context, green decisions and success, amber attention, and red remains reserved for errors and destructive actions.
  *
  * Everything below reads the tokens in the first two blocks, so a theme is one block of variables.
  */
@@ -35,6 +35,21 @@
   --red-bg: rgb(207 81 72 / 9%);
   --ok: #4b9a78;
   --warn: #c99a2e;
+  --structure: #315eba;
+  --structure-bg: #e8f0ff;
+  --structure-line: #adc2ed;
+  --structure-ink: #ffffff;
+  --data: #6d4e9c;
+  --data-bg: #f1ebf8;
+  --data-line: #cdbde2;
+  --data-ink: #ffffff;
+  --decision: #2f7657;
+  --decision-bg: #e8f3ed;
+  --decision-line: #b2d5c3;
+  --decision-ink: #ffffff;
+  --attention: #8a5a00;
+  --attention-bg: #fff3d6;
+  --attention-line: #dfc17c;
   --shadow-sm: 0 1px 2px rgb(15 15 15 / 8%);
   --shadow-box: 0 1px 2px rgb(15 15 15 / 6%), 0 6px 20px rgb(15 15 15 / 7%);
   --shadow-pop:
@@ -83,6 +98,21 @@
   --red-bg: rgb(229 100 88 / 12%);
   --ok: #5fb892;
   --warn: #d9b04a;
+  --structure: #8cb4ff;
+  --structure-bg: #202f49;
+  --structure-line: #435d86;
+  --structure-ink: #191919;
+  --data: #c2a7e6;
+  --data-bg: #322940;
+  --data-line: #5d4b72;
+  --data-ink: #191919;
+  --decision: #75c7a4;
+  --decision-bg: #20352c;
+  --decision-line: #3d6957;
+  --decision-ink: #191919;
+  --attention: #f2c565;
+  --attention-bg: #3d3017;
+  --attention-line: #705824;
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
   --shadow-box: 0 1px 2px rgb(0 0 0 / 30%), 0 6px 24px rgb(0 0 0 / 35%);
   --shadow-pop:
@@ -2792,6 +2822,185 @@ select:focus-visible,
   0%,
   30% {
     background: var(--press);
+  }
+  100% {
+    background: transparent;
+  }
+}
+
+/* ---- semantic colour layer -------------------------------------------------
+ * This is intentionally isolated from the neutral layout rules above. Removing this block and the semantic tokens in the
+ * two theme declarations restores Lucid's earlier monochrome UI without changing markup, settings, or document data.
+ */
+.primary {
+  border-color: var(--structure);
+  background: var(--structure);
+  color: var(--structure-ink);
+}
+
+.page-row[data-active="true"] {
+  border-color: var(--structure-line);
+  box-shadow:
+    var(--shadow-sm),
+    inset 3px 0 0 var(--structure);
+}
+.page-row[data-active="true"] .file-body {
+  fill: var(--structure-bg);
+  stroke: var(--structure);
+}
+.page-row[data-active="true"] .file-fold,
+.page-row[data-active="true"] .file-lines,
+.block-no[aria-expanded="true"] {
+  stroke: var(--structure);
+  color: var(--structure);
+}
+
+.dictation[data-mode="input"] .dictation-box {
+  border-color: var(--structure-line);
+  box-shadow:
+    var(--shadow-box),
+    inset 3px 0 0 var(--structure);
+}
+.dictation[data-mode="command"] .dictation-box {
+  border-color: var(--data-line);
+  box-shadow:
+    var(--shadow-box),
+    inset 3px 0 0 var(--data);
+}
+.dictation[data-mode="input"] .dictation-box:focus-within {
+  box-shadow:
+    0 0 0 2px var(--structure-bg),
+    var(--shadow-box),
+    inset 3px 0 0 var(--structure);
+}
+.dictation[data-mode="command"] .dictation-box:focus-within {
+  box-shadow:
+    0 0 0 2px var(--data-bg),
+    var(--shadow-box),
+    inset 3px 0 0 var(--data);
+}
+.dictation[data-mode="input"] .send:not(:disabled) {
+  background: var(--structure);
+  color: var(--structure-ink);
+}
+.dictation[data-mode="command"] .send:not(:disabled) {
+  background: var(--data);
+  color: var(--data-ink);
+}
+.dictation[data-mode="input"] .dots i {
+  background: var(--structure);
+}
+.dictation[data-mode="command"] .dots i {
+  background: var(--data);
+}
+.dictation[data-status="done"] .dictation-line .tick {
+  color: var(--decision);
+}
+
+.mode-option[data-mode="input"][aria-pressed="true"] {
+  background: var(--structure-bg);
+  color: var(--structure);
+  box-shadow: inset 0 0 0 1px var(--structure-line);
+}
+.mode-option[data-mode="command"][aria-pressed="true"] {
+  background: var(--data-bg);
+  color: var(--data);
+  box-shadow: inset 0 0 0 1px var(--data-line);
+}
+.mode-option.build[aria-pressed="true"],
+.wb-tabs button[aria-selected="true"] {
+  border-color: var(--structure);
+  background: var(--structure-bg);
+  color: var(--structure);
+  box-shadow: inset 0 0 0 1px var(--structure-line);
+}
+
+.dictation-card[data-card="proposal"] {
+  border-color: var(--data-line);
+  background: var(--data-bg);
+}
+.dictation-card[data-card="clarify"] {
+  border-color: var(--attention-line);
+  background: var(--attention-bg);
+  box-shadow: inset 3px 0 0 var(--attention);
+}
+.dictation-card[data-card="content"] {
+  border-color: var(--structure-line);
+  background: var(--structure-bg);
+}
+
+.callout[data-kind="decision"] .callout-kind,
+.bn-block-content[data-text-color="green"] {
+  color: var(--decision);
+}
+.bn-block-outer:has(.callout[data-kind="decision"]) {
+  border-color: var(--decision-line);
+  background: var(--decision-bg);
+}
+.callout[data-kind="question"] .callout-kind,
+.callout[data-kind="tradeoff"] .callout-kind {
+  color: var(--data);
+}
+.bn-block-outer:has(.callout[data-kind="question"]),
+.bn-block-outer:has(.callout[data-kind="tradeoff"]) {
+  border-color: var(--data-line);
+  background: var(--data-bg);
+}
+.bn-block-outer:has(.callout[data-kind="warning"]) {
+  border-color: var(--attention-line);
+  background: var(--attention-bg);
+}
+.bn-block-outer:has(.callout[data-kind="warning"]) .callout-kind {
+  color: var(--attention);
+}
+.callout[data-status="chosen"],
+.math-block[data-status="chosen"],
+.figure[data-status="chosen"] {
+  outline-color: var(--decision);
+}
+
+.wb-legend li[data-fresh="true"],
+.wb-grid [data-fresh="true"] {
+  background: var(--structure-bg);
+}
+.wb-grid td[data-cursor="true"] {
+  outline-color: var(--structure);
+  background: var(--structure-bg);
+}
+.np-format[data-selected="true"],
+.np-blank[data-selected="true"] {
+  border-color: var(--structure);
+  background: var(--structure-bg);
+  box-shadow: 0 0 0 1px var(--structure);
+}
+.provider-list > button[aria-current="true"] {
+  border-color: var(--structure-line);
+  background: var(--structure-bg);
+  color: var(--structure);
+}
+.provider-result[data-kind="success"] {
+  border-left-color: var(--decision);
+  background: var(--decision-bg);
+}
+
+.history-mode[data-mode="agent"],
+.history-mode[data-mode="change"] {
+  color: var(--data);
+}
+.side li[data-source="agent"] {
+  border-left-color: var(--data);
+}
+.page-editor .bn-block-content.ProseMirror-selectednode > :after,
+.page-editor .ProseMirror-selectednode > .bn-block-content > :after,
+.page-editor .bn-block-content .ProseMirror-selectednode:after,
+.page-editor .bn-inline-content .ProseMirror-selectednode:after {
+  background-color: color-mix(in srgb, var(--structure-bg) 72%, transparent);
+  box-shadow: inset 0 0 0 2px var(--structure);
+}
+@keyframes flash {
+  0%,
+  30% {
+    background: var(--structure-bg);
   }
   100% {
     background: transparent;

@@ -39,10 +39,17 @@
   --red: #b8453d;
   --structure: #315eba;
   --structure-bg: #e8f0ff;
+  --structure-line: #adc2ed;
+  --structure-ink: #ffffff;
   --data: #6d4e9c;
   --data-bg: #f1ebf8;
+  --data-line: #cdbde2;
   --decision: #2f7657;
   --decision-bg: #e8f3ed;
+  --decision-line: #b2d5c3;
+  --attention: #8a5a00;
+  --attention-bg: #fff3d6;
+  --attention-line: #dfc17c;
   --shadow-1: 0 1px 2px rgb(15 15 15 / 6%), 0 6px 20px rgb(15 15 15 / 6%);
   --shadow-window: 0 2px 4px rgb(15 15 15 / 6%), 0 24px 64px -12px rgb(15 15 15 / 22%);
 
@@ -88,10 +95,17 @@
   --red: #e56458;
   --structure: #8cb4ff;
   --structure-bg: #202f49;
+  --structure-line: #435d86;
+  --structure-ink: #191919;
   --data: #c2a7e6;
   --data-bg: #322940;
+  --data-line: #5d4b72;
   --decision: #75c7a4;
   --decision-bg: #20352c;
+  --decision-line: #3d6957;
+  --attention: #f2c565;
+  --attention-bg: #3d3017;
+  --attention-line: #705824;
   --shadow-1: 0 1px 2px rgb(0 0 0 / 40%), 0 6px 24px rgb(0 0 0 / 35%);
   --shadow-window: 0 2px 4px rgb(0 0 0 / 40%), 0 24px 64px -12px rgb(0 0 0 / 70%);
 }
@@ -112,10 +126,17 @@
     --red: #e56458;
     --structure: #8cb4ff;
     --structure-bg: #202f49;
+    --structure-line: #435d86;
+    --structure-ink: #191919;
     --data: #c2a7e6;
     --data-bg: #322940;
+    --data-line: #5d4b72;
     --decision: #75c7a4;
     --decision-bg: #20352c;
+    --decision-line: #3d6957;
+    --attention: #f2c565;
+    --attention-bg: #3d3017;
+    --attention-line: #705824;
     --shadow-1: 0 1px 2px rgb(0 0 0 / 40%), 0 6px 24px rgb(0 0 0 / 35%);
     --shadow-window: 0 2px 4px rgb(0 0 0 / 40%), 0 24px 64px -12px rgb(0 0 0 / 70%);
   }
@@ -838,6 +859,58 @@ h3 {
   .blocks {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* ---- semantic colour layer -------------------------------------------------
+ * The website and app share these meanings. This block is deliberately separate from the neutral layout so the broader
+ * palette can be reverted without disturbing typography, spacing, or the thought-to-structure diagram above.
+ */
+a {
+  text-decoration-color: var(--structure-line);
+}
+a:hover,
+.nav a:hover {
+  text-decoration-color: var(--structure);
+  color: var(--structure);
+}
+:focus-visible {
+  outline-color: var(--structure);
+}
+.btn.primary,
+.tabs button[aria-selected="true"] {
+  border-color: var(--structure);
+  background: var(--structure);
+  color: var(--structure-ink);
+}
+.hero::before {
+  background-image: radial-gradient(var(--structure-line) 1px, transparent 1px);
+}
+.eyebrow {
+  border-color: var(--structure-line);
+  background: var(--structure-bg);
+}
+.eyebrow i {
+  background: var(--structure);
+}
+.steps li {
+  border-top-color: var(--structure);
+}
+.steps li::before {
+  color: var(--structure);
+}
+.eval-decision {
+  border-color: var(--decision-line);
+  box-shadow: inset 3px 0 0 var(--decision);
+  padding-inline: var(--s5);
+  background: var(--decision-bg);
+}
+.eval-decision strong,
+.eval-table tbody tr:first-child .eval-verdict {
+  color: var(--decision);
+}
+#agents .code {
+  border-color: var(--data-line);
+  box-shadow: inset 3px 0 0 var(--data);
 }
 
 /* ---- how it works ---- */
