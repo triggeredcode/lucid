@@ -134,44 +134,121 @@
 
           <div class="demo">
             <div class="card say reveal">
-              <p class="label">You say</p>
+              <p class="label">One spoken thought</p>
               <blockquote>
-                <span>The browser sends API calls to a load balancer</span>, which forwards them to
-                the order service. It reads from Redis and queries PostgreSQL on a cache miss.
-                <span>We’re not going with MongoDB</span>, PostgreSQL it is.
+                <span class="thought thought-flow"
+                  >The browser sends API calls to a load balancer</span
+                >, which forwards them to the order service. It
+                <span class="thought thought-data"
+                  >reads from Redis and queries PostgreSQL on a cache miss</span
+                >.
+                <span class="thought thought-decision"
+                  >We’re not going with MongoDB. PostgreSQL it is.</span
+                >
               </blockquote>
+              <div class="thought-legend" aria-label="Ideas found in the spoken note">
+                <span><i class="flow" aria-hidden="true"></i>Flow</span>
+                <span><i class="data" aria-hidden="true"></i>Data</span>
+                <span><i class="decision" aria-hidden="true"></i>Decision</span>
+              </div>
             </div>
-            <div class="arrow" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+
+            <div
+              class="structure-key reveal"
+              style="--d: 0.08s"
+              aria-label="Lucid separates the ideas into structure"
+            >
+              <span class="structure-key-line" aria-hidden="true"></span>
+              <span><i class="flow" aria-hidden="true"></i>connections</span>
+              <span><i class="data" aria-hidden="true"></i>dependencies</span>
+              <span><i class="decision" aria-hidden="true"></i>choices</span>
             </div>
+
             <div class="card doc reveal" style="--d: 0.15s">
-              <p class="label">Lucid builds</p>
-              <h3>## The request flow</h3>
-              <svg
-                class="mini-diagram"
-                viewBox="0 0 340 112"
-                role="img"
-                aria-label="A diagram: browser, load balancer, order service, then Redis and PostgreSQL"
-              >
-                <rect x="4" y="6" width="76" height="26" rx="3" />
-                <text x="42" y="23">Browser</text>
-                <path class="line" d="M80 19h20" />
-                <rect x="100" y="6" width="104" height="26" rx="3" />
-                <text x="152" y="23">Load balancer</text>
-                <path class="line" d="M204 19h20" />
-                <rect x="224" y="6" width="104" height="26" rx="3" />
-                <text x="276" y="23">Order service</text>
-                <path class="line" d="M276 32v22M276 54H200M276 54h10M200 54v22M286 54v22" />
-                <ellipse cx="200" cy="90" rx="36" ry="13" stroke-dasharray="4 3" />
-                <text x="200" y="94">Redis</text>
-                <ellipse cx="286" cy="90" rx="46" ry="13" />
-                <text x="286" y="94">PostgreSQL</text>
-              </svg>
-              <h3>## The database</h3>
-              <ul class="mini-list">
-                <li class="chosen">PostgreSQL</li>
-                <li class="struck">MongoDB</li>
-              </ul>
+              <p class="label">One structured page</p>
+              <div class="doc-block">
+                <p class="block-kind"><span aria-hidden="true">◇</span> Diagram</p>
+                <h3>The request flow</h3>
+                <svg
+                  class="mini-diagram"
+                  viewBox="0 0 520 190"
+                  role="img"
+                  aria-label="Request flow: browser to load balancer to order service. The order service reads Redis and, on a cache miss, queries PostgreSQL."
+                >
+                  <defs>
+                    <marker
+                      id="arrowhead-flow"
+                      class="flow-arrow"
+                      markerWidth="7"
+                      markerHeight="7"
+                      refX="6"
+                      refY="3.5"
+                      orient="auto"
+                    >
+                      <path d="M0 0 7 3.5 0 7Z" />
+                    </marker>
+                    <marker
+                      id="arrowhead-data"
+                      class="data-arrow"
+                      markerWidth="7"
+                      markerHeight="7"
+                      refX="6"
+                      refY="3.5"
+                      orient="auto"
+                    >
+                      <path d="M0 0 7 3.5 0 7Z" />
+                    </marker>
+                  </defs>
+                  <path class="connector" marker-end="url(#arrowhead-flow)" d="M128 46H190" />
+                  <path class="connector" marker-end="url(#arrowhead-flow)" d="M326 46H388" />
+                  <path
+                    class="connector data-line"
+                    marker-end="url(#arrowhead-data)"
+                    d="M454 70v32H332v28"
+                  />
+                  <path
+                    class="connector data-line"
+                    marker-end="url(#arrowhead-data)"
+                    d="M454 70v32H454v28"
+                  />
+                  <text class="edge-label" x="366" y="95">read</text>
+                  <text class="edge-label" x="468" y="95">miss</text>
+
+                  <g class="node flow-node">
+                    <rect x="12" y="22" width="116" height="48" rx="8" />
+                    <text x="70" y="51">Browser</text>
+                  </g>
+                  <g class="node flow-node">
+                    <rect x="190" y="22" width="136" height="48" rx="8" />
+                    <text x="258" y="51">Load balancer</text>
+                  </g>
+                  <g class="node flow-node">
+                    <rect x="388" y="22" width="120" height="48" rx="8" />
+                    <text x="448" y="51">Order service</text>
+                  </g>
+                  <g class="node data-node">
+                    <path d="M282 130c0-9 22-16 50-16s50 7 50 16v30c0 9-22 16-50 16s-50-7-50-16Z" />
+                    <ellipse cx="332" cy="130" rx="50" ry="16" />
+                    <text x="332" y="151">Redis</text>
+                  </g>
+                  <g class="node data-node">
+                    <path d="M394 130c0-9 25-16 57-16s57 7 57 16v30c0 9-25 16-57 16s-57-7-57-16Z" />
+                    <ellipse cx="451" cy="130" rx="57" ry="16" />
+                    <text x="451" y="151">PostgreSQL</text>
+                  </g>
+                </svg>
+              </div>
+              <div class="doc-block decision-block">
+                <p class="block-kind"><span aria-hidden="true">✓</span> Decision</p>
+                <div class="decision-row">
+                  <strong>PostgreSQL</strong>
+                  <span>chosen</span>
+                </div>
+                <div class="decision-row rejected">
+                  <span>MongoDB</span>
+                  <span>rejected</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

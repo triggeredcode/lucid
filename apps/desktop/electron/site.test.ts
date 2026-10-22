@@ -176,6 +176,11 @@ describe.each([
   it("show the button text clearly", () => {
     expect(contrastRatio(get("--inverse-ink"), get("--inverse-bg"))).toBeGreaterThanOrEqual(7);
   });
+  it("keeps the structure colours readable on their quiet backgrounds", () => {
+    expect(contrastRatio(get("--structure"), get("--structure-bg"))).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(get("--data"), get("--data-bg"))).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio(get("--decision"), get("--decision-bg"))).toBeGreaterThanOrEqual(4.5);
+  });
 });
 
 describe("detectSystem", () => {
