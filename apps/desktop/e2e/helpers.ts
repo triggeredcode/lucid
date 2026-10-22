@@ -75,7 +75,7 @@ export async function maximizeWindow(
   return page.evaluate(() => ({ width: window.innerWidth, height: window.innerHeight }));
 }
 
-/** Opens the History panel unless it is open already: a wide (maximized) window opens it by itself. */
+/** Opens the History panel unless it is open already. */
 export async function showHistory(page: Page): Promise<void> {
   const button = page.getByRole("button", { name: /^History/ });
   if ((await button.getAttribute("aria-pressed")) !== "true") await button.click();

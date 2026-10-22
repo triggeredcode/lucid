@@ -65,7 +65,7 @@ test("a new page from a format: the model's choice and title, and the page start
     // Blank is the default.
     await expect(formatOption(page, "Blank page")).toBeChecked();
 
-    // It is laid out as a dialog (a white card, the field and the six formats readable), not squeezed into a row.
+    // It is laid out as a paper card (the field and the formats readable), not squeezed into a row.
     const look = await dialog(page).evaluate((el) => {
       const box = el.getBoundingClientRect();
       const about = el.querySelector("textarea")?.getBoundingClientRect();
@@ -81,7 +81,7 @@ test("a new page from a format: the model's choice and title, and the page start
         sameRow: first && second ? Math.abs(first.top - second.top) < 4 : false,
       };
     });
-    expect(look.background).toBe("rgb(255, 255, 255)");
+    expect(look.background).toBe("rgb(251, 252, 255)");
     expect(look.width).toBeGreaterThan(500);
     expect(look.aboutWidth).toBeGreaterThan(400);
     expect(look.formatWidth).toBeGreaterThan(180);

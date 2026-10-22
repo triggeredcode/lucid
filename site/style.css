@@ -1,7 +1,7 @@
 /*
  * The Lucid site. One page, no framework, no third-party requests: the typeface is served from here.
  *
- * Design rules (the same language as the app: neutral surfaces, hairlines, one filled button, iA Writer Mono):
+ * Design rules (the same language as the app: crisp paper, signal colours, hairlines, one filled button, iA Writer Mono):
  *  - Spacing is a 4 px scale (--s1 .. --s10), type is a ratio scale of about 1.25 (--t-1 .. --t6); nothing else is used.
  *  - Colours are tokens; text on every surface keeps at least 4.5:1 (body) and 3:1 (tertiary), in both themes.
  *  - Radii: 8 (controls), 12 (cards), 16 (the window picture). Borders are 1 px.
@@ -25,31 +25,31 @@
 
 :root {
   color-scheme: light;
-  --bg: #ffffff;
-  --panel: #f6f4f1;
-  --panel-2: #ebe8e4;
-  --line: #e1dfdc;
-  --line-strong: #cfcac4;
-  --ink: #2c2c2b;
-  --ink-2: #67635d;
-  --ink-3: #7f7b75;
-  --inverse-bg: #2c2c2b;
+  --bg: #fbfcff;
+  --panel: #ecefff;
+  --panel-2: #e1e6f7;
+  --line: #dbe0f0;
+  --line-strong: #c0c9e2;
+  --ink: #111318;
+  --ink-2: #4b5264;
+  --ink-3: #687188;
+  --inverse-bg: #111318;
   --inverse-ink: #ffffff;
-  --ok: #3f8a69;
-  --red: #b8453d;
-  --structure: #315eba;
-  --structure-bg: #e8f0ff;
-  --structure-line: #adc2ed;
+  --ok: #008a5a;
+  --red: #c83d4b;
+  --structure: #2457ff;
+  --structure-bg: #e8eeff;
+  --structure-line: #9db2ff;
   --structure-ink: #ffffff;
-  --data: #6d4e9c;
-  --data-bg: #f1ebf8;
-  --data-line: #cdbde2;
-  --decision: #2f7657;
-  --decision-bg: #e8f3ed;
-  --decision-line: #b2d5c3;
-  --attention: #8a5a00;
-  --attention-bg: #fff3d6;
-  --attention-line: #dfc17c;
+  --data: #7134e8;
+  --data-bg: #f1eaff;
+  --data-line: #c5aaff;
+  --decision: #007a50;
+  --decision-bg: #e4f7ef;
+  --decision-line: #8fd3b8;
+  --attention: #925700;
+  --attention-bg: #fff2cc;
+  --attention-line: #e7bd58;
   --shadow-1: 0 1px 2px rgb(15 15 15 / 6%), 0 6px 20px rgb(15 15 15 / 6%);
   --shadow-window: 0 2px 4px rgb(15 15 15 / 6%), 0 24px 64px -12px rgb(15 15 15 / 22%);
 
@@ -81,62 +81,62 @@
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #191919;
-  --panel: #232322;
-  --panel-2: #2e2e2c;
-  --line: #3b3b39;
-  --line-strong: #4b4b48;
-  --ink: #f0efed;
-  --ink-2: #bcb8b2;
-  --ink-3: #8f8b85;
-  --inverse-bg: #f0efed;
-  --inverse-ink: #191919;
-  --ok: #5fb892;
+  --bg: #11131a;
+  --panel: #191d2a;
+  --panel-2: #22283a;
+  --line: #30374c;
+  --line-strong: #46516f;
+  --ink: #f7f8ff;
+  --ink-2: #c2c8da;
+  --ink-3: #939db7;
+  --inverse-bg: #f7f8ff;
+  --inverse-ink: #11131a;
+  --ok: #44d39a;
   --red: #e56458;
-  --structure: #8cb4ff;
-  --structure-bg: #202f49;
-  --structure-line: #435d86;
-  --structure-ink: #191919;
-  --data: #c2a7e6;
-  --data-bg: #322940;
-  --data-line: #5d4b72;
-  --decision: #75c7a4;
-  --decision-bg: #20352c;
-  --decision-line: #3d6957;
-  --attention: #f2c565;
-  --attention-bg: #3d3017;
-  --attention-line: #705824;
+  --structure: #7da2ff;
+  --structure-bg: #1c2b58;
+  --structure-line: #4e6fca;
+  --structure-ink: #0c1020;
+  --data: #bd91ff;
+  --data-bg: #302151;
+  --data-line: #684b9c;
+  --decision: #57daa7;
+  --decision-bg: #17372d;
+  --decision-line: #33765e;
+  --attention: #ffc857;
+  --attention-bg: #3c2e0f;
+  --attention-line: #80601f;
   --shadow-1: 0 1px 2px rgb(0 0 0 / 40%), 0 6px 24px rgb(0 0 0 / 35%);
   --shadow-window: 0 2px 4px rgb(0 0 0 / 40%), 0 24px 64px -12px rgb(0 0 0 / 70%);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     color-scheme: dark;
-    --bg: #191919;
-    --panel: #232322;
-    --panel-2: #2e2e2c;
-    --line: #3b3b39;
-    --line-strong: #4b4b48;
-    --ink: #f0efed;
-    --ink-2: #bcb8b2;
-    --ink-3: #8f8b85;
-    --inverse-bg: #f0efed;
-    --inverse-ink: #191919;
-    --ok: #5fb892;
+    --bg: #11131a;
+    --panel: #191d2a;
+    --panel-2: #22283a;
+    --line: #30374c;
+    --line-strong: #46516f;
+    --ink: #f7f8ff;
+    --ink-2: #c2c8da;
+    --ink-3: #939db7;
+    --inverse-bg: #f7f8ff;
+    --inverse-ink: #11131a;
+    --ok: #44d39a;
     --red: #e56458;
-    --structure: #8cb4ff;
-    --structure-bg: #202f49;
-    --structure-line: #435d86;
-    --structure-ink: #191919;
-    --data: #c2a7e6;
-    --data-bg: #322940;
-    --data-line: #5d4b72;
-    --decision: #75c7a4;
-    --decision-bg: #20352c;
-    --decision-line: #3d6957;
-    --attention: #f2c565;
-    --attention-bg: #3d3017;
-    --attention-line: #705824;
+    --structure: #7da2ff;
+    --structure-bg: #1c2b58;
+    --structure-line: #4e6fca;
+    --structure-ink: #0c1020;
+    --data: #bd91ff;
+    --data-bg: #302151;
+    --data-line: #684b9c;
+    --decision: #57daa7;
+    --decision-bg: #17372d;
+    --decision-line: #33765e;
+    --attention: #ffc857;
+    --attention-bg: #3c2e0f;
+    --attention-line: #80601f;
     --shadow-1: 0 1px 2px rgb(0 0 0 / 40%), 0 6px 24px rgb(0 0 0 / 35%);
     --shadow-window: 0 2px 4px rgb(0 0 0 / 40%), 0 24px 64px -12px rgb(0 0 0 / 70%);
   }
@@ -160,6 +160,8 @@ body {
   font-family: var(--mono);
   font-size: var(--t0);
   line-height: 1.6;
+  font-weight: 400;
+  text-rendering: geometricPrecision;
   -webkit-font-smoothing: antialiased;
 }
 img,
@@ -397,7 +399,12 @@ pre {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--ok);
+  margin-right: 27px;
+  background: var(--structure);
+  box-shadow:
+    11px 0 0 var(--data),
+    22px 0 0 var(--decision),
+    33px 0 0 var(--attention);
 }
 .hero h1 {
   max-width: 17ch;
@@ -428,7 +435,7 @@ pre {
 .window {
   max-width: 1040px;
   margin: var(--s8) auto 0;
-  border: 1px solid var(--line-strong);
+  border: 1px solid var(--structure-line);
   border-radius: var(--r3);
   background: var(--bg);
   box-shadow: var(--shadow-window);
@@ -581,17 +588,27 @@ h3 {
 .structure-key {
   position: relative;
   display: grid;
-  gap: var(--s4);
+  gap: var(--s3);
   align-content: center;
   min-height: 210px;
+  padding: var(--s5) var(--s4);
+  border-block: 1px solid var(--structure-line);
+  background: var(--structure-bg);
   color: var(--ink-2);
   font-size: var(--t-1);
+}
+.structure-key strong {
+  color: var(--structure);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  line-height: 1.35;
+  text-transform: uppercase;
 }
 .structure-key-line {
   position: absolute;
   inset: 18px auto 18px 3px;
   width: 1px;
-  background: var(--line-strong);
+  background: var(--structure);
 }
 .structure-key-line::before,
 .structure-key-line::after {
@@ -600,8 +617,8 @@ h3 {
   left: -3px;
   width: 7px;
   height: 7px;
-  border: solid var(--line-strong);
-  border-width: 1px 1px 0 0;
+  border: solid var(--structure);
+  border-width: 2px 2px 0 0;
   transform: rotate(45deg);
 }
 .structure-key-line::before {
@@ -721,6 +738,9 @@ h3 {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     min-height: auto;
     padding: var(--s3) var(--s4);
+  }
+  .structure-key strong {
+    grid-column: 1 / -1;
   }
   .structure-key-line {
     inset: 0 var(--s4) auto var(--s4);
