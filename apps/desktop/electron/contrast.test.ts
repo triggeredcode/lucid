@@ -38,4 +38,16 @@ describe.each([
     expect(ratio(get("--ink-2"), get("--bg"))).toBeGreaterThanOrEqual(4.5);
     expect(ratio(get("--ink-3"), get("--bg"))).toBeGreaterThanOrEqual(3);
   });
+
+  it("keeps semantic signals readable without relying on colour alone", () => {
+    for (const name of ["structure", "data", "decision", "attention"]) {
+      expect(ratio(get(`--${name}`), get(`--${name}-bg`)), name).toBeGreaterThanOrEqual(4.5);
+    }
+    for (const name of ["structure", "data", "decision"]) {
+      expect(
+        ratio(get(`--${name}-ink`), get(`--${name}`)),
+        `${name} button`,
+      ).toBeGreaterThanOrEqual(4.5);
+    }
+  });
 });

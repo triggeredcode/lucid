@@ -11,9 +11,14 @@ import {
 } from "@playwright/test";
 import { autoSaveDialog, downloadPdf, maximizeWindow } from "./helpers";
 
-/** Light and dark, in Notion's black and white, set in monospace: what is on screen is read from the page's own styles. */
+/** Neutral light and dark surfaces with semantic accents, set in monospace: values are read from the page's own styles. */
 const LIGHT = { bg: "rgb(255, 255, 255)", ink: "rgb(44, 44, 43)" };
-const DARK = { bg: "rgb(25, 25, 25)", ink: "rgb(240, 239, 237)" };
+const DARK = {
+  bg: "rgb(25, 25, 25)",
+  ink: "rgb(240, 239, 237)",
+  structure: "rgb(140, 180, 255)",
+  structureInk: "rgb(25, 25, 25)",
+};
 
 async function launch(): Promise<{ app: ElectronApplication; page: Page }> {
   const home = mkdtempSync(join(tmpdir(), "lucid-home-"));
@@ -58,10 +63,10 @@ test("it is light by default, the sidebar's moon switches to dark, and the choic
     expect(await theme(page)).toBe("dark");
     expect(await style(page, "body", "background-color")).toBe(DARK.bg);
     expect(await style(page, "body", "color")).toBe(DARK.ink);
-    // The one filled button is the text colour, inverted, so it stays black on white and white on black.
+    // Primary actions use the structure signal, with the neutral canvas preserved around them.
     const download = page.getByRole("button", { name: "Download PDF" });
-    await expect(download).toHaveCSS("background-color", DARK.ink);
-    await expect(download).toHaveCSS("color", DARK.bg);
+    await expect(download).toHaveCSS("background-color", DARK.structure);
+    await expect(download).toHaveCSS("color", DARK.structureInk);
     await expect(page.getByRole("button", { name: "Switch to light mode" })).toBeVisible();
     await page.screenshot({ path: join(__dirname, "../test-results/appearance-dark.png") });
 
