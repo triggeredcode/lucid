@@ -140,6 +140,7 @@ test("without Tectonic the PDF says how to install it, and Markdown still works"
     await page.reload();
     await expect(page.locator(".page-editor")).toContainText("MongoDB");
 
+    await page.locator('summary[aria-label="Page actions"]').click();
     await page.getByRole("button", { name: "Download PDF" }).click();
     const note = page.locator(".export-note");
     await expect(note).toContainText("The PDF couldn’t be made", { timeout: 60_000 });

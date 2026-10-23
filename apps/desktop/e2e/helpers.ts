@@ -6,6 +6,13 @@ import { expect, type ElectronApplication, type Page } from "@playwright/test";
 
 const PDFTOTEXT = "/opt/homebrew/bin/pdftotext";
 
+/** Opens the progressive-disclosure menu without closing it when it is already open. */
+export async function openPageActions(page: Page): Promise<void> {
+  const menu = page.locator("details.workspace-menu");
+  if ((await menu.getAttribute("open")) === null)
+    await menu.locator('summary[aria-label="Page actions"]').click();
+}
+
 /** Answers the Save dialog with a file in a temp folder, so Download PDF can be driven without a person. */
 export async function autoSaveDialog(app: ElectronApplication): Promise<string> {
   const path = join(mkdtempSync(join(tmpdir(), "lucid-dl-")), "page.pdf");
@@ -21,6 +28,7 @@ export async function downloadPdf(
   path: string,
   timeoutMs = 90_000,
 ): Promise<string | undefined> {
+  await openPageActions(page);
   await page.getByRole("button", { name: "Download PDF" }).click();
   try {
     await expect(page.getByText(/^Saved page\.pdf/)).toBeVisible({ timeout: timeoutMs });
@@ -77,6 +85,7 @@ export async function maximizeWindow(
 
 /** Opens the History panel unless it is open already: a wide (maximized) window opens it by itself. */
 export async function showHistory(page: Page): Promise<void> {
+  await openPageActions(page);
   const button = page.getByRole("button", { name: /^History/ });
   if ((await button.getAttribute("aria-pressed")) !== "true") await button.click();
   await expect(page.getByRole("complementary", { name: "History" })).toBeVisible();

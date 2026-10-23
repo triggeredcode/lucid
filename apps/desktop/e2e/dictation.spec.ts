@@ -238,7 +238,7 @@ test("a paste goes to the input box and is sent, wherever the focus is: on a but
   const { app, page } = await launch({ script });
   try {
     // 1. After clicking a button (focus is on it, which cannot take text).
-    await page.getByRole("button", { name: /^History/ }).focus();
+    await page.locator('summary[aria-label="Page actions"]').focus();
     await wisprPaste(app, page, "Load balancer first thing. ");
     await expect.poll(requestsSent, { timeout: 30_000 }).toBe(1);
     const sentFirst = JSON.stringify(mock?.requests[0]?.body);

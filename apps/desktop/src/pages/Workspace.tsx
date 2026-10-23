@@ -9,7 +9,7 @@ import {
   type LucidFile,
   type TranscriptEntry,
 } from "@lucid/core";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { DictationBar } from "../dictation/DictationBar";
 import { PageEditor, type EditorApi } from "../editor/PageEditor";
 import { DiagramWorkbench } from "../guided/DiagramWorkbench";
@@ -96,7 +96,7 @@ export function Workspace({
     undefined,
   );
   // File → Export Note… (⇧⌘E) opens the same dialog as the button.
-  useEffect(
+  useLayoutEffect(
     () =>
       window.lucid.note.onMenu((action) => {
         if (action === "export-note") exportRef.current?.note();

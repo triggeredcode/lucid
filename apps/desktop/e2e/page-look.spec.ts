@@ -4,7 +4,7 @@ import { join } from "node:path";
 import type { Block } from "@lucid/core";
 import { registry } from "@lucid/kit";
 import { _electron as electron, expect, test, type Page } from "@playwright/test";
-import { maximizeWindow } from "./helpers";
+import { maximizeWindow, openPageActions } from "./helpers";
 
 /**
  * The page (the document with its diagrams and tables) has a light and dark of its own, apart from the app's: a dark app can
@@ -48,6 +48,7 @@ test("the page has its own light and dark, apart from the app's, and it is kept"
       .getByRole("button", { name: /Look/ })
       .click();
     await expect(page.locator(".page-editor svg g.node").first()).toBeVisible({ timeout: 20_000 });
+    await openPageActions(page);
 
     const toggle = page.getByRole("button", { name: /^Look of the page:/ });
     const nodeFill = () =>
@@ -84,6 +85,7 @@ test("the page has its own light and dark, apart from the app's, and it is kept"
       .getByRole("navigation", { name: "Pages" })
       .getByRole("button", { name: /Look/ })
       .click();
+    await openPageActions(page);
     await expect(page.locator(".editor-scroll[data-page-look='dark']")).toHaveCount(1);
 
     // A light page in a dark app (paper), chosen in Settings: the app follows the system, here made dark.

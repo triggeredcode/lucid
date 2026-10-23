@@ -87,15 +87,14 @@ test("one view that scales: the page, its text and the input box grow with the w
         };
       });
 
-    // The maximized window itself (what a person gets): everything fits, and a wide one shows the history by itself.
+    // The maximized window itself (what a person gets): everything fits, while History stays out of the way until asked for.
     const maximized = await measure();
     expect(maximized.overflow, "maximized: no horizontal scrolling").toBe(false);
     expect(maximized.barBottom, "maximized: the input box is on screen").toBeLessThanOrEqual(
       maximized.innerHeight,
     );
     expect(maximized.barRight).toBeLessThanOrEqual(maximized.innerWidth);
-    if (maximized.innerWidth >= 1500)
-      await expect(page.getByRole("complementary", { name: "History" })).toBeVisible();
+    await expect(page.getByRole("complementary", { name: "History" })).toBeHidden();
     await page.screenshot({ path: join(__dirname, "../test-results/app-maximized.png") });
 
     const sizes = [

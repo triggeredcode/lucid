@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { COMMAND_DOC } from "@lucid/llm";
 import { _electron as electron, expect, test } from "@playwright/test";
-import { autoSaveDialog, maximizeWindow } from "./helpers";
+import { autoSaveDialog, maximizeWindow, openPageActions } from "./helpers";
 
 test("the page can be saved as Markdown, from the button and by voice", async () => {
   test.setTimeout(60_000);
@@ -23,6 +23,7 @@ test("the page can be saved as Markdown, from the button and by voice", async ()
     await expect(page.locator(".page-editor")).toContainText("MongoDB");
 
     const path = await autoSaveDialog(app);
+    await openPageActions(page);
     await page.getByRole("button", { name: "Markdown" }).click();
     await expect(page.getByText(/^Saved page\.pdf/)).toBeVisible();
     const md = readFileSync(path, "utf8");

@@ -76,6 +76,9 @@
   --r2: 12px;
   --r3: 16px;
   --wrap: 1120px;
+  --sans:
+    Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display",
+    "Segoe UI", Helvetica, Arial, sans-serif;
   --mono: "iA Writer Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
 }
@@ -157,8 +160,9 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--ink);
-  font-family: var(--mono);
+  font-family: var(--sans);
   font-size: var(--t0);
+  letter-spacing: -0.005em;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
@@ -866,15 +870,15 @@ h3 {
  * palette can be reverted without disturbing typography, spacing, or the thought-to-structure diagram above.
  */
 a {
-  text-decoration-color: var(--structure-line);
+  text-decoration-color: var(--ink-3);
 }
 a:hover,
 .nav a:hover {
-  text-decoration-color: var(--structure);
-  color: var(--structure);
+  color: var(--ink);
+  text-decoration-color: var(--ink);
 }
 :focus-visible {
-  outline-color: var(--structure);
+  outline-color: var(--ink);
 }
 .btn.primary,
 .tabs button[aria-selected="true"] {
@@ -883,14 +887,14 @@ a:hover,
   color: var(--structure-ink);
 }
 .hero::before {
-  background-image: radial-gradient(var(--structure-line) 1px, transparent 1px);
+  background-image: radial-gradient(var(--line-strong) 1px, transparent 1px);
 }
 .eyebrow {
-  border-color: var(--structure-line);
-  background: var(--structure-bg);
+  border-color: var(--line);
+  background: var(--bg);
 }
 .eyebrow i {
-  background: var(--structure);
+  background: var(--ok);
 }
 .steps li {
   border-top-color: var(--structure);
@@ -899,18 +903,18 @@ a:hover,
   color: var(--structure);
 }
 .eval-decision {
-  border-color: var(--decision-line);
-  box-shadow: inset 3px 0 0 var(--decision);
+  border-color: var(--line);
+  box-shadow: none;
   padding-inline: var(--s5);
-  background: var(--decision-bg);
+  background: var(--panel);
 }
 .eval-decision strong,
 .eval-table tbody tr:first-child .eval-verdict {
   color: var(--decision);
 }
 #agents .code {
-  border-color: var(--data-line);
-  box-shadow: inset 3px 0 0 var(--data);
+  border-color: var(--line);
+  box-shadow: none;
 }
 
 /* ---- how it works ---- */
@@ -954,52 +958,6 @@ a:hover,
   .steps {
     grid-template-columns: minmax(0, 1fr);
   }
-}
-
-/* ---- quiet product surface experiment -----------------------------------
- * Keep colour inside diagrams and status marks. Reading, navigation and cards stay neutral,
- * with the same sans-serif product voice as the desktop application.
- */
-:root {
-  --sans:
-    Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display",
-    "Segoe UI", Helvetica, Arial, sans-serif;
-}
-body {
-  font-family: var(--sans);
-  letter-spacing: -0.005em;
-}
-code,
-kbd,
-pre {
-  font-family: var(--mono);
-}
-.hero::before {
-  background-image: radial-gradient(var(--line-strong) 1px, transparent 1px);
-}
-.eyebrow {
-  border-color: var(--line);
-  background: var(--bg);
-}
-.eyebrow i {
-  background: var(--ok);
-}
-a {
-  text-decoration-color: var(--ink-3);
-}
-a:hover,
-.nav a:hover {
-  color: var(--ink);
-  text-decoration-color: var(--ink);
-}
-:focus-visible {
-  outline-color: var(--ink);
-}
-.eval-decision,
-#agents .code {
-  border-color: var(--line);
-  background: var(--panel);
-  box-shadow: none;
 }
 
 /* ---- feature rows ---- */
