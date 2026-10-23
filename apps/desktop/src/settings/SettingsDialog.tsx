@@ -8,11 +8,9 @@ import {
 } from "../../electron/ipc/types";
 import {
   setFont,
-  setPalette,
   setPageLook,
   setTheme,
   useAppearance,
-  type PaletteChoice,
   type ThemeChoice,
   type Typeface,
 } from "../theme/appearance";
@@ -32,11 +30,6 @@ const FONT_OPTIONS: { value: Typeface; label: string }[] = [
   { value: "mono", label: "Mono" },
   { value: "sans", label: "Sans" },
   { value: "serif", label: "Serif" },
-];
-const PALETTE_OPTIONS: { value: PaletteChoice; label: string; detail: string }[] = [
-  { value: "lucid", label: "Lucid", detail: "Cobalt · violet · green" },
-  { value: "solar", label: "Solar", detail: "Blue · coral · amber" },
-  { value: "neutral", label: "Neutral", detail: "Quiet monochrome" },
 ];
 
 /** A row of one-of-several choices in the look of the Appearance rows. */
@@ -206,33 +199,6 @@ export function SettingsDialog({ settings, onClose, onOpenOnboarding }: Props) {
 
           <fieldset className="appearance">
             <legend>Appearance</legend>
-            <div className="setting-row palette-setting">
-              <span id="palette-label">Colour</span>
-              <div className="palette-options" role="radiogroup" aria-labelledby="palette-label">
-                {PALETTE_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    className="palette-option"
-                    role="radio"
-                    aria-checked={appearance.palette === option.value}
-                    data-palette-preview={option.value}
-                    onClick={() => {
-                      setPalette(option.value);
-                    }}
-                  >
-                    <span className="palette-swatches" aria-hidden="true">
-                      <i />
-                      <i />
-                      <i />
-                      <i />
-                    </span>
-                    <strong>{option.label}</strong>
-                    <small>{option.detail}</small>
-                  </button>
-                ))}
-              </div>
-            </div>
             <div className="setting-row">
               <span id="theme-label">Theme</span>
               <div className="segmented" role="radiogroup" aria-labelledby="theme-label">
@@ -315,9 +281,9 @@ export function SettingsDialog({ settings, onClose, onOpenOnboarding }: Props) {
               </div>
             </div>
             <small>
-              Applied at once. Lucid colour and Mono are the defaults. The page can be light or dark
-              whatever the app is; the look of PDFs is set below. Block numbers (B1, B2…) sit in the
-              page margin; say “in block 3, …” to talk about one.
+              Applied at once. Mono is the default. The page can be light or dark whatever the app
+              is; the look of PDFs is set below. Block numbers (B1, B2…) sit in the page margin; say
+              “in block 3, …” to talk about one.
             </small>
           </fieldset>
 

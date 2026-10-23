@@ -147,11 +147,6 @@ try {
   await page.locator(".page-editor svg g.node").first().waitFor({ timeout: 20_000 });
   await page.waitForTimeout(800);
 
-  // History is intentionally closed on a normal first launch. Open it for the
-  // feature and guide captures so the annotated screenshot still documents it.
-  await page.getByRole("button", { name: "History" }).click();
-  await page.getByRole("complementary", { name: "History" }).waitFor();
-
   /** The window as it is, with the three round buttons where the real ones sit on a Mac. */
   const shoot = async () => {
     // Not hovering anything, so no row shows its delete button.
