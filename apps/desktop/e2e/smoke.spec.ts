@@ -15,9 +15,8 @@ test("a fresh install opens a window with an empty library and a New page button
     await expect(window).toHaveTitle("Lucid");
     await expect(window.getByText("No pages yet.")).toBeVisible();
     await expect(window.getByRole("button", { name: "+ New page" })).toBeVisible();
-    // A person who has just installed Lucid is told what to do first.
-    await expect(window.getByText("Start LM Studio")).toBeVisible();
-    await expect(window.getByText("Help → Lucid Guide")).toBeVisible();
+    // The empty state stays focused on the only action that matters.
+    await expect(window.getByRole("heading", { name: "Start with a page." })).toBeVisible();
   } finally {
     await app.close();
   }

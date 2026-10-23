@@ -1,5 +1,5 @@
 /*
- * Lucid's look: a neutral writing surface with a small semantic palette, in light and dark, set in monospace by default.
+ * Lucid's look: a neutral writing surface with a small semantic palette, in light and dark, set in a quiet sans-serif by default.
  *
  * The colours are Notion's own neutral ramp (text #2c2c2b on white, #f0efed on #191919 in the dark theme; warm greys for
  * lines, hovers and panels). Surfaces are flat and separated by hairlines, buttons are quiet (6 px corners, no gloss),
@@ -66,7 +66,7 @@
     ui-sans-serif, -apple-system, system-ui, "Segoe UI Variable Display", "Segoe UI",
     "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
-  --font: var(--font-mono);
+  --font: var(--font-sans);
   --mono: var(--font-mono);
   font-family: var(--font);
   color: var(--ink);
@@ -290,24 +290,6 @@ select:focus-visible,
     align-items: stretch;
     flex-direction: column;
   }
-}
-.first-steps {
-  max-width: 46ch;
-  margin: 28px auto 0;
-  padding-left: 1.4em;
-  text-align: left;
-  color: var(--ink-2);
-  line-height: 1.6;
-}
-.first-steps li {
-  margin: 6px 0;
-}
-.first-steps b {
-  color: var(--ink);
-}
-.first-steps-help {
-  color: var(--ink-3);
-  font-size: 13px;
 }
 .blank {
   margin: auto;
@@ -2828,6 +2810,245 @@ select:focus-visible,
   }
 }
 
+/* ---- modern workspace experiment ----
+ * Keep the writing surface primary. Setup is a short choice; instruction continues beside
+ * the real controls. Colour marks focus and state, never an entire decorative region.
+ */
+.workspace-menu {
+  position: relative;
+}
+.workspace-menu > summary {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: var(--ink-2);
+  cursor: default;
+  list-style: none;
+}
+.workspace-menu > summary::-webkit-details-marker {
+  display: none;
+}
+.workspace-menu > summary:hover,
+.workspace-menu[open] > summary {
+  border-color: var(--line);
+  background: var(--hover);
+  color: var(--ink);
+}
+.workspace-menu-popover {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 244px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+  box-shadow: var(--shadow-pop);
+}
+.workspace-menu-section {
+  display: flex;
+  gap: 4px;
+  padding: 4px 4px 8px;
+  border-bottom: 1px solid var(--line);
+}
+.workspace-menu-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 9px;
+  min-height: 34px;
+  padding: 7px 9px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+}
+.workspace-menu-item:hover {
+  background: var(--hover);
+}
+.workspace-menu-export .export {
+  display: grid;
+  gap: 1px;
+  padding-top: 2px;
+}
+.workspace-menu-export .export > button {
+  justify-content: flex-start;
+  width: 100%;
+  min-height: 34px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+}
+.workspace-menu-export .export > button:hover {
+  background: var(--hover);
+}
+.workspace-menu-export .export-note {
+  margin: 5px 8px;
+}
+
+.onboarding-backdrop {
+  padding: 24px;
+  backdrop-filter: blur(5px);
+}
+.modal.onboarding.onboarding-minimal {
+  display: flex;
+  width: min(680px, 100%);
+  height: auto;
+  min-height: 0;
+  max-height: calc(100vh - 48px);
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--line) 78%, transparent);
+  border-radius: 14px;
+  background: var(--bg);
+}
+.onboarding-minimal .onboarding-header {
+  display: flex;
+  min-height: 58px;
+  align-items: center;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--line-2);
+}
+.onboarding-minimal .onboarding-header .icon-button {
+  margin-left: auto;
+}
+.onboarding-minimal .onboarding-brand {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.onboarding-minimal .onboarding-content {
+  width: 100%;
+  padding: clamp(36px, 7vw, 64px);
+}
+.onboarding-minimal .onboarding-content h1 {
+  max-width: 16ch;
+  margin: 0 0 14px;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: clamp(31px, 5vw, 44px);
+  font-weight: 680;
+  letter-spacing: -0.04em;
+  line-height: 1.06;
+}
+.onboarding-minimal .onboarding-lead {
+  max-width: 52ch;
+  margin: 0;
+  color: var(--ink-2);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+}
+.onboarding-facts {
+  display: grid;
+  gap: 8px;
+  margin: 28px 0 0;
+  padding: 0;
+  color: var(--ink-2);
+  font-size: 13px;
+  list-style: none;
+}
+.onboarding-facts li::before {
+  content: "";
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin: 0 11px 2px 0;
+  border-radius: 50%;
+  background: var(--ok);
+}
+.onboarding-choice {
+  display: flex;
+  gap: 9px;
+  margin-top: 34px;
+}
+.onboarding-choice .primary,
+.onboarding-choice .ghost {
+  min-height: 40px;
+  padding-inline: 16px;
+  border-radius: 8px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+}
+.onboarding-minimal .onboarding-back {
+  margin: 0 0 24px;
+  color: var(--ink-2);
+}
+.onboarding-minimal .onboarding-provider .provider-settings {
+  margin-top: 28px;
+}
+.onboarding-minimal .onboarding-readiness {
+  border: 0;
+  background: var(--bg-2);
+}
+.provider-choice {
+  justify-content: flex-end;
+}
+
+.first-success-guide {
+  width: min(320px, calc(100vw - 28px));
+  padding: 16px;
+  border-radius: 10px;
+  font-family: var(--font-sans);
+}
+.first-success-guide[data-anchored="true"] {
+  right: auto;
+}
+.first-success-guide .tour-progress {
+  margin: 0 28px 5px 0;
+  color: var(--ink-3);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.first-success-guide .tour-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+.first-success-guide h2 {
+  margin: 0 26px 6px 0;
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.tour-target {
+  position: relative;
+  z-index: 31;
+  outline: 2px solid var(--ink) !important;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+@media (max-width: 620px) {
+  .onboarding-backdrop {
+    align-items: end;
+    padding: 10px;
+  }
+  .modal.onboarding.onboarding-minimal {
+    width: 100%;
+    border-radius: 14px;
+  }
+  .onboarding-minimal .onboarding-content {
+    padding: 34px 24px 28px;
+  }
+  .onboarding-choice {
+    flex-direction: column;
+  }
+  .onboarding-choice > button {
+    width: 100%;
+  }
+}
+
 /* ---- semantic colour layer -------------------------------------------------
  * This is intentionally isolated from the neutral layout rules above. Removing this block and the semantic tokens in the
  * two theme declarations restores Lucid's earlier monochrome UI without changing markup, settings, or document data.
@@ -2839,45 +3060,35 @@ select:focus-visible,
 }
 
 .page-row[data-active="true"] {
-  border-color: var(--structure-line);
-  box-shadow:
-    var(--shadow-sm),
-    inset 3px 0 0 var(--structure);
+  border-color: var(--panel-line);
+  box-shadow: var(--shadow-sm);
 }
 .page-row[data-active="true"] .file-body {
-  fill: var(--structure-bg);
-  stroke: var(--structure);
+  fill: var(--inverse-bg);
+  stroke: var(--inverse-bg);
 }
 .page-row[data-active="true"] .file-fold,
-.page-row[data-active="true"] .file-lines,
-.block-no[aria-expanded="true"] {
-  stroke: var(--structure);
-  color: var(--structure);
+.page-row[data-active="true"] .file-lines {
+  stroke: var(--inverse-ink);
 }
 
 .dictation[data-mode="input"] .dictation-box {
-  border-color: var(--structure-line);
-  box-shadow:
-    var(--shadow-box),
-    inset 3px 0 0 var(--structure);
+  border-color: var(--line);
+  box-shadow: var(--shadow-box);
 }
 .dictation[data-mode="command"] .dictation-box {
-  border-color: var(--data-line);
-  box-shadow:
-    var(--shadow-box),
-    inset 3px 0 0 var(--data);
+  border-color: var(--line);
+  box-shadow: var(--shadow-box);
 }
 .dictation[data-mode="input"] .dictation-box:focus-within {
   box-shadow:
-    0 0 0 2px var(--structure-bg),
-    var(--shadow-box),
-    inset 3px 0 0 var(--structure);
+    0 0 0 2px var(--ring),
+    var(--shadow-box);
 }
 .dictation[data-mode="command"] .dictation-box:focus-within {
   box-shadow:
-    0 0 0 2px var(--data-bg),
-    var(--shadow-box),
-    inset 3px 0 0 var(--data);
+    0 0 0 2px var(--ring),
+    var(--shadow-box);
 }
 .dictation[data-mode="input"] .send:not(:disabled) {
   background: var(--structure);

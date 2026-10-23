@@ -194,29 +194,11 @@ function Shell() {
           />
         ) : pages.ready ? (
           <div className="blank">
-            <h1>Think out loud. Lucid writes it up.</h1>
-            <p>
-              Say or type what you’re learning. Lucid turns it into notes, diagrams and tables, and
-              makes the PDF.
-            </p>
+            <h1>Start with a page.</h1>
+            <p>Write freely. Structure can come later.</p>
             <button className="primary big" type="button" onClick={() => void createFirstPage()}>
               + New page
             </button>
-            <ol className="first-steps">
-              <li>
-                <b>Start LM Studio</b> and load a model. The pill at the top says when it is ready.
-              </li>
-              <li>
-                <b>Make a page</b> and say or type what you’re learning.
-              </li>
-              <li>
-                <b>Download PDF</b> when it looks right. The first one takes a few minutes: Lucid
-                gets its typesetting files once.
-              </li>
-            </ol>
-            <p className="first-steps-help">
-              New here? Help → Lucid Guide explains every part of the window.
-            </p>
           </div>
         ) : null}
       </main>

@@ -18,11 +18,11 @@ describe("a saved appearance", () => {
     expect(parseFont("sans")).toBe("sans");
   });
 
-  it("falls back to the system's theme and the mono type when there is none or it is unknown", () => {
+  it("falls back to the system's theme and the sans type when there is none or it is unknown", () => {
     expect(parseTheme(null)).toBe("system");
     expect(parseTheme("purple")).toBe("system");
-    expect(parseFont(null)).toBe("mono");
-    expect(parseFont("comic")).toBe("mono");
+    expect(parseFont(null)).toBe("sans");
+    expect(parseFont("comic")).toBe("sans");
   });
 });
 

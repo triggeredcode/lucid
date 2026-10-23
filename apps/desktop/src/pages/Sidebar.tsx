@@ -72,7 +72,7 @@ export function Sidebar({
           <Icon name="chevrons-left" />
         </button>
       </div>
-      <button className="new-page" type="button" onClick={onCreate}>
+      <button className="new-page" type="button" data-tour="new-page" onClick={onCreate}>
         <Icon name="plus" /> New page
       </button>
       <button className="new-from" type="button" onClick={onCreateFrom}>

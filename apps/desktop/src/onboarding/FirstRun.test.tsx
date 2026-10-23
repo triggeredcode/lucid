@@ -73,23 +73,23 @@ describe("FirstRun", () => {
       await Promise.resolve();
     });
     expect(container.querySelector('[role="dialog"]')).not.toBeNull();
-    expect(container.querySelector("h1")?.textContent).toBe("Speak or type the messy version.");
+    expect(container.querySelector("h1")?.textContent).toBe(
+      "Start with the thought, not the setup.",
+    );
 
     const next = [...container.querySelectorAll("button")].find(
-      (button) => button.textContent === "Set up Lucid",
+      (button) => button.textContent === "Connect AI",
     );
     await act(async () => {
       next?.click();
       await Promise.resolve();
     });
-    expect(container.querySelector("h1")?.textContent).toBe("Connect an AI provider");
+    expect(container.querySelector("h1")?.textContent).toBe("Connect AI");
     expect(
       [...container.querySelectorAll("legend")].some((item) => item.textContent === "AI providers"),
     ).toBe(true);
 
-    const skip = [...container.querySelectorAll("button")].find(
-      (button) => button.textContent === "Skip setup",
-    );
+    const skip = container.querySelector<HTMLButtonElement>('[aria-label="Skip setup"]');
     act(() => {
       skip?.click();
     });
@@ -116,20 +116,21 @@ describe("FirstRun", () => {
     document.body.append(container);
     root = createRoot(container);
     const view = container;
+    const finish = vi.fn();
 
     await act(async () => {
-      root?.render(<FirstRun settings={settings} onSettingsChange={vi.fn()} onFinish={vi.fn()} />);
+      root?.render(<FirstRun settings={settings} onSettingsChange={vi.fn()} onFinish={finish} />);
       await Promise.resolve();
     });
     await act(async () => {
       [...view.querySelectorAll("button")]
-        .find((button) => button.textContent === "Set up Lucid")
+        .find((button) => button.textContent === "Connect AI")
         ?.click();
       await Promise.resolve();
     });
 
     const normalContinue = [...container.querySelectorAll("button")].find(
-      (button) => button.textContent === "Continue",
+      (button) => button.textContent === "Use this provider",
     );
     expect(normalContinue?.disabled).toBe(true);
     await act(async () => {
@@ -139,7 +140,7 @@ describe("FirstRun", () => {
       await Promise.resolve();
     });
 
-    expect(container.querySelector("h1")?.textContent).toBe("Everything happens around one page");
+    expect(finish).toHaveBeenCalledWith(true);
     expect(loadActivationProgress().provider).toBe("skipped");
   });
 
@@ -178,7 +179,7 @@ describe("FirstRun", () => {
     });
     await act(async () => {
       [...view.querySelectorAll("button")]
-        .find((button) => button.textContent === "Set up Lucid")
+        .find((button) => button.textContent === "Connect AI")
         ?.click();
       await Promise.resolve();
     });
@@ -191,9 +192,9 @@ describe("FirstRun", () => {
 
     expect(
       container.querySelector('.onboarding-readiness[data-state="ready"]')?.textContent,
-    ).toContain("AI ready");
+    ).toContain("Ready");
     const normalContinue = [...container.querySelectorAll("button")].find(
-      (button) => button.textContent === "Continue",
+      (button) => button.textContent === "Use this provider",
     );
     expect(normalContinue?.disabled).toBe(false);
     expect(loadActivationProgress().provider).toBe("ready");
@@ -223,11 +224,12 @@ describe("FirstRun", () => {
       await Promise.resolve();
     });
 
-    expect(container.querySelector("h1")?.textContent).toBe("Connect an AI provider");
+    expect(container.querySelector("h1")?.textContent).toBe("Connect AI");
     expect(container.querySelector('.onboarding-readiness[data-state="ready"]')).not.toBeNull();
     expect(
-      [...container.querySelectorAll("button")].find((button) => button.textContent === "Continue")
-        ?.disabled,
+      [...container.querySelectorAll("button")].find(
+        (button) => button.textContent === "Use this provider",
+      )?.disabled,
     ).toBe(false);
   });
 });
