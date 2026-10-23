@@ -41,7 +41,7 @@ function sideOpenAtStart(): boolean {
   } catch {
     // Remembering is a convenience only.
   }
-  return false;
+  return window.innerWidth >= 1500;
 }
 
 /** The text of a heading block, lower-cased, to tell whether a section is already there. */

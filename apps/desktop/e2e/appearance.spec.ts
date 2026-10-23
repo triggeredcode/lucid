@@ -11,13 +11,13 @@ import {
 } from "@playwright/test";
 import { autoSaveDialog, downloadPdf, maximizeWindow } from "./helpers";
 
-/** Crisp light and dark surfaces with semantic signal colours, set in monospace. */
-const LIGHT = { bg: "rgb(251, 252, 255)", ink: "rgb(17, 19, 24)" };
+/** Neutral light and dark surfaces with semantic accents, set in monospace: values are read from the page's own styles. */
+const LIGHT = { bg: "rgb(255, 255, 255)", ink: "rgb(44, 44, 43)" };
 const DARK = {
-  bg: "rgb(17, 19, 26)",
-  ink: "rgb(247, 248, 255)",
-  structure: "rgb(125, 162, 255)",
-  structureInk: "rgb(12, 16, 32)",
+  bg: "rgb(25, 25, 25)",
+  ink: "rgb(240, 239, 237)",
+  structure: "rgb(140, 180, 255)",
+  structureInk: "rgb(25, 25, 25)",
 };
 
 async function launch(): Promise<{ app: ElectronApplication; page: Page }> {
@@ -57,7 +57,6 @@ test("it is light by default, the sidebar's moon switches to dark, and the choic
     expect(await style(page, "body", "background-color")).toBe(LIGHT.bg);
     expect(await style(page, "body", "color")).toBe(LIGHT.ink);
     expect(await style(page, "body", "font-family")).toContain("iA Writer Mono");
-    await expect(page.getByRole("complementary", { name: "History" })).toHaveCount(0);
     await page.screenshot({ path: join(__dirname, "../test-results/appearance-light.png") });
 
     await page.getByRole("button", { name: "Switch to dark mode" }).click();
@@ -85,11 +84,11 @@ test("the page's text and its diagram follow the theme at once, and the PDF does
   try {
     // The page body is in the app's type, not BlockNote's own.
     expect(await style(page, ".page-editor .bn-editor", "font-family")).toContain("iA Writer Mono");
-    expect(await labelFill(page)).toBe("rgb(255, 255, 255)");
+    expect(await labelFill(page)).toBe(LIGHT.bg);
 
     await page.getByRole("button", { name: "Switch to dark mode" }).click();
     // The drawing is made again in the dark look (no reload): the label behind the words is the page's colour.
-    await expect.poll(() => labelFill(page)).toBe("rgb(25, 25, 25)");
+    await expect.poll(() => labelFill(page)).toBe(DARK.bg);
     expect(await style(page, ".page-editor .bn-editor", "color")).toBe(DARK.ink);
 
     // A PDF made in the dark theme is the same white page with the house style.
@@ -109,11 +108,6 @@ test("Settings: Theme follows the system when asked to, and Type changes the fac
     const dialog = page.getByRole("dialog", { name: "Settings" });
     const theme_ = dialog.getByRole("radiogroup", { name: "Theme" });
     const type = dialog.getByRole("radiogroup", { name: "Type" });
-    const colour = dialog.getByRole("radiogroup", { name: "Colour" });
-    await expect(colour.getByRole("radio", { name: /Lucid/ })).toHaveAttribute(
-      "aria-checked",
-      "true",
-    );
     await expect(theme_.getByRole("radio", { name: "System" })).toHaveAttribute(
       "aria-checked",
       "true",
@@ -139,9 +133,6 @@ test("Settings: Theme follows the system when asked to, and Type changes the fac
     expect(await style(page, ".page-editor .bn-editor", "font-family")).toContain("ui-serif");
     await type.getByRole("radio", { name: "Mono" }).click();
     expect(await style(page, ".page-editor .bn-editor", "font-family")).toContain("iA Writer Mono");
-    await colour.getByRole("radio", { name: /Solar/ }).click();
-    expect(await page.evaluate(() => document.documentElement.dataset["palette"])).toBe("solar");
-    await colour.getByRole("radio", { name: /Lucid/ }).click();
     await page.screenshot({ path: join(__dirname, "../test-results/appearance-settings.png") });
   } finally {
     await app.close();

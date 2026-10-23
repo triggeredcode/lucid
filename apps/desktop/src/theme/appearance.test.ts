@@ -1,12 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  parseFont,
-  parsePageLook,
-  parsePalette,
-  parseTheme,
-  resolvePageLook,
-  resolveTheme,
-} from "./appearance";
+import { parseFont, parsePageLook, parseTheme, resolvePageLook, resolveTheme } from "./appearance";
 
 describe("resolveTheme", () => {
   it("follows the system only when asked to", () => {
@@ -23,8 +16,6 @@ describe("a saved appearance", () => {
     expect(parseTheme("light")).toBe("light");
     expect(parseFont("serif")).toBe("serif");
     expect(parseFont("sans")).toBe("sans");
-    expect(parsePalette("solar")).toBe("solar");
-    expect(parsePalette("neutral")).toBe("neutral");
   });
 
   it("falls back to the system's theme and the mono type when there is none or it is unknown", () => {
@@ -32,8 +23,6 @@ describe("a saved appearance", () => {
     expect(parseTheme("purple")).toBe("system");
     expect(parseFont(null)).toBe("mono");
     expect(parseFont("comic")).toBe("mono");
-    expect(parsePalette(null)).toBe("lucid");
-    expect(parsePalette("rainbow")).toBe("lucid");
   });
 });
 

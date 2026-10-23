@@ -6,7 +6,6 @@ import { useSyncExternalStore } from "react";
  */
 export type ThemeChoice = "light" | "dark" | "system";
 export type Typeface = "mono" | "sans" | "serif";
-export type PaletteChoice = "lucid" | "solar" | "neutral";
 export type Resolved = "light" | "dark";
 /**
  * The look of the page itself (the document, its diagrams and tables), apart from the app around it: "auto" is the app's own,
@@ -18,17 +17,14 @@ export interface Appearance {
   theme: ThemeChoice;
   font: Typeface;
   pageLook: PageLookChoice;
-  palette: PaletteChoice;
 }
 
 const THEME_KEY = "lucid.theme";
 const FONT_KEY = "lucid.font";
 const PAGE_LOOK_KEY = "lucid.pageLook";
-const PALETTE_KEY = "lucid.palette";
 const THEMES: readonly ThemeChoice[] = ["light", "dark", "system"];
 const FONTS: readonly Typeface[] = ["mono", "sans", "serif"];
 const PAGE_LOOKS: readonly PageLookChoice[] = ["auto", "light", "dark"];
-const PALETTES: readonly PaletteChoice[] = ["lucid", "solar", "neutral"];
 
 const pick = <T extends string>(allowed: readonly T[], value: string | null, fallback: T): T =>
   allowed.find((a) => a === value) ?? fallback;
@@ -39,8 +35,6 @@ export const parseFont = (value: string | null): Typeface => pick(FONTS, value, 
 /** A saved page look, or the app's own when there is none or it is not one of ours. */
 export const parsePageLook = (value: string | null): PageLookChoice =>
   pick(PAGE_LOOKS, value, "auto");
-/** A saved colour system, or Lucid's signal palette when there is none or it is not one of ours. */
-export const parsePalette = (value: string | null): PaletteChoice => pick(PALETTES, value, "lucid");
 
 /** The look the page is shown in: its own choice, or the app's when it follows the app. */
 export const resolvePageLook = (choice: PageLookChoice, app: Resolved): Resolved =>
@@ -70,7 +64,7 @@ const media = (): MediaQueryList | undefined =>
     ? window.matchMedia("(prefers-color-scheme: dark)")
     : undefined;
 
-let state: Appearance = { theme: "system", font: "mono", pageLook: "auto", palette: "lucid" };
+let state: Appearance = { theme: "system", font: "mono", pageLook: "auto" };
 let resolved: Resolved = "light";
 const listeners = new Set<() => void>();
 
@@ -80,7 +74,6 @@ function apply(): void {
   root.dataset["theme"] = resolved;
   root.dataset["themeChoice"] = state.theme;
   root.dataset["font"] = state.font;
-  root.dataset["palette"] = state.palette;
   for (const listener of listeners) listener();
 }
 
@@ -90,7 +83,6 @@ export function initAppearance(): void {
     theme: parseTheme(read(THEME_KEY)),
     font: parseFont(read(FONT_KEY)),
     pageLook: parsePageLook(read(PAGE_LOOK_KEY)),
-    palette: parsePalette(read(PALETTE_KEY)),
   };
   media()?.addEventListener("change", () => {
     if (state.theme === "system") apply();
@@ -113,12 +105,6 @@ export function setFont(font: Typeface): void {
 export function setPageLook(pageLook: PageLookChoice): void {
   state = { ...state, pageLook };
   write(PAGE_LOOK_KEY, pageLook);
-  apply();
-}
-
-export function setPalette(palette: PaletteChoice): void {
-  state = { ...state, palette };
-  write(PALETTE_KEY, palette);
   apply();
 }
 

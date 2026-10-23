@@ -9,7 +9,6 @@ import type {
 import { ProviderSettings } from "../settings/ProviderSettings";
 import { saveSettings } from "../settings/settingsStore";
 import { BrandMark } from "../ui/BrandMark";
-import { Icon } from "../ui/Icon";
 import { decideProvider, loadActivationProgress, rememberSetupStep } from "./activation";
 
 interface Props {
@@ -118,7 +117,6 @@ export function FirstRun({ settings, onSettingsChange, onFinish }: Props) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="onboarding-title"
-        data-step={step}
       >
         <aside className="onboarding-rail" aria-label="Setup progress">
           <div className="onboarding-brand">
@@ -128,7 +126,7 @@ export function FirstRun({ settings, onSettingsChange, onFinish }: Props) {
           <ol>
             {STEP_NAMES.map((name, index) => (
               <li key={name} data-current={step === index} data-done={step > index}>
-                <span>{step > index ? <Icon name="check" size={15} /> : index + 1}</span>
+                <span>{step > index ? "✓" : index + 1}</span>
                 {name}
               </li>
             ))}
@@ -147,39 +145,29 @@ export function FirstRun({ settings, onSettingsChange, onFinish }: Props) {
         <div className="onboarding-content">
           {step === 0 && (
             <div className="onboarding-welcome">
-              <div className="onboarding-welcome-copy">
-                <p className="onboarding-kicker">A quieter way to think</p>
-                <h1 id="onboarding-title" ref={heading} tabIndex={-1}>
-                  Speak or type the messy version.
-                </h1>
-                <p>
-                  Lucid turns it into a clear page, then helps you revise it, build diagrams and
-                  tables, and export the result.
-                </p>
-                <div className="onboarding-promise">
-                  <span>
-                    <Icon name="check" size={18} /> Your pages stay on this computer.
-                  </span>
-                  <span>
-                    <Icon name="check" size={18} /> AI is optional and always chosen by you.
-                  </span>
-                </div>
-              </div>
               <div className="thoughts-to-page" aria-hidden="true">
-                <div className="thought-cloud">
-                  <span className="thought thought-one">rough idea</span>
-                  <span className="thought thought-two">and then…</span>
-                  <span className="thought thought-three">connect these</span>
-                </div>
+                <span className="thought thought-one">rough idea</span>
+                <span className="thought thought-two">and then…</span>
+                <span className="thought thought-three">connect these</span>
                 <div className="thought-line" />
                 <div className="ordered-page">
-                  <span>Structured by Lucid</span>
                   <i />
                   <i />
                   <i />
                   <b />
                 </div>
-                <strong>Messy thought → clear page</strong>
+              </div>
+              <p className="onboarding-kicker">A quieter way to think</p>
+              <h1 id="onboarding-title" ref={heading} tabIndex={-1}>
+                Speak or type the messy version.
+              </h1>
+              <p>
+                Lucid turns it into a clear page, then helps you revise it, build diagrams and
+                tables, and export the result.
+              </p>
+              <div className="onboarding-promise">
+                <span>Your pages stay on this computer.</span>
+                <span>AI is optional and always chosen by you.</span>
               </div>
             </div>
           )}
