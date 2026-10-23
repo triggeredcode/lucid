@@ -30,8 +30,8 @@ const pick = <T extends string>(allowed: readonly T[], value: string | null, fal
   allowed.find((a) => a === value) ?? fallback;
 /** A saved theme, or the system's when there is none or it is not one of ours. */
 export const parseTheme = (value: string | null): ThemeChoice => pick(THEMES, value, "system");
-/** A saved typeface, or mono (the app's own) when there is none or it is not one of ours. */
-export const parseFont = (value: string | null): Typeface => pick(FONTS, value, "mono");
+/** A saved typeface, or the quiet system sans when there is none or it is not one of ours. */
+export const parseFont = (value: string | null): Typeface => pick(FONTS, value, "sans");
 /** A saved page look, or the app's own when there is none or it is not one of ours. */
 export const parsePageLook = (value: string | null): PageLookChoice =>
   pick(PAGE_LOOKS, value, "auto");
@@ -64,7 +64,7 @@ const media = (): MediaQueryList | undefined =>
     ? window.matchMedia("(prefers-color-scheme: dark)")
     : undefined;
 
-let state: Appearance = { theme: "system", font: "mono", pageLook: "auto" };
+let state: Appearance = { theme: "system", font: "sans", pageLook: "auto" };
 let resolved: Resolved = "light";
 const listeners = new Set<() => void>();
 

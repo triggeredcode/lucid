@@ -113,7 +113,7 @@ test("an agent reads and edits the open page through MCP: it shows up, is one un
     await expect(mongo).toHaveCSS("text-decoration-line", "line-through");
 
     // The open page is saved by the editor, with the agent's entry in its history.
-    await expect(page.getByRole("status").filter({ hasText: "Saved" })).toBeVisible({
+    await expect(page.locator(".save-note")).toHaveAttribute("data-state", "saved", {
       timeout: 15_000,
     });
     const saved = JSON.parse(

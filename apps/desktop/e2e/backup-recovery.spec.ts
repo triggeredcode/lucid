@@ -2,7 +2,7 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { _electron as electron, expect, test } from "@playwright/test";
-import { maximizeWindow } from "./helpers";
+import { maximizeWindow, openPageActions } from "./helpers";
 
 test("an automatic backup can be restored as a new page without replacing the current page", async () => {
   test.setTimeout(60_000);
@@ -23,6 +23,7 @@ test("an automatic backup can be restored as a new page without replacing the cu
     await page.reload();
     await expect(page.getByLabel("Page title")).toHaveValue("Current");
 
+    await openPageActions(page);
     await page.getByRole("button", { name: "Backups" }).click();
     const dialog = page.getByRole("dialog", { name: "Automatic backups" });
     await expect(dialog).toContainText("never replaces this one");

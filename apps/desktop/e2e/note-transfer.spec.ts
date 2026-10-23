@@ -10,7 +10,7 @@ import {
   type ElectronApplication,
   type Page,
 } from "@playwright/test";
-import { maximizeWindow, showHistory } from "./helpers";
+import { maximizeWindow, openPageActions, showHistory } from "./helpers";
 
 /**
  * A note leaves as one file with everything in it (what was said and the history too, unless the person leaves them out)
@@ -132,6 +132,7 @@ test("Export note saves the whole note, with what was said and the history, or o
 
     // The whole note.
     await saveTo(app, join(out, "whole.lucid"));
+    await openPageActions(page);
     await page.getByRole("button", { name: "Export note" }).click();
     await expect(exportDialog(page)).toBeVisible();
     await expect(exportDialog(page)).toContainText("2 things you said");
@@ -148,6 +149,7 @@ test("Export note saves the whole note, with what was said and the history, or o
 
     // Only the notes: nothing of what was said, nothing of the history.
     await saveTo(app, join(out, "clean.lucid"));
+    await openPageActions(page);
     await page.getByRole("button", { name: "Export note" }).click();
     await exportDialog(page).getByLabel("Include what I said and the change history").uncheck();
     await expect(exportDialog(page)).toContainText("stay with you");
@@ -173,12 +175,14 @@ test("Export note: cancelling saves nothing, and the Lucid folder itself is refu
     await app.evaluate(({ dialog }) => {
       dialog.showSaveDialog = () => Promise.resolve({ canceled: true, filePath: "" });
     });
+    await openPageActions(page);
     await page.getByRole("button", { name: "Export note" }).click();
     await exportDialog(page).getByRole("button", { name: "Export…" }).click();
     await expect(exportDialog(page)).toHaveCount(0);
     await expect(page.getByText(/^Saved .*\.lucid/)).toHaveCount(0);
 
     await saveTo(app, join(home, "inside.lucid"));
+    await openPageActions(page);
     await page.getByRole("button", { name: "Export note" }).click();
     await exportDialog(page).getByRole("button", { name: "Export…" }).click();
     await expect(page.getByText(/outside your Lucid folder/)).toBeVisible();
@@ -197,6 +201,7 @@ test("Import note brings a note into another library with its history, refuses b
     try {
       await seed(page);
       await saveTo(app, file);
+      await openPageActions(page);
       await page.getByRole("button", { name: "Export note" }).click();
       await exportDialog(page).getByRole("button", { name: "Export…" }).click();
       await expect(page.getByText("Saved scaling.lucid.")).toBeVisible();

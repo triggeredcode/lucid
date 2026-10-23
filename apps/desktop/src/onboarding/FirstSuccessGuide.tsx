@@ -1,3 +1,4 @@
+import { useEffect, useState, type CSSProperties } from "react";
 import {
   hasAiFirstSuccess,
   hasBasicFirstSuccess,
@@ -12,97 +13,128 @@ interface Props {
   onFinish: () => void;
 }
 
+interface TourStep {
+  title: string;
+  text: string;
+  target?: string;
+}
+
 const done = (progress: ActivationProgress, milestone: ActivationMilestone): boolean =>
   progress.milestones.includes(milestone);
 
-function nextStep(progress: ActivationProgress): { title: string; text: string } {
+function nextStep(progress: ActivationProgress): TourStep {
   if (!done(progress, "page-created")) {
     return {
-      title: "Create your first page",
-      text: "Start with a real Lucid page. Your progress will continue there.",
+      title: "Create a page",
+      text: "Start with a blank page. Lucid will keep the rest of this guide beside the action you need.",
+      target: '[data-tour="new-page"]',
     };
   }
   if (!done(progress, "content-added")) {
     return progress.provider === "ready"
       ? {
-          title: "Add your first thought",
-          text: "Stay in Input mode and type or speak a few sentences. Lucid will shape them into notes.",
+          title: "Add a thought",
+          text: "Type or speak a few sentences here, then press Enter.",
+          target: ".dictation-box textarea",
         }
       : {
-          title: "Add your first thought",
-          text: "Choose Edit mode and type directly on the page. You can connect an AI provider later in Settings.",
+          title: "Write on the page",
+          text: "Choose Edit, then type directly in the page. AI can be connected later.",
+          target: '.mode-option[data-mode="edit"]',
         };
   }
   if (progress.provider === "ready" && !done(progress, "command-applied")) {
     return {
-      title: "Make one change with AI",
-      text: "Switch to Command mode and ask Lucid to revise, organize, or clarify something already on the page.",
+      title: "Make one change",
+      text: "Choose Command and ask Lucid to revise something already on the page.",
+      target: '.mode-option[data-mode="command"]',
     };
   }
   if (progress.provider === "ready" && !done(progress, "visual-created")) {
     return {
-      title: "Build one visual",
-      text: "Open Diagram or Table mode, create something useful, then choose Done to add it to the page.",
+      title: "Build a visual",
+      text: "Choose Diagram or Table. Lucid will guide the structure one decision at a time.",
+      target: ".mode-option.build",
     };
   }
   if (!done(progress, "export-saved")) {
     return {
-      title: "Take your work with you",
-      text: "Export the page as Markdown or an editable .lucid note. PDF is available too when you need it.",
+      title: "Export when you are ready",
+      text: "Open page actions, then choose PDF, Markdown, or an editable Lucid note.",
+      target: ".workspace-menu > summary",
     };
   }
   return {
-    title: hasAiFirstSuccess(progress)
-      ? "You’ve completed the full Lucid flow"
-      : "Your first page is ready",
+    title: hasAiFirstSuccess(progress) ? "That is the full Lucid flow" : "Your first page is ready",
     text: hasAiFirstSuccess(progress)
-      ? "You created, shaped, visualized, and exported a real page."
-      : "You created, edited, and exported a real page. Connect an AI provider whenever you want the full flow.",
+      ? "You captured, revised, visualized, and exported a real page."
+      : "You created, edited, and exported a real page. Connect AI whenever you need it.",
   };
 }
 
+/** A contextual tour that points at the real control instead of describing a diagram of the app. */
 export function FirstSuccessGuide({ progress, onCreatePage, onPause, onFinish }: Props) {
   const step = nextStep(progress);
   const basicComplete = hasBasicFirstSuccess(progress);
-  const checks: { milestone: ActivationMilestone; label: string; optional?: boolean }[] = [
-    { milestone: "page-created", label: "Create a page" },
-    { milestone: "content-added", label: "Add content" },
-    ...(progress.provider === "ready"
-      ? [
-          { milestone: "command-applied" as const, label: "Use a command" },
-          { milestone: "visual-created" as const, label: "Build a diagram or table" },
-        ]
-      : []),
-    { milestone: "export-saved", label: "Save an export" },
-  ];
+  const [position, setPosition] = useState<CSSProperties>();
+
+  useEffect(() => {
+    if (!step.target) {
+      setPosition(undefined);
+      return;
+    }
+    const target = document.querySelector<HTMLElement>(step.target);
+    if (!target) {
+      setPosition(undefined);
+      return;
+    }
+    target.classList.add("tour-target");
+    const update = () => {
+      const rect = target.getBoundingClientRect();
+      const width = 320;
+      const left =
+        rect.right + width + 28 < window.innerWidth
+          ? rect.right + 14
+          : Math.min(Math.max(14, rect.left), window.innerWidth - width - 14);
+      const top =
+        rect.bottom + 190 < window.innerHeight ? rect.bottom + 12 : Math.max(14, rect.top - 174);
+      setPosition({ left, top });
+    };
+    update();
+    window.addEventListener("resize", update);
+    document.addEventListener("scroll", update, true);
+    return () => {
+      target.classList.remove("tour-target");
+      window.removeEventListener("resize", update);
+      document.removeEventListener("scroll", update, true);
+    };
+  }, [step.target]);
 
   return (
-    <aside className="first-success-guide" aria-label="First success guide">
-      <div className="first-success-heading">
-        <div>
-          <span className="eyebrow">First success</span>
-          <h2>{step.title}</h2>
-        </div>
-        <button type="button" className="icon-button" aria-label="Skip for now" onClick={onPause}>
-          ×
-        </button>
-      </div>
+    <aside
+      className="first-success-guide"
+      aria-label="First success guide"
+      data-anchored={position ? "true" : "false"}
+      style={position}
+    >
+      <button
+        type="button"
+        className="icon-button tour-close"
+        aria-label="Skip tour"
+        onClick={onPause}
+      >
+        ×
+      </button>
+      <p className="tour-progress">Getting started</p>
+      <h2>{step.title}</h2>
       <p>{step.text}</p>
-      <ul className="first-success-checklist">
-        {checks.map((item) => (
-          <li key={item.milestone} data-done={done(progress, item.milestone)}>
-            <span aria-hidden="true">{done(progress, item.milestone) ? "✓" : "○"}</span>
-            {item.label}
-          </li>
-        ))}
-      </ul>
       <div className="first-success-actions">
         <button type="button" className="link" onClick={onPause}>
-          Skip for now
+          Skip tour
         </button>
         {!done(progress, "page-created") ? (
           <button type="button" className="primary small" onClick={onCreatePage}>
-            Create my page
+            New page
           </button>
         ) : basicComplete ? (
           <button type="button" className="primary small" onClick={onFinish}>

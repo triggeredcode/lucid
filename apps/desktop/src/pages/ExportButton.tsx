@@ -1,6 +1,7 @@
 import { Icon } from "../ui/Icon";
 import { baseName, keys } from "../platform";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { makePdf, pdfFileName } from "../preview/exportPdf";
 import { docToMarkdown } from "@lucid/kit";
 import type { LucidDoc, LucidFile } from "@lucid/core";
@@ -127,7 +128,7 @@ export function ExportButton({
   };
   const runRef = useRef({ run, runMarkdown });
   runRef.current = { run, runMarkdown };
-  useEffect(() => {
+  useLayoutEffect(() => {
     register?.({
       pdf: () => {
         void runRef.current.run();
@@ -164,30 +165,35 @@ export function ExportButton({
 
   return (
     <div className="export" data-tour="export">
-      {engineNote && (
-        <span className="export-note" data-kind="busy" role="status">
-          {engineNote}
-        </span>
-      )}
-      {!engineNote && note && (
-        <span className="export-note" data-kind={note.kind} role="status">
-          {note.text}
-          {note.path && (
-            <>
-              {" "}
-              <button
-                type="button"
-                className="link"
-                onClick={() => {
-                  if (note.path) void window.lucid.pdf.open(note.path);
-                }}
-              >
-                Open
-              </button>
-            </>
-          )}
-        </span>
-      )}
+      {engineNote &&
+        createPortal(
+          <span className="export-note export-toast" data-kind="busy" role="status">
+            {engineNote}
+          </span>,
+          document.body,
+        )}
+      {!engineNote &&
+        note &&
+        createPortal(
+          <span className="export-note export-toast" data-kind={note.kind} role="status">
+            {note.text}
+            {note.path && (
+              <>
+                {" "}
+                <button
+                  type="button"
+                  className="link"
+                  onClick={() => {
+                    if (note.path) void window.lucid.pdf.open(note.path);
+                  }}
+                >
+                  Open
+                </button>
+              </>
+            )}
+          </span>,
+          document.body,
+        )}
       <button
         className="ghost small"
         type="button"
@@ -210,17 +216,19 @@ export function ExportButton({
       <button className="primary" type="button" onClick={() => void run()} disabled={busy}>
         <Icon name="download" /> {busy ? "Making PDF…" : "Download PDF"}
       </button>
-      {noteOpen && (
-        <ExportNoteDialog
-          title={title}
-          said={said}
-          changes={changes}
-          onClose={() => {
-            setNoteOpen(false);
-          }}
-          onExport={(history) => void runNote(history)}
-        />
-      )}
+      {noteOpen &&
+        createPortal(
+          <ExportNoteDialog
+            title={title}
+            said={said}
+            changes={changes}
+            onClose={() => {
+              setNoteOpen(false);
+            }}
+            onExport={(history) => void runNote(history)}
+          />,
+          document.body,
+        )}
     </div>
   );
 }

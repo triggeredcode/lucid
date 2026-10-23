@@ -122,7 +122,7 @@ test("one earlier change can be taken back while the others stay, as one undo st
     expect(await struck(page, "PostgreSQL")).toBe(true);
 
     // The way back is in the page file, so it is still there after a restart.
-    await expect(page.getByRole("status").filter({ hasText: "Saved" })).toBeVisible({
+    await expect(page.locator(".save-note")).toHaveAttribute("data-state", "saved", {
       timeout: 15_000,
     });
     const file = readdirSync(home).find((n) => n !== ".lucid" && n.endsWith(".lucid")) ?? "";
@@ -196,7 +196,7 @@ test("a change cannot be taken back after the block was edited by hand", async (
     await page.keyboard.type(" Atlas");
     // The typing has landed (the "Saved" shown before it started must not be taken for the one after it).
     await expect(item(page, "MongoDB Atlas")).toBeVisible();
-    await expect(page.getByRole("status").filter({ hasText: "Saved" })).toBeVisible({
+    await expect(page.locator(".save-note")).toHaveAttribute("data-state", "saved", {
       timeout: 15_000,
     });
     await expect(only.getByRole("button", { name: "Revert" })).toBeDisabled();

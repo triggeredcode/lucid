@@ -48,7 +48,7 @@ describe("FirstSuccessGuide", () => {
     const handlers = renderGuide(progress());
     if (!container) throw new Error("Guide was not rendered");
     const button = [...container.querySelectorAll("button")].find(
-      (item) => item.textContent === "Create my page",
+      (item) => item.textContent === "New page",
     );
     act(() => button?.click());
     expect(handlers.create).toHaveBeenCalledOnce();
@@ -56,8 +56,8 @@ describe("FirstSuccessGuide", () => {
 
   it("uses the offline route and finishes only after an export", () => {
     renderGuide(progress({ milestones: ["page-created"] }));
-    expect(container?.querySelector("h2")?.textContent).toBe("Add your first thought");
-    expect(container?.textContent).toContain("Choose Edit mode");
+    expect(container?.querySelector("h2")?.textContent).toBe("Write on the page");
+    expect(container?.textContent).toContain("Choose Edit");
 
     act(() => {
       root?.render(
@@ -77,7 +77,7 @@ describe("FirstSuccessGuide", () => {
 
   it("guides a ready provider through command and visual milestones", () => {
     renderGuide(progress({ provider: "ready", milestones: ["page-created", "content-added"] }));
-    expect(container?.querySelector("h2")?.textContent).toBe("Make one change with AI");
-    expect(container?.textContent).toContain("Build a diagram or table");
+    expect(container?.querySelector("h2")?.textContent).toBe("Make one change");
+    expect(container?.textContent).toContain("Choose Command");
   });
 });

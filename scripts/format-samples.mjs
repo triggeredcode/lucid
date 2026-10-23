@@ -78,6 +78,7 @@ try {
     await app.evaluate(({ dialog }, filePath) => {
       dialog.showSaveDialog = () => Promise.resolve({ canceled: false, filePath });
     }, pdf);
+    await page.locator('summary[aria-label="Page actions"]').click();
     await page.getByRole("button", { name: "Download PDF" }).click();
     await page.getByText(/^Saved /).waitFor({ timeout: 600_000 });
 

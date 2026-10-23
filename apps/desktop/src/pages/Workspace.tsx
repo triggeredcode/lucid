@@ -9,7 +9,7 @@ import {
   type LucidFile,
   type TranscriptEntry,
 } from "@lucid/core";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { DictationBar } from "../dictation/DictationBar";
 import { PageEditor, type EditorApi } from "../editor/PageEditor";
 import { DiagramWorkbench } from "../guided/DiagramWorkbench";
@@ -35,13 +35,11 @@ const SIDE_KEY = "lucid.history";
 
 function sideOpenAtStart(): boolean {
   try {
-    const saved = localStorage.getItem(SIDE_KEY);
-    if (saved === "open") return true;
-    if (saved === "closed") return false;
+    return localStorage.getItem(SIDE_KEY) === "open";
   } catch {
     // Remembering is a convenience only.
+    return false;
   }
-  return window.innerWidth >= 1500;
 }
 
 /** The text of a heading block, lower-cased, to tell whether a section is already there. */
@@ -98,7 +96,7 @@ export function Workspace({
     undefined,
   );
   // File → Export Note… (⇧⌘E) opens the same dialog as the button.
-  useEffect(
+  useLayoutEffect(
     () =>
       window.lucid.note.onMenu((action) => {
         if (action === "export-note") exportRef.current?.note();
@@ -405,8 +403,6 @@ export function Workspace({
             }}
           />
           <span className="spacer" />
-          <PageLookSwitch />
-          <ZoomChip />
           <LmStatusPill />
           <div className="save-note" data-state={saveState} role="status">
             {saveState === "saving" ? (
@@ -428,44 +424,54 @@ export function Workspace({
               "Saved"
             )}
           </div>
-          <div className="topbar-actions">
-            <button
-              type="button"
-              className="ghost small"
-              title="Restore an automatic backup as a new page"
-              onClick={() => {
-                setBackupsOpen(true);
-              }}
-            >
-              <Icon name="undo" /> <span className="btn-text">Backups</span>
-            </button>
-            <button
-              type="button"
-              className="ghost small"
-              aria-pressed={sideOpen}
-              title="Show or hide what you said and the changes to the page"
-              onClick={() => {
-                toggleSide(!sideOpen);
-              }}
-            >
-              <Icon name="history" /> <span className="btn-text">History</span>
-              {transcripts.length > 0 ? ` (${String(Math.min(transcripts.length, 99))})` : ""}
-            </button>
-            <ExportButton
-              pageId={file.id}
-              title={title}
-              doc={doc}
-              format={format}
-              info={info}
-              getNote={snapshot}
-              said={transcripts.length}
-              changes={changeLog.length}
-              register={registerExport}
-              onSaved={() => {
-                onActivationMilestone?.("export-saved");
-              }}
-            />
-          </div>
+          <details className="workspace-menu">
+            <summary className="icon-button" aria-label="Page actions" title="Page actions">
+              <Icon name="more" />
+            </summary>
+            <div className="workspace-menu-popover">
+              <div className="workspace-menu-section appearance-controls">
+                <PageLookSwitch />
+                <ZoomChip />
+              </div>
+              <button
+                type="button"
+                className="workspace-menu-item"
+                title="Restore an automatic backup as a new page"
+                onClick={() => {
+                  setBackupsOpen(true);
+                }}
+              >
+                <Icon name="undo" /> Backups
+              </button>
+              <button
+                type="button"
+                className="workspace-menu-item"
+                aria-pressed={sideOpen}
+                onClick={() => {
+                  toggleSide(!sideOpen);
+                }}
+              >
+                <Icon name="history" /> History
+                {transcripts.length > 0 ? ` (${String(Math.min(transcripts.length, 99))})` : ""}
+              </button>
+              <div className="workspace-menu-export">
+                <ExportButton
+                  pageId={file.id}
+                  title={title}
+                  doc={doc}
+                  format={format}
+                  info={info}
+                  getNote={snapshot}
+                  said={transcripts.length}
+                  changes={changeLog.length}
+                  register={registerExport}
+                  onSaved={() => {
+                    onActivationMilestone?.("export-saved");
+                  }}
+                />
+              </div>
+            </div>
+          </details>
         </header>
         <div
           className="editor-scroll"

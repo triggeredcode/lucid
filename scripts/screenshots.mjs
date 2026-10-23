@@ -259,6 +259,7 @@ try {
     await page.waitForTimeout(300);
 
     // The Export note dialog.
+    await page.locator('summary[aria-label="Page actions"]').click();
     await page.getByRole("button", { name: "Export note" }).click();
     const exporting = page.getByRole("dialog", { name: "Export note" });
     await exporting.waitFor();

@@ -8,7 +8,7 @@ import {
   type ElectronApplication,
   type Page,
 } from "@playwright/test";
-import { autoSaveDialog, maximizeWindow } from "./helpers";
+import { autoSaveDialog, maximizeWindow, openPageActions } from "./helpers";
 
 /**
  * The first PDF on a computer makes Tectonic download its typesetting files (hundreds, one at a time: about six minutes). The
@@ -64,6 +64,7 @@ test("the first start prepares the PDF engine in the background and says so, wit
 
     // Ready: a PDF is made at once, without a download.
     await autoSaveDialog(app);
+    await page.locator('summary[aria-label="Page actions"]').click();
     await page.getByRole("button", { name: "Download PDF" }).click();
     await expect(page.getByText(/^Saved page\.pdf/)).toBeVisible({ timeout: 30_000 });
   } finally {
@@ -77,6 +78,7 @@ test("a PDF asked for during the preparation waits for it, and shows what is hap
   try {
     await newPage(page, "Caching notes");
     await autoSaveDialog(app);
+    await openPageActions(page);
     const button = page.getByRole("button", { name: /PDF/ }).last();
     await button.click();
     await expect(button).toHaveText(/Making PDF/);

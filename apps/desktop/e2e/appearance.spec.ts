@@ -56,17 +56,18 @@ test("it is light by default, the sidebar's moon switches to dark, and the choic
     expect(await theme(page)).toBe("light");
     expect(await style(page, "body", "background-color")).toBe(LIGHT.bg);
     expect(await style(page, "body", "color")).toBe(LIGHT.ink);
-    expect(await style(page, "body", "font-family")).toContain("iA Writer Mono");
+    expect(await style(page, "body", "font-family")).toContain("ui-sans-serif");
     await page.screenshot({ path: join(__dirname, "../test-results/appearance-light.png") });
 
     await page.getByRole("button", { name: "Switch to dark mode" }).click();
     expect(await theme(page)).toBe("dark");
     expect(await style(page, "body", "background-color")).toBe(DARK.bg);
     expect(await style(page, "body", "color")).toBe(DARK.ink);
-    // Primary actions use the structure signal, with the neutral canvas preserved around them.
+    // Export is a quiet menu action; the neutral canvas is preserved around it.
+    await page.locator('summary[aria-label="Page actions"]').click();
     const download = page.getByRole("button", { name: "Download PDF" });
-    await expect(download).toHaveCSS("background-color", DARK.structure);
-    await expect(download).toHaveCSS("color", DARK.structureInk);
+    await expect(download).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+    await expect(download).toHaveCSS("color", DARK.ink);
     await expect(page.getByRole("button", { name: "Switch to light mode" })).toBeVisible();
     await page.screenshot({ path: join(__dirname, "../test-results/appearance-dark.png") });
 
@@ -83,7 +84,7 @@ test("the page's text and its diagram follow the theme at once, and the PDF does
   const { app, page } = await launch();
   try {
     // The page body is in the app's type, not BlockNote's own.
-    expect(await style(page, ".page-editor .bn-editor", "font-family")).toContain("iA Writer Mono");
+    expect(await style(page, ".page-editor .bn-editor", "font-family")).toContain("ui-sans-serif");
     expect(await labelFill(page)).toBe(LIGHT.bg);
 
     await page.getByRole("button", { name: "Switch to dark mode" }).click();
@@ -112,7 +113,7 @@ test("Settings: Theme follows the system when asked to, and Type changes the fac
       "aria-checked",
       "true",
     );
-    await expect(type.getByRole("radio", { name: "Mono" })).toHaveAttribute("aria-checked", "true");
+    await expect(type.getByRole("radio", { name: "Sans" })).toHaveAttribute("aria-checked", "true");
 
     // System follows the machine, also while the app runs.
     await page.emulateMedia({ colorScheme: "dark" });
