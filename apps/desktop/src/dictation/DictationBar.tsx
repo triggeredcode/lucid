@@ -254,7 +254,7 @@ export function DictationBar({
         {status.kind === "done" && (
           <>
             <span className="tick" aria-hidden="true">
-              ✓
+              <Icon name="check" size={14} />
             </span>
             <span>
               {status.summary}.{status.notice ? ` ${status.notice}` : ""}

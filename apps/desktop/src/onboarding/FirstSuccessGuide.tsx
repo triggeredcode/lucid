@@ -4,6 +4,7 @@ import {
   type ActivationMilestone,
   type ActivationProgress,
 } from "./activation";
+import { Icon } from "../ui/Icon";
 
 interface Props {
   progress: ActivationProgress;
@@ -91,7 +92,9 @@ export function FirstSuccessGuide({ progress, onCreatePage, onPause, onFinish }:
       <ul className="first-success-checklist">
         {checks.map((item) => (
           <li key={item.milestone} data-done={done(progress, item.milestone)}>
-            <span aria-hidden="true">{done(progress, item.milestone) ? "✓" : "○"}</span>
+            <span aria-hidden="true" data-done={done(progress, item.milestone)}>
+              {done(progress, item.milestone) && <Icon name="check" size={14} />}
+            </span>
             {item.label}
           </li>
         ))}

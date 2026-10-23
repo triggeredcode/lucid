@@ -27,6 +27,13 @@ test("a first run leads into a real first-success task", async () => {
     await expect(
       window.getByRole("heading", { name: "Speak or type the messy version." }),
     ).toBeVisible();
+    const onboarding = window.getByRole("dialog");
+    const frame = await onboarding.boundingBox();
+    expect(frame?.width ?? 0).toBeGreaterThan((frame?.height ?? 1) * 1.5);
+    expect(
+      await onboarding.evaluate((element) => element.scrollWidth <= element.clientWidth),
+      "the wide onboarding frame does not clip sideways",
+    ).toBe(true);
     await window.getByRole("button", { name: "Set up Lucid" }).click();
 
     await expect(window.getByRole("heading", { name: "Connect an AI provider" })).toBeVisible();
