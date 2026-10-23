@@ -1826,7 +1826,7 @@ select:focus-visible,
   max-height: calc(100vh - 64px);
   overflow: hidden;
   padding: 0;
-  border: 1px solid color-mix(in srgb, var(--structure) 35%, var(--line));
+  border: 1px solid var(--panel-line);
   border-radius: 24px;
 }
 .onboarding-rail {
@@ -1836,8 +1836,9 @@ select:focus-visible,
   gap: 28px;
   min-width: 0;
   padding: 0 30px;
-  background: var(--structure);
-  color: var(--structure-ink);
+  border-bottom: 1px solid var(--panel-line);
+  background: color-mix(in srgb, var(--panel) 72%, var(--bg));
+  color: var(--ink);
 }
 .onboarding-brand {
   display: flex;
@@ -1860,7 +1861,7 @@ select:focus-visible,
   display: flex;
   align-items: center;
   gap: 10px;
-  color: color-mix(in srgb, var(--structure-ink) 66%, transparent);
+  color: var(--ink-3);
   font-size: 13px;
   font-weight: 700;
 }
@@ -1869,31 +1870,31 @@ select:focus-visible,
   place-items: center;
   width: 23px;
   height: 23px;
-  border: 1px solid color-mix(in srgb, var(--structure-ink) 36%, transparent);
+  border: 1px solid var(--panel-line);
   border-radius: 50%;
   font-size: 11px;
 }
 .onboarding-rail li[data-current="true"] {
-  color: var(--structure-ink);
+  color: var(--ink);
   font-weight: 700;
 }
 .onboarding-rail li[data-current="true"] > span {
-  border-color: var(--structure-ink);
-  background: var(--structure-ink);
-  color: var(--structure);
+  border-color: var(--structure);
+  background: var(--structure);
+  color: var(--structure-ink);
 }
 .onboarding-rail li[data-done="true"] > span {
-  border-color: var(--structure-ink);
-  background: color-mix(in srgb, var(--structure-ink) 14%, transparent);
-  color: var(--structure-ink);
+  border-color: var(--structure-line);
+  background: var(--structure-bg);
+  color: var(--structure);
 }
 .onboarding-rail li[data-done="true"] .icon {
   stroke-width: 3;
 }
 .onboarding-skip {
   margin: 0;
-  color: var(--structure-ink);
-  text-decoration-color: color-mix(in srgb, var(--structure-ink) 48%, transparent);
+  color: var(--ink-2);
+  text-decoration-color: var(--ink-4);
 }
 .onboarding-content {
   display: flex;
@@ -1948,10 +1949,22 @@ select:focus-visible,
   min-height: 0;
   overflow: hidden;
   background:
-    radial-gradient(circle at 85% 16%, rgb(255 255 255 / 24%) 0 14%, transparent 14.5%),
-    radial-gradient(circle at 12% 88%, rgb(255 199 91 / 32%) 0 18%, transparent 18.5%),
-    linear-gradient(145deg, #2457ff 0%, #5c37ec 54%, #8a35d7 100%);
-  color: #fff;
+    radial-gradient(
+      circle at 85% 16%,
+      color-mix(in srgb, var(--data-bg) 72%, transparent) 0 14%,
+      transparent 14.5%
+    ),
+    radial-gradient(
+      circle at 12% 88%,
+      color-mix(in srgb, var(--attention-bg) 58%, transparent) 0 18%,
+      transparent 18.5%
+    ),
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--structure-bg) 72%, var(--bg)),
+      color-mix(in srgb, var(--data-bg) 54%, var(--bg))
+    );
+  color: var(--ink);
 }
 .thoughts-to-page::after {
   content: "";
@@ -1959,7 +1972,7 @@ select:focus-visible,
   inset: 12% -12% auto auto;
   width: 58%;
   aspect-ratio: 1;
-  border: 1px solid rgb(255 255 255 / 22%);
+  border: 1px solid color-mix(in srgb, var(--structure) 18%, transparent);
   border-radius: 50%;
 }
 .thought-cloud {
@@ -1970,13 +1983,13 @@ select:focus-visible,
   position: absolute;
   z-index: 2;
   padding: 10px 14px;
-  border: 1px solid rgb(255 255 255 / 56%);
+  border: 1px solid var(--panel-line);
   border-radius: 999px;
-  background: rgb(255 255 255 / 92%);
-  color: #33206b;
+  background: color-mix(in srgb, var(--bg) 94%, transparent);
+  color: var(--ink-2);
   font-size: 12px;
   font-weight: 700;
-  box-shadow: 0 12px 28px rgb(31 20 91 / 24%);
+  box-shadow: var(--shadow-sm);
   animation: thought-drift 5.5s ease-in-out infinite;
 }
 .thought-one {
@@ -1986,15 +1999,15 @@ select:focus-visible,
 .thought-two {
   top: 30%;
   left: 25%;
-  background: #fff0bd;
-  color: #724b00;
+  background: var(--attention-bg);
+  color: var(--attention);
   animation-delay: -1.8s;
 }
 .thought-three {
   top: 48%;
   left: 9%;
-  background: #c8ffe7;
-  color: #075b40;
+  background: var(--decision-bg);
+  color: var(--decision);
   animation-delay: -3.6s;
 }
 .thought-line {
@@ -2004,7 +2017,7 @@ select:focus-visible,
   left: 42%;
   width: 20%;
   height: 2px;
-  background: rgb(255 255 255 / 72%);
+  background: color-mix(in srgb, var(--structure) 62%, transparent);
   transform: rotate(12deg);
 }
 .thought-line::after {
@@ -2014,8 +2027,8 @@ select:focus-visible,
   right: 0;
   width: 7px;
   height: 7px;
-  border-top: 2px solid #fff;
-  border-right: 2px solid #fff;
+  border-top: 2px solid var(--structure);
+  border-right: 2px solid var(--structure);
   transform: rotate(45deg);
 }
 .ordered-page {
@@ -2027,10 +2040,10 @@ select:focus-visible,
   height: auto;
   aspect-ratio: 1.72;
   padding: 78px 30px 24px;
-  border: 1px solid rgb(255 255 255 / 58%);
+  border: 1px solid var(--panel-line);
   border-radius: 18px;
-  background: rgb(255 255 255 / 94%);
-  box-shadow: 0 28px 70px rgb(28 19 91 / 30%);
+  background: color-mix(in srgb, var(--bg) 96%, transparent);
+  box-shadow: 0 22px 52px rgb(18 24 40 / 14%);
 }
 .ordered-page::before {
   content: "";
@@ -2040,13 +2053,13 @@ select:focus-visible,
   width: 52%;
   height: 7px;
   border-radius: 999px;
-  background: #2457ff;
+  background: var(--structure);
 }
 .ordered-page > span {
   position: absolute;
   top: 20px;
   right: 28px;
-  color: #7134e8;
+  color: var(--data);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -2058,7 +2071,7 @@ select:focus-visible,
   height: 5px;
   margin: 0 0 15px;
   border-radius: 2px;
-  background: #dce3ff;
+  background: color-mix(in srgb, var(--structure) 12%, var(--panel-2));
   transform-origin: left;
   animation: page-line 1.4s ease-out both;
 }
@@ -2074,9 +2087,9 @@ select:focus-visible,
   display: block;
   width: 68%;
   height: 42px;
-  border: 2px solid #008a5a;
+  border: 2px solid color-mix(in srgb, var(--decision) 64%, var(--panel-line));
   border-radius: 8px;
-  background: #e7fff4;
+  background: var(--decision-bg);
   animation: page-line 1.4s 0.36s ease-out both;
 }
 .thoughts-to-page > strong {
@@ -2084,7 +2097,7 @@ select:focus-visible,
   z-index: 3;
   right: 8%;
   bottom: 5%;
-  color: #fff;
+  color: var(--ink-2);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.02em;
@@ -3126,8 +3139,8 @@ select:focus-visible,
 }
 
 .page-row[data-active="true"] {
-  border-color: var(--structure-line);
-  background: var(--structure-bg);
+  border-color: var(--panel-line);
+  background: var(--bg);
   box-shadow: var(--shadow-sm);
 }
 .page-row[data-active="true"] .file-body {
